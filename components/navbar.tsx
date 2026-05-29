@@ -19,18 +19,20 @@ import {
 } from "@/components/ui/sheet";
 
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { Input } from "@/components/ui/input";
+
+import { Menu, Search } from "lucide-react";
 
 export function Navbar() {
   return (
-    <nav className="border-b">
+    <nav className="border-b bg-background">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link href="/" className="text-xl font-bold">
           BuyFast
         </Link>
 
         {/* Desktop */}
-        <div className="hidden md:flex">
+        <div className="hidden items-center gap-6 md:flex">
           <NavigationMenu>
             <NavigationMenuList>
               <NavigationMenuItem>
@@ -61,9 +63,26 @@ export function Navbar() {
               </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
+
+          {/* Search */}
+          <div className="relative w-72">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+
+            <Input
+              type="search"
+              placeholder="Buscar productos"
+              className="pl-9"
+            />
+          </div>
+
+          {/* Auth buttons */}
+          <div className="flex items-center gap-2">
+            <Button variant="ghost">Sign In</Button>
+
+            <Button>Sign Up</Button>
+          </div>
         </div>
 
-        {/* Mobile */}
         {/* Mobile */}
         <div className="md:hidden">
           <Sheet>
@@ -83,6 +102,17 @@ export function Navbar() {
                   Universidad Autonoma de Santo Domingo
                 </SheetDescription>
               </SheetHeader>
+
+              {/* Mobile Search */}
+              <div className="relative mt-6">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+
+                <Input
+                  type="search"
+                  placeholder="Buscar productos"
+                  className="pl-9"
+                />
+              </div>
 
               {/* Links */}
               <div className="mt-6 flex flex-col gap-1">
