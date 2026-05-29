@@ -101,8 +101,6 @@ export default function Page() {
       ? PRODUCTS
       : PRODUCTS.filter((p) => p.category === activeCategory);
 
-  const cartCount = cart.reduce((s, i) => s + i.qty, 0);
-
   return (
     <div style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}>
       <Navbar />
