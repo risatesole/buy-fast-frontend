@@ -705,7 +705,6 @@ export default function Page() {
 
   return (
     <div style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}>
-      <NavBar cartCount={cartCount} onCartOpen={() => setCartOpen(true)} />
 
       <main>
         <Hero />
