@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { Navbar } from "@/components/navbar";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -90,116 +91,6 @@ const fmt = (n: number) =>
   );
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
-
-function NavBar({
-  cartCount,
-  onCartOpen,
-}: {
-  cartCount: number;
-  onCartOpen: () => void;
-}) {
-  return (
-    <header
-      style={{
-        position: "sticky",
-        top: 0,
-        zIndex: 50,
-        background: "oklch(1 0 0)",
-        borderBottom: "1px solid oklch(0.922 0 0)",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 1280,
-          margin: "0 auto",
-          padding: "0 2rem",
-          height: 64,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        {/* Logo */}
-        <a
-          href="#"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.55rem",
-            textDecoration: "none",
-          }}
-        >
-          <Image
-            src="/vercel.svg"
-            alt="BuyFast"
-            width={20}
-            height={20}
-            style={{ opacity: 0.85 }}
-          />
-          <span
-            style={{
-              fontFamily: "'Georgia', 'Times New Roman', serif",
-              fontWeight: 700,
-              fontSize: "1.15rem",
-              letterSpacing: "-0.03em",
-              color: "oklch(0.145 0 0)",
-            }}
-          >
-            buyfast
-          </span>
-        </a>
-
-        {/* Cart */}
-        <button
-          onClick={onCartOpen}
-          style={{
-            background: "none",
-            border: "1px solid oklch(0.922 0 0)",
-            borderRadius: 4,
-            cursor: "pointer",
-            padding: "0.45rem 1rem",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            fontFamily: "var(--font-geist-sans), sans-serif",
-            fontSize: "0.78rem",
-            letterSpacing: "0.05em",
-            color: "oklch(0.145 0 0)",
-            transition: "border-color 0.15s, background 0.15s",
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.background =
-              "oklch(0.97 0 0)";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.background = "none";
-          }}
-        >
-          <CartIcon />
-          {cartCount > 0 && (
-            <span
-              style={{
-                background: "oklch(0.145 0 0)",
-                color: "oklch(0.985 0 0)",
-                borderRadius: 999,
-                fontSize: "0.65rem",
-                fontWeight: 600,
-                minWidth: 18,
-                height: 18,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "0 4px",
-              }}
-            >
-              {cartCount}
-            </span>
-          )}
-        </button>
-      </div>
-    </header>
-  );
-}
 
 function Hero() {
   return (
@@ -705,7 +596,7 @@ export default function Page() {
 
   return (
     <div style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}>
-
+      <Navbar />
       <main>
         <Hero />
 
