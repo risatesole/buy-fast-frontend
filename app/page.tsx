@@ -8,6 +8,7 @@ import { Hero } from "@/components/hero";
 import type { Product } from "@/types/products";
 import type { CartItem } from "@/types/CartItem";
 import { CartDrawer } from "@/components/CartDrawer";
+import { ProductsSection } from "@/components/products-section";
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -108,89 +109,7 @@ export default function Page() {
       <main>
         <Hero />
 
-        {/* Products section */}
-        <section
-          id="products"
-          style={{
-            maxWidth: 1280,
-            margin: "0 auto",
-            padding: "4rem 2rem 6rem",
-          }}
-        >
-          {/* Section header */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "baseline",
-              marginBottom: "3rem",
-              flexWrap: "wrap",
-              gap: "1.25rem",
-            }}
-          >
-            <h2
-              style={{
-                fontFamily: "'Georgia', 'Times New Roman', serif",
-                fontWeight: 400,
-                fontSize: "1.65rem",
-                letterSpacing: "-0.02em",
-                color: "oklch(0.145 0 0)",
-              }}
-            >
-              The Collection
-            </h2>
-
-            {/* Category filter */}
-            <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap" }}>
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  style={{
-                    background:
-                      activeCategory === cat ? "oklch(0.145 0 0)" : "none",
-                    color:
-                      activeCategory === cat
-                        ? "oklch(0.985 0 0)"
-                        : "oklch(0.556 0 0)",
-                    border: "1px solid",
-                    borderColor:
-                      activeCategory === cat
-                        ? "oklch(0.145 0 0)"
-                        : "oklch(0.922 0 0)",
-                    borderRadius: 3,
-                    padding: "0.4rem 1rem",
-                    cursor: "pointer",
-                    fontFamily: "var(--font-geist-sans), sans-serif",
-                    fontSize: "0.72rem",
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    transition: "all 0.15s",
-                  }}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Grid */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-              gap: "2.5rem 2rem",
-            }}
-          >
-            {filtered.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAdd={addToCart}
-              />
-            ))}
-          </div>
-        </section>
+        <ProductsSection onAddToCart={addToCart} />
 
         {/* Editorial band */}
         <section
