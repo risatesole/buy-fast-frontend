@@ -64,29 +64,59 @@ export function Navbar() {
         </div>
 
         {/* Mobile */}
+        {/* Mobile */}
         <div className="md:hidden">
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon">
+              <Button variant="ghost" size="icon">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
 
-            <SheetContent side="right">
-              <SheetHeader>
-                <SheetTitle>Buyfast</SheetTitle>
-                <SheetDescription>
-                  Economato Universidad Autonoma de Santo Domingo
+            <SheetContent side="right" className="w-[280px] px-6">
+              <SheetHeader className="border-b pb-4">
+                <SheetTitle className="text-left text-lg font-semibold">
+                  BuyFast
+                </SheetTitle>
+
+                <SheetDescription className="text-left text-xs">
+                  Universidad Autonoma de Santo Domingo
                 </SheetDescription>
               </SheetHeader>
 
-              <div className="mt-6 flex flex-col gap-4">
-                <Link href="/">Home</Link>
-                <Link href="/about">About</Link>
-                <Link href="/contact">Contact</Link>
+              {/* Links */}
+              <div className="mt-6 flex flex-col gap-1">
+                <Link
+                  href="/"
+                  className="rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted"
+                >
+                  Home
+                </Link>
+
+                <Link
+                  href="/about"
+                  className="rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted"
+                >
+                  About
+                </Link>
+
+                <Link
+                  href="/contact"
+                  className="rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted"
+                >
+                  Contact
+                </Link>
+              </div>
+
+              {/* Auth buttons */}
+              <div className="mt-8 flex flex-col gap-3">
+                <Button variant="outline" className="w-full">
+                  Sign In
+                </Button>
+
+                <Button className="w-full">Sign Up</Button>
               </div>
             </SheetContent>
-
           </Sheet>
         </div>
       </div>
