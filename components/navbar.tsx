@@ -86,7 +86,7 @@ function CartSidebar() {
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
-    0
+    0,
   );
 
   function removeItem(id: number) {
@@ -106,14 +106,18 @@ function CartSidebar() {
         </Button>
       </SheetTrigger>
 
-      <SheetContent side="right" className="flex w-[340px] flex-col px-6 sm:w-[400px]">
+      <SheetContent
+        side="right"
+        className="flex w-[340px] flex-col px-6 sm:w-[400px]"
+      >
         <SheetHeader className="border-b pb-4">
           <SheetTitle className="flex items-center gap-2 text-lg font-semibold">
             <CartIcon className="h-5 w-5" />
             Carrito de Compras
           </SheetTitle>
           <SheetDescription className="text-xs text-muted-foreground">
-            {totalItems} {totalItems === 1 ? "producto" : "productos"} en tu carrito
+            {totalItems} {totalItems === 1 ? "producto" : "productos"} en tu
+            carrito
           </SheetDescription>
         </SheetHeader>
 
@@ -130,12 +134,16 @@ function CartSidebar() {
                 <li key={item.id} className="flex items-start gap-3">
                   {/* Product image */}
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted text-2xl">
-                    <span>{decodeURIComponent(item.image.split("text=")[1])}</span>
+                    <span>
+                      {decodeURIComponent(item.image.split("text=")[1])}
+                    </span>
                   </div>
 
                   {/* Info */}
                   <div className="flex flex-1 flex-col gap-1">
-                    <span className="text-sm font-medium leading-tight">{item.name}</span>
+                    <span className="text-sm font-medium leading-tight">
+                      {item.name}
+                    </span>
                     <span className="text-sm font-semibold">
                       ${(item.price * item.quantity).toFixed(2)}
                     </span>
@@ -221,7 +229,10 @@ export function Navbar() {
 
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
-                  <Link href="/contact" className="px-4 py-2 text-sm font-medium">
+                  <Link
+                    href="/contact"
+                    className="px-4 py-2 text-sm font-medium"
+                  >
                     Contact
                   </Link>
                 </NavigationMenuLink>
@@ -242,12 +253,12 @@ export function Navbar() {
           {/* Cart + Auth */}
           <div className="flex items-center gap-2">
             <CartSidebar />
-              <Link href="/signin">
-                <Button variant="ghost">Sign In</Button>
-              </Link>
-              <Link href="/signup">
-                <Button>Sign Up</Button>
-              </Link>
+            <Link href="/signin">
+              <Button variant="ghost">Sign In</Button>
+            </Link>
+            <Link href="/signup">
+              <Button>Sign Up</Button>
+            </Link>
           </div>
         </div>
 
