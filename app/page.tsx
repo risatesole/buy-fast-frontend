@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Navbar } from "@/components/navbar";
 import { CartDrawer } from "@/components/CartDrawer";
 
-import { HeroSection } from "@/components/childcomponents/home/sections/HeroSection";
+import { HeroSection } from "@/components/childcomponents/home/sections/hero";
 import { ProductsSection } from "@/components/childcomponents/home/product/products-section";
 
 import type { Product } from "@/types/products";
