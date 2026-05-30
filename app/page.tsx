@@ -299,7 +299,7 @@ export default function Page() {
 
       <main>
         <HeroSection
-          preheadline="Bienvenido"
+          preheadline="Universidad Autonoma de Santo Domingo Semestre 2026-02"
           headline="Todo lo que necesitas para tu vida *universitaria*"
         />
         <ProductsSection onAddToCart={handleAddToCart} />
