@@ -242,8 +242,12 @@ export function Navbar() {
           {/* Cart + Auth */}
           <div className="flex items-center gap-2">
             <CartSidebar />
-            <Button variant="ghost">Sign In</Button>
-            <Button>Sign Up</Button>
+              <Link href="/signin">
+                <Button variant="ghost">Sign In</Button>
+              </Link>
+              <Link href="/signup">
+                <Button>Sign Up</Button>
+              </Link>
           </div>
         </div>
 
