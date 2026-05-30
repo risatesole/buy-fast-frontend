@@ -2,104 +2,248 @@
 
 import { useState } from "react";
 
-import { ProductCard } from "@/components/childcomponents/home/product/product-card";
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-import type { Product } from "@/types/products";
-import type { CartItem } from "@/types/CartItem";
+type ProductCategory = "Books" | "Notebooks" | "Pens" | "College";
+
+type Product = {
+  id: number;
+  name: string;
+  category: ProductCategory;
+  price: number;
+  /** Optional label shown as a small badge on the card (e.g. "New", "Bestseller") */
+  badge?: string;
+};
+
+// ─── Data ─────────────────────────────────────────────────────────────────────
+
+const CATEGORIES = ["All", "Books", "Notebooks", "Pens", "College"] as const;
+type CategoryFilter = (typeof CATEGORIES)[number];
+
+const PRODUCTS: Product[] = [
+  // Books
+  { id: 1,  name: "Meditations — Marcus Aurelius",  category: "Books",     price: 12.99, badge: "Bestseller" },
+  { id: 2,  name: "Atomic Habits",                  category: "Books",     price: 16.50 },
+  { id: 3,  name: "The Elements of Style",           category: "Books",     price:  9.99 },
+  { id: 4,  name: "Deep Work",                       category: "Books",     price: 14.99 },
+  // Notebooks
+  { id: 5,  name: "Leuchtturm1917 A5 Dotted",        category: "Notebooks", price: 22.00, badge: "New" },
+  { id: 6,  name: "Moleskine Classic Ruled",          category: "Notebooks", price: 18.95 },
+  { id: 7,  name: "Rhodia Webnotebook",               category: "Notebooks", price: 19.50 },
+  { id: 8,  name: "Field Notes 3-Pack",               category: "Notebooks", price: 13.00 },
+  // Pens
+  { id: 9,  name: "Pilot G2 — 12 Pack",              category: "Pens",      price: 11.49, badge: "Bestseller" },
+  { id: 10, name: "Staedtler Triplus Fineliner",      category: "Pens",      price: 14.00 },
+  { id: 11, name: "Lamy Safari Fountain Pen",         category: "Pens",      price: 29.99, badge: "New" },
+  { id: 12, name: "Sakura Micron Set — 6pk",          category: "Pens",      price: 16.75 },
+  // College essentials
+  { id: 13, name: "Scientific Calculator FX-991",     category: "College",   price: 19.99 },
+  { id: 14, name: "Index Card Set — 200pk",           category: "College",   price:  5.49 },
+  { id: 15, name: "Binder Tabs — Assorted",           category: "College",   price:  4.99 },
+  { id: 16, name: "Mechanical Pencil 0.5mm — 5pk",   category: "College",   price:  8.50 },
+];
+
+// ─── ProductGlyph — category SVG icon ────────────────────────────────────────
+
+/** Renders a simple line-art icon matching the product's category. */
+function ProductGlyph({ category }: { category: ProductCategory }) {
+  const stroke = "oklch(0.708 0 0)";
+  const props = { width: 48, height: 48, viewBox: "0 0 24 24", fill: "none", stroke, strokeWidth: 1 } as const;
+
+  if (category === "Books")
+    return (
+      <svg {...props}>
+        <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
+        <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
+      </svg>
+    );
+
+  if (category === "Notebooks")
+    return (
+      <svg {...props}>
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="8" y1="13" x2="16" y2="13" />
+        <line x1="8" y1="17" x2="16" y2="17" />
+      </svg>
+    );
+
+  if (category === "Pens")
+    return (
+      <svg {...props}>
+        <line x1="12" y1="19" x2="12" y2="23" />
+        <path d="M6.34 17.66l-1.41-1.42 1.41-1.41" />
+        <path d="M17.66 17.66l1.41-1.42-1.41-1.41" />
+        <path d="M12 2L4.93 9.07a7 7 0 000 9.9L12 22l7.07-3.03a7 7 0 000-9.9L12 2z" />
+      </svg>
+    );
+
+  // College
+  return (
+    <svg {...props}>
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  );
+}
+
+// ─── Currency formatter ───────────────────────────────────────────────────────
+
+const formatPrice = (n: number) =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
+
+// ─── ProductCard (subcomponent, inlined) ─────────────────────────────────────
+
+type ProductCardProps = {
+  product: Product;
+  /** Called when the user clicks "Add to cart" */
+  onAdd: (product: Product) => void;
+};
+
+function ProductCard({ product, onAdd }: ProductCardProps) {
+  const [hovered, setHovered] = useState(false);
+  const [added, setAdded] = useState(false);
+
+  /** Flash "Added ✓" briefly, then reset the button label. */
+  const handleAdd = () => {
+    onAdd(product);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 900);
+  };
+
+  return (
+    <article
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        borderBottom: "1px solid oklch(0.922 0 0)",
+        paddingBottom: "2rem",
+        transition: "opacity 0.15s",
+      }}
+    >
+      {/* ── Visual placeholder with category glyph ── */}
+      <div
+        style={{
+          aspectRatio: "4/3",
+          background: hovered ? "oklch(0.97 0 0)" : "oklch(0.985 0 0)",
+          borderRadius: 4,
+          marginBottom: "1.25rem",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transition: "background 0.2s",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        <ProductGlyph category={product.category} />
+
+        {/* Badge (optional) — overlaid top-left of the image area */}
+        {product.badge && (
+          <span
+            style={{
+              position: "absolute",
+              top: 12,
+              left: 12,
+              background: "oklch(0.145 0 0)",
+              color: "oklch(0.985 0 0)",
+              fontSize: "0.6rem",
+              fontFamily: "var(--font-geist-sans), sans-serif",
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              padding: "3px 8px",
+              borderRadius: 2,
+            }}
+          >
+            {product.badge}
+          </span>
+        )}
+      </div>
+
+      {/* ── Category label ── */}
+      <p
+        style={{
+          fontFamily: "var(--font-geist-sans), sans-serif",
+          fontSize: "0.68rem",
+          letterSpacing: "0.12em",
+          textTransform: "uppercase",
+          color: "oklch(0.708 0 0)",
+          marginBottom: "0.4rem",
+        }}
+      >
+        {product.category}
+      </p>
+
+      {/* ── Product name ── */}
+      <h3
+        style={{
+          fontFamily: "'Georgia', 'Times New Roman', serif",
+          fontSize: "1rem",
+          fontWeight: 400,
+          lineHeight: 1.35,
+          color: "oklch(0.145 0 0)",
+          marginBottom: "0.75rem",
+          flexGrow: 1,
+        }}
+      >
+        {product.name}
+      </h3>
+
+      {/* ── Price + add-to-cart row ── */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginTop: "auto",
+        }}
+      >
+        <span
+          style={{
+            fontFamily: "var(--font-geist-mono), monospace",
+            fontSize: "0.92rem",
+            color: "oklch(0.205 0 0)",
+            fontWeight: 500,
+          }}
+        >
+          {formatPrice(product.price)}
+        </span>
+
+        <button
+          onClick={handleAdd}
+          aria-label={`Add ${product.name} to cart`}
+          style={{
+            background: added ? "oklch(0.439 0 0)" : "oklch(0.145 0 0)",
+            color: "oklch(0.985 0 0)",
+            border: "none",
+            borderRadius: 3,
+            padding: "0.45rem 1rem",
+            cursor: "pointer",
+            fontFamily: "var(--font-geist-sans), sans-serif",
+            fontSize: "0.72rem",
+            letterSpacing: "0.06em",
+            transition: "background 0.2s",
+          }}
+        >
+          {added ? "Added ✓" : "Add to cart"}
+        </button>
+      </div>
+    </article>
+  );
+}
+
+// ─── ProductsSection (main export) ───────────────────────────────────────────
 
 type ProductsSectionProps = {
+  /** Bubble the selected product up to a parent cart handler */
   onAddToCart: (product: Product) => void;
 };
 
-const CATEGORIES = ["All", "Books", "Notebooks", "Pens", "College"];
+export function ProductsSection({ onAddToCart }: ProductsSectionProps) {
+  const [activeCategory, setActiveCategory] = useState<CategoryFilter>("All");
 
-const PRODUCTS: Product[] = [
-  {
-    id: 1,
-    name: "Meditations — Marcus Aurelius",
-    category: "Books",
-    price: 12.99,
-    badge: "Bestseller",
-  },
-  { id: 2, name: "Atomic Habits", category: "Books", price: 16.5 },
-  { id: 3, name: "The Elements of Style", category: "Books", price: 9.99 },
-  { id: 4, name: "Deep Work", category: "Books", price: 14.99 },
-
-  {
-    id: 5,
-    name: "Leuchtturm1917 A5 Dotted",
-    category: "Notebooks",
-    price: 22.0,
-    badge: "New",
-  },
-  {
-    id: 6,
-    name: "Moleskine Classic Ruled",
-    category: "Notebooks",
-    price: 18.95,
-  },
-  { id: 7, name: "Rhodia Webnotebook", category: "Notebooks", price: 19.5 },
-  { id: 8, name: "Field Notes 3-Pack", category: "Notebooks", price: 13.0 },
-
-  {
-    id: 9,
-    name: "Pilot G2 — 12 Pack",
-    category: "Pens",
-    price: 11.49,
-    badge: "Bestseller",
-  },
-  {
-    id: 10,
-    name: "Staedtler Triplus Fineliner",
-    category: "Pens",
-    price: 14.0,
-  },
-  {
-    id: 11,
-    name: "Lamy Safari Fountain Pen",
-    category: "Pens",
-    price: 29.99,
-    badge: "New",
-  },
-  {
-    id: 12,
-    name: "Sakura Micron Set — 6pk",
-    category: "Pens",
-    price: 16.75,
-  },
-
-  {
-    id: 13,
-    name: "Scientific Calculator FX-991",
-    category: "College",
-    price: 19.99,
-  },
-  {
-    id: 14,
-    name: "Index Card Set — 200pk",
-    category: "College",
-    price: 5.49,
-  },
-  {
-    id: 15,
-    name: "Binder Tabs — Assorted",
-    category: "College",
-    price: 4.99,
-  },
-  {
-    id: 16,
-    name: "Mechanical Pencil 0.5mm — 5pk",
-    category: "College",
-    price: 8.5,
-  },
-];
-
-export function ProductsSection({
-  onAddToCart,
-}: ProductsSectionProps) {
-  const [activeCategory, setActiveCategory] = useState("All");
-
-  const filtered =
+  const visibleProducts =
     activeCategory === "All"
       ? PRODUCTS
       : PRODUCTS.filter((p) => p.category === activeCategory);
@@ -107,13 +251,14 @@ export function ProductsSection({
   return (
     <section
       id="products"
+      aria-label="Product catalogue"
       style={{
         maxWidth: 1280,
         margin: "0 auto",
         padding: "4rem 2rem 6rem",
       }}
     >
-      {/* Section header */}
+      {/* ── Section header ── */}
       <div
         style={{
           display: "flex",
@@ -131,76 +276,59 @@ export function ProductsSection({
             fontSize: "1.65rem",
             letterSpacing: "-0.02em",
             color: "oklch(0.145 0 0)",
+            margin: 0,
           }}
         >
           The Collection
         </h2>
 
-        {/* Category filter */}
+        {/* ── Category filter pills ── */}
         <div
-          style={{
-            display: "flex",
-            gap: "0.35rem",
-            flexWrap: "wrap",
-          }}
+          role="group"
+          aria-label="Filter by category"
+          style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap" }}
         >
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              style={{
-                background:
-                  activeCategory === cat
-                    ? "oklch(0.145 0 0)"
-                    : "none",
-
-                color:
-                  activeCategory === cat
-                    ? "oklch(0.985 0 0)"
-                    : "oklch(0.556 0 0)",
-
-                border: "1px solid",
-
-                borderColor:
-                  activeCategory === cat
+          {CATEGORIES.map((category) => {
+            const isActive = activeCategory === category;
+            return (
+              <button
+                key={category}
+                onClick={() => setActiveCategory(category)}
+                aria-pressed={isActive}
+                style={{
+                  background: isActive ? "oklch(0.145 0 0)" : "none",
+                  color: isActive ? "oklch(0.985 0 0)" : "oklch(0.556 0 0)",
+                  border: "1px solid",
+                  borderColor: isActive
                     ? "oklch(0.145 0 0)"
                     : "oklch(0.922 0 0)",
-
-                borderRadius: 3,
-                padding: "0.4rem 1rem",
-                cursor: "pointer",
-
-                fontFamily:
-                  "var(--font-geist-sans), sans-serif",
-
-                fontSize: "0.72rem",
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                transition: "all 0.15s",
-              }}
-            >
-              {cat}
-            </button>
-          ))}
+                  borderRadius: 3,
+                  padding: "0.4rem 1rem",
+                  cursor: "pointer",
+                  fontFamily: "var(--font-geist-sans), sans-serif",
+                  fontSize: "0.72rem",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  transition: "all 0.15s",
+                }}
+              >
+                {category}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Grid */}
+      {/* ── Product grid ── */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns:
-            "repeat(auto-fill, minmax(220px, 1fr))",
-
+          gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
           gap: "2.5rem 2rem",
         }}
       >
-        {filtered.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            onAdd={onAddToCart}
-          />
+        {visibleProducts.map((product) => (
+          <ProductCard key={product.id} product={product} onAdd={onAddToCart} />
         ))}
       </div>
     </section>
