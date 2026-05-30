@@ -1,3 +1,28 @@
+function Slogan() {
+  return (
+    <>
+      <h1
+        style={{
+          fontFamily: "'Georgia', 'Times New Roman', serif",
+          fontSize: "clamp(2.5rem, 5vw, 4.25rem)",
+          fontWeight: 400,
+          lineHeight: 1.08,
+          letterSpacing: "-0.03em",
+          color: "oklch(0.145 0 0)",
+          margin: 0,
+        }}
+      >
+        Todo lo que
+        <br />
+        necesitas
+        <br />
+        para tu vida
+        <br />
+        <em>universitaria.</em>
+      </h1>
+    </>
+  );
+}
 
 export function Hero() {
   return (
@@ -26,25 +51,7 @@ export function Hero() {
         >
           Universidad Autonoma de Santo Domingo semestre 2026
         </p>
-        <h1
-          style={{
-            fontFamily: "'Georgia', 'Times New Roman', serif",
-            fontSize: "clamp(2.5rem, 5vw, 4.25rem)",
-            fontWeight: 400,
-            lineHeight: 1.08,
-            letterSpacing: "-0.03em",
-            color: "oklch(0.145 0 0)",
-            margin: 0,
-          }}
-        >
-          Todo lo que
-          <br />
-          necesitas
-          <br />
-          para tu vida
-          <br />
-          <em>universitaria.</em>
-        </h1>
+        <Slogan />
       </div>
     </section>
   );
