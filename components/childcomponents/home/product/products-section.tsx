@@ -5,37 +5,17 @@ import { useState } from "react";
 import type { Product } from "@/types/products";
 import type { ProductCategory } from "@/types/ProductCategory";
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
-
-const PRODUCTS: Product[] = [
-  // Books
-  { id: 1,  name: "Meditations — Marcus Aurelius",  category: "Books",     price: 12.99, badge: "Bestseller" },
-  { id: 2,  name: "Atomic Habits",                  category: "Books",     price: 16.50 },
-  { id: 3,  name: "The Elements of Style",           category: "Books",     price:  9.99 },
-  { id: 4,  name: "Deep Work",                       category: "Books",     price: 14.99 },
-  // Notebooks
-  { id: 5,  name: "Leuchtturm1917 A5 Dotted",        category: "Notebooks", price: 22.00, badge: "New" },
-  { id: 6,  name: "Moleskine Classic Ruled",          category: "Notebooks", price: 18.95 },
-  { id: 7,  name: "Rhodia Webnotebook",               category: "Notebooks", price: 19.50 },
-  { id: 8,  name: "Field Notes 3-Pack",               category: "Notebooks", price: 13.00 },
-  // Pens
-  { id: 9,  name: "Pilot G2 — 12 Pack",              category: "Pens",      price: 11.49, badge: "Bestseller" },
-  { id: 10, name: "Staedtler Triplus Fineliner",      category: "Pens",      price: 14.00 },
-  { id: 11, name: "Lamy Safari Fountain Pen",         category: "Pens",      price: 29.99, badge: "New" },
-  { id: 12, name: "Sakura Micron Set — 6pk",          category: "Pens",      price: 16.75 },
-  // College essentials
-  { id: 13, name: "Scientific Calculator FX-991",     category: "College",   price: 19.99 },
-  { id: 14, name: "Index Card Set — 200pk",           category: "College",   price:  5.49 },
-  { id: 15, name: "Binder Tabs — Assorted",           category: "College",   price:  4.99 },
-  { id: 16, name: "Mechanical Pencil 0.5mm — 5pk",   category: "College",   price:  8.50 },
-];
-
-// ─── ProductGlyph — category SVG icon ────────────────────────────────────────
-
 /** Renders a simple line-art icon matching the product's category. */
 function ProductGlyph({ category }: { category: ProductCategory }) {
   const stroke = "oklch(0.708 0 0)";
-  const props = { width: 48, height: 48, viewBox: "0 0 24 24", fill: "none", stroke, strokeWidth: 1 } as const;
+  const props = {
+    width: 48,
+    height: 48,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke,
+    strokeWidth: 1,
+  } as const;
 
   if (category === "Books")
     return (
@@ -76,7 +56,9 @@ function ProductGlyph({ category }: { category: ProductCategory }) {
 // ─── Currency formatter ───────────────────────────────────────────────────────
 
 const formatPrice = (n: number) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
+    n,
+  );
 
 // ─── ProductCard (subcomponent, inlined) ─────────────────────────────────────
 
@@ -225,9 +207,13 @@ function ProductCard({ product, onAdd }: ProductCardProps) {
 type ProductsSectionProps = {
   /** Bubble the selected product up to a parent cart handler */
   onAddToCart: (product: Product) => void;
+  products: Product[];
 };
 
-export function ProductsSection({ onAddToCart }: ProductsSectionProps) {
+export function ProductsSection({
+  onAddToCart,
+  products,
+}: ProductsSectionProps) {
   // Removed category filter state and logic - now showing all products directly
 
   return (
@@ -273,7 +259,7 @@ export function ProductsSection({ onAddToCart }: ProductsSectionProps) {
           gap: "2.5rem 2rem",
         }}
       >
-        {PRODUCTS.map((product) => (
+        {products.map((product) => (
           <ProductCard key={product.id} product={product} onAdd={onAddToCart} />
         ))}
       </div>

@@ -10,71 +10,6 @@ import { ProductsSection } from "@/components/childcomponents/home/product/produ
 import type { Product } from "@/types/products";
 import type { CartItem } from "@/types/CartItem";
 
-// ─── Static data ─────────────────────────────────────────────────────────────
-// These never change at runtime, so they live outside the component.
-
-const PRODUCTS: Product[] = [
-  {
-    id: 1,
-    name: "Meditations — Marcus Aurelius",
-    category: "Books",
-    price: 12.99,
-    badge: "Bestseller",
-  },
-  { id: 2, name: "Atomic Habits", category: "Books", price: 16.5 },
-  { id: 3, name: "The Elements of Style", category: "Books", price: 9.99 },
-  { id: 4, name: "Deep Work", category: "Books", price: 14.99 },
-  {
-    id: 5,
-    name: "Leuchtturm1917 A5 Dotted",
-    category: "Notebooks",
-    price: 22.0,
-    badge: "New",
-  },
-  {
-    id: 6,
-    name: "Moleskine Classic Ruled",
-    category: "Notebooks",
-    price: 18.95,
-  },
-  { id: 7, name: "Rhodia Webnotebook", category: "Notebooks", price: 19.5 },
-  { id: 8, name: "Field Notes 3-Pack", category: "Notebooks", price: 13.0 },
-  {
-    id: 9,
-    name: "Pilot G2 — 12 Pack",
-    category: "Pens",
-    price: 11.49,
-    badge: "Bestseller",
-  },
-  {
-    id: 10,
-    name: "Staedtler Triplus Fineliner",
-    category: "Pens",
-    price: 14.0,
-  },
-  {
-    id: 11,
-    name: "Lamy Safari Fountain Pen",
-    category: "Pens",
-    price: 29.99,
-    badge: "New",
-  },
-  { id: 12, name: "Sakura Micron Set — 6pk", category: "Pens", price: 16.75 },
-  {
-    id: 13,
-    name: "Scientific Calculator FX-991",
-    category: "College",
-    price: 19.99,
-  },
-  { id: 14, name: "Index Card Set — 200pk", category: "College", price: 5.49 },
-  { id: 15, name: "Binder Tabs — Assorted", category: "College", price: 4.99 },
-  {
-    id: 16,
-    name: "Mechanical Pencil 0.5mm — 5pk",
-    category: "College",
-    price: 8.5,
-  },
-];
 
 // Trust-badge data shown in the strip between products and footer.
 const TRUST_BADGES = [
@@ -303,7 +238,7 @@ export default function Page() {
           preheadline={Datamock.homepage.herosection.preheadline}
           headline={Datamock.homepage.herosection.headline}
         />
-        <ProductsSection onAddToCart={handleAddToCart} />
+        <ProductsSection onAddToCart={handleAddToCart} products={Datamock.homepage.productssection.products} />
         <TrustBadgeStrip />
       </main>
 
