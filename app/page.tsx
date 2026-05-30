@@ -1,10 +1,12 @@
 "use client";
-
 import { useState } from "react";
+
 import { Navbar } from "@/components/navbar";
-import { Hero } from "@/components/hero";
-import { ProductsSection } from "@/components/products-section";
 import { CartDrawer } from "@/components/CartDrawer";
+
+import { Hero } from "@/components/childcomponents/home/hero/hero";
+import { ProductsSection } from "@/components/childcomponents/home/product/products-section";
+
 import type { Product } from "@/types/products";
 import type { CartItem } from "@/types/CartItem";
 
