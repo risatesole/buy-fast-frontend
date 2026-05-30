@@ -7,9 +7,6 @@ import type { ProductCategory } from "@/types/ProductCategory";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
-const CATEGORIES = ["All", "Books", "Notebooks", "Pens", "College"] as const;
-type CategoryFilter = (typeof CATEGORIES)[number];
-
 const PRODUCTS: Product[] = [
   // Books
   { id: 1,  name: "Meditations — Marcus Aurelius",  category: "Books",     price: 12.99, badge: "Bestseller" },
@@ -231,12 +228,7 @@ type ProductsSectionProps = {
 };
 
 export function ProductsSection({ onAddToCart }: ProductsSectionProps) {
-  const [activeCategory, setActiveCategory] = useState<CategoryFilter>("All");
-
-  const visibleProducts =
-    activeCategory === "All"
-      ? PRODUCTS
-      : PRODUCTS.filter((p) => p.category === activeCategory);
+  // Removed category filter state and logic - now showing all products directly
 
   return (
     <section
@@ -271,42 +263,6 @@ export function ProductsSection({ onAddToCart }: ProductsSectionProps) {
         >
           The Collection
         </h2>
-
-        {/* ── Category filter pills ── */}
-        <div
-          role="group"
-          aria-label="Filter by category"
-          style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap" }}
-        >
-          {CATEGORIES.map((category) => {
-            const isActive = activeCategory === category;
-            return (
-              <button
-                key={category}
-                onClick={() => setActiveCategory(category)}
-                aria-pressed={isActive}
-                style={{
-                  background: isActive ? "oklch(0.145 0 0)" : "none",
-                  color: isActive ? "oklch(0.985 0 0)" : "oklch(0.556 0 0)",
-                  border: "1px solid",
-                  borderColor: isActive
-                    ? "oklch(0.145 0 0)"
-                    : "oklch(0.922 0 0)",
-                  borderRadius: 3,
-                  padding: "0.4rem 1rem",
-                  cursor: "pointer",
-                  fontFamily: "var(--font-geist-sans), sans-serif",
-                  fontSize: "0.72rem",
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  transition: "all 0.15s",
-                }}
-              >
-                {category}
-              </button>
-            );
-          })}
-        </div>
       </div>
 
       {/* ── Product grid ── */}
@@ -317,7 +273,7 @@ export function ProductsSection({ onAddToCart }: ProductsSectionProps) {
           gap: "2.5rem 2rem",
         }}
       >
-        {visibleProducts.map((product) => (
+        {PRODUCTS.map((product) => (
           <ProductCard key={product.id} product={product} onAdd={onAddToCart} />
         ))}
       </div>
