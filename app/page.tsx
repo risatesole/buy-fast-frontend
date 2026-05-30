@@ -10,7 +10,6 @@ import { ProductsSection } from "@/components/childcomponents/home/product/produ
 import type { Product } from "@/types/products";
 import type { CartItem } from "@/types/CartItem";
 
-
 // Trust-badge data shown in the strip between products and footer.
 const TRUST_BADGES = [
   { label: "Free Shipping", detail: "On orders over $35" },
@@ -203,6 +202,13 @@ function SiteFooter() {
 import { Datamock } from "@/mock/mock";
 
 export default function Page() {
+  
+  // cart drawer:
+  // ===============================================================================
+  // ===============================================================================
+  // ===============================================================================
+  // ===============================================================================
+  // ===============================================================================
   // `cart` holds the items the user has added. Starts empty.
   const [cart, setCart] = useState<CartItem[]>([]);
 
@@ -229,6 +235,13 @@ export default function Page() {
     setCartOpen(false);
   }
 
+  // ===============================================================================
+  // ===============================================================================
+  // ===============================================================================
+  // ===============================================================================
+  // ===============================================================================
+  // ===============================================================================
+
   return (
     <div style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}>
       <Navbar />
@@ -238,7 +251,10 @@ export default function Page() {
           preheadline={Datamock.homepage.herosection.preheadline}
           headline={Datamock.homepage.herosection.headline}
         />
-        <ProductsSection onAddToCart={handleAddToCart} products={Datamock.homepage.productssection.products} />
+        <ProductsSection
+          onAddToCart={handleAddToCart}
+          products={Datamock.homepage.productssection.products}
+        />
         <TrustBadgeStrip />
       </main>
 
