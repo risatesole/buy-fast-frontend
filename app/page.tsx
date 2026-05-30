@@ -265,6 +265,7 @@ function SiteFooter() {
 }
 
 // ─── Page component ───────────────────────────────────────────────────────────
+import { Datamock } from "@/mock/mock";
 
 export default function Page() {
   // `cart` holds the items the user has added. Starts empty.
@@ -299,8 +300,8 @@ export default function Page() {
 
       <main>
         <HeroSection
-          preheadline="Universidad Autonoma de Santo Domingo Semestre 2026-02"
-          headline="Todo lo que necesitas para tu vida *universitaria*"
+          preheadline={Datamock.homepage.herosection.preheadline}
+          headline={Datamock.homepage.herosection.headline}
         />
         <ProductsSection onAddToCart={handleAddToCart} />
         <TrustBadgeStrip />
