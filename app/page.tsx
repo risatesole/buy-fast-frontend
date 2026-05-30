@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Navbar } from "@/components/navbar";
 import { CartDrawer } from "@/components/CartDrawer";
 
-import { Hero } from "@/components/childcomponents/home/hero/hero";
+import { HeroSection } from "@/components/childcomponents/home/sections/HeroSection";
 import { ProductsSection } from "@/components/childcomponents/home/product/products-section";
 
 import type { Product } from "@/types/products";
@@ -14,29 +14,73 @@ import type { CartItem } from "@/types/CartItem";
 // These never change at runtime, so they live outside the component.
 
 const PRODUCTS: Product[] = [
-  { id: 1,  name: "Meditations — Marcus Aurelius",    category: "Books",     price: 12.99, badge: "Bestseller" },
-  { id: 2,  name: "Atomic Habits",                    category: "Books",     price: 16.50 },
-  { id: 3,  name: "The Elements of Style",            category: "Books",     price: 9.99  },
-  { id: 4,  name: "Deep Work",                        category: "Books",     price: 14.99 },
-  { id: 5,  name: "Leuchtturm1917 A5 Dotted",         category: "Notebooks", price: 22.00, badge: "New" },
-  { id: 6,  name: "Moleskine Classic Ruled",          category: "Notebooks", price: 18.95 },
-  { id: 7,  name: "Rhodia Webnotebook",               category: "Notebooks", price: 19.50 },
-  { id: 8,  name: "Field Notes 3-Pack",               category: "Notebooks", price: 13.00 },
-  { id: 9,  name: "Pilot G2 — 12 Pack",               category: "Pens",      price: 11.49, badge: "Bestseller" },
-  { id: 10, name: "Staedtler Triplus Fineliner",      category: "Pens",      price: 14.00 },
-  { id: 11, name: "Lamy Safari Fountain Pen",         category: "Pens",      price: 29.99, badge: "New" },
-  { id: 12, name: "Sakura Micron Set — 6pk",          category: "Pens",      price: 16.75 },
-  { id: 13, name: "Scientific Calculator FX-991",     category: "College",   price: 19.99 },
-  { id: 14, name: "Index Card Set — 200pk",           category: "College",   price: 5.49  },
-  { id: 15, name: "Binder Tabs — Assorted",           category: "College",   price: 4.99  },
-  { id: 16, name: "Mechanical Pencil 0.5mm — 5pk",   category: "College",   price: 8.50  },
+  {
+    id: 1,
+    name: "Meditations — Marcus Aurelius",
+    category: "Books",
+    price: 12.99,
+    badge: "Bestseller",
+  },
+  { id: 2, name: "Atomic Habits", category: "Books", price: 16.5 },
+  { id: 3, name: "The Elements of Style", category: "Books", price: 9.99 },
+  { id: 4, name: "Deep Work", category: "Books", price: 14.99 },
+  {
+    id: 5,
+    name: "Leuchtturm1917 A5 Dotted",
+    category: "Notebooks",
+    price: 22.0,
+    badge: "New",
+  },
+  {
+    id: 6,
+    name: "Moleskine Classic Ruled",
+    category: "Notebooks",
+    price: 18.95,
+  },
+  { id: 7, name: "Rhodia Webnotebook", category: "Notebooks", price: 19.5 },
+  { id: 8, name: "Field Notes 3-Pack", category: "Notebooks", price: 13.0 },
+  {
+    id: 9,
+    name: "Pilot G2 — 12 Pack",
+    category: "Pens",
+    price: 11.49,
+    badge: "Bestseller",
+  },
+  {
+    id: 10,
+    name: "Staedtler Triplus Fineliner",
+    category: "Pens",
+    price: 14.0,
+  },
+  {
+    id: 11,
+    name: "Lamy Safari Fountain Pen",
+    category: "Pens",
+    price: 29.99,
+    badge: "New",
+  },
+  { id: 12, name: "Sakura Micron Set — 6pk", category: "Pens", price: 16.75 },
+  {
+    id: 13,
+    name: "Scientific Calculator FX-991",
+    category: "College",
+    price: 19.99,
+  },
+  { id: 14, name: "Index Card Set — 200pk", category: "College", price: 5.49 },
+  { id: 15, name: "Binder Tabs — Assorted", category: "College", price: 4.99 },
+  {
+    id: 16,
+    name: "Mechanical Pencil 0.5mm — 5pk",
+    category: "College",
+    price: 8.5,
+  },
 ];
 
 // Trust-badge data shown in the strip between products and footer.
 const TRUST_BADGES = [
-  { label: "Free Shipping",     detail: "On orders over $35"      },
-  { label: "Same-Day Dispatch", detail: "Order before 2 PM"       },
-  { label: "Easy Returns",      detail: "30-day no-hassle policy" },
+  { label: "Free Shipping", detail: "On orders over $35" },
+  { label: "Same-Day Dispatch", detail: "Order before 2 PM" },
+  { label: "Easy Returns", detail: "30-day no-hassle policy" },
 ];
 
 // Footer links — kept as data so the JSX stays clean.
@@ -50,7 +94,10 @@ const FOOTER_LINKS = ["Privacy", "Terms", "Contact"];
  * - If the product is already in the cart its quantity is bumped by 1.
  * - Otherwise a new item (qty = 1) is appended.
  */
-function addProductToCart(currentCart: CartItem[], product: Product): CartItem[] {
+function addProductToCart(
+  currentCart: CartItem[],
+  product: Product,
+): CartItem[] {
   const existingItem = currentCart.find(function (item) {
     return item.id === product.id;
   });
@@ -73,7 +120,10 @@ function addProductToCart(currentCart: CartItem[], product: Product): CartItem[]
 /**
  * Returns a new cart array with the item matching `productId` removed.
  */
-function removeProductFromCart(currentCart: CartItem[], productId: number): CartItem[] {
+function removeProductFromCart(
+  currentCart: CartItem[],
+  productId: number,
+): CartItem[] {
   return currentCart.filter(function (item) {
     return item.id !== productId;
   });
@@ -148,7 +198,12 @@ function SiteFooter() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer style={{ borderTop: "1px solid oklch(0.922 0 0)", padding: "2.5rem 2rem" }}>
+    <footer
+      style={{
+        borderTop: "1px solid oklch(0.922 0 0)",
+        padding: "2.5rem 2rem",
+      }}
+    >
       <div
         style={{
           maxWidth: 1280,
@@ -243,7 +298,10 @@ export default function Page() {
       <Navbar />
 
       <main>
-        <Hero />
+        <HeroSection
+          preheadline="Bienvenido"
+          headline="Todo lo que necesitas para tu vida *universitaria*"
+        />
         <ProductsSection onAddToCart={handleAddToCart} />
         <TrustBadgeStrip />
       </main>
