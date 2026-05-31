@@ -43,8 +43,7 @@ export const SignupUser = async (
   }
 
   if (!response.ok) {
-    throw new Error("Failed to create user");
+    throw new Error(`Unknown error, Failed to create user, if the problem persists contact suppourt`);
   }
-
   return response.json();
 };
