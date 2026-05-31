@@ -4,7 +4,17 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { SignupUser } from "@/usecases/signupUser";
-import { saveToLocalStorage } from "@/utils/localstorage";
+
+import {
+  setLocalStorageUser,
+  setLocalStorageAccessToken,
+  setLocalStorageRefreshToken,
+} from "@/utils/localstorage/localstorageUser";
+import type {
+  LocalStorageUser,
+  LocalStorageAccessToken,
+  LocalStorageRefreshToken,
+} from "@/utils/localstorage/localstorageUser";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,9 +43,7 @@ export default function SignupPage() {
     terms: false,
   });
 
-  const handleSubmit = async (
-    event: React.FormEvent<HTMLFormElement>
-  ) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     try {
@@ -44,13 +52,35 @@ export default function SignupPage() {
 
       const response = await SignupUser(form);
 
-      saveToLocalStorage("token", response.token);
-      saveToLocalStorage("user", response.data.user);
+      const localstorageuser: LocalStorageUser = {
+        id: response.data.user.id,
+        firstname: response.data.user.firstname,
+        lastname: response.data.user.lastname,
+        email: response.data.user.email,
+      };
+
+      const localstorageaccesstoken: LocalStorageAccessToken = {
+        token: response.data.tokens.access_token.token,
+        expires_in: response.data.tokens.access_token.expires_in,
+        created_at: response.data.tokens.access_token.updated_at,
+      };
+
+      const localstoragerefreshtoken: LocalStorageRefreshToken = {
+        token: response.data.tokens.refresh_token.token,
+        expires_in: response.data.tokens.refresh_token.expires_in,
+        created_at: response.data.tokens.refresh_token.created_at,
+      };
+
+      setLocalStorageUser(localstorageuser);
+      setLocalStorageAccessToken(localstorageaccesstoken);
+      setLocalStorageRefreshToken(localstoragerefreshtoken)
 
       router.push("/");
     } catch (error) {
       console.error(error);
-      setError(error instanceof Error ? error.message : "Failed to create account");
+      setError(
+        error instanceof Error ? error.message : "Failed to create account",
+      );
     } finally {
       setLoading(false);
     }
@@ -62,21 +92,14 @@ export default function SignupPage() {
         <CardHeader>
           <CardTitle>Create Account</CardTitle>
 
-          <CardDescription>
-            Create your account to continue.
-          </CardDescription>
+          <CardDescription>Create your account to continue.</CardDescription>
         </CardHeader>
 
         <CardContent>
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-4"
-          >
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="firstname">
-                  First Name
-                </Label>
+                <Label htmlFor="firstname">First Name</Label>
 
                 <Input
                   id="firstname"
@@ -93,9 +116,7 @@ export default function SignupPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="lastname">
-                  Last Name
-                </Label>
+                <Label htmlFor="lastname">Last Name</Label>
 
                 <Input
                   id="lastname"
@@ -113,9 +134,7 @@ export default function SignupPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">
-                Email
-              </Label>
+              <Label htmlFor="email">Email</Label>
 
               <Input
                 id="email"
@@ -133,9 +152,7 @@ export default function SignupPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">
-                Phone
-              </Label>
+              <Label htmlFor="phone">Phone</Label>
 
               <Input
                 id="phone"
@@ -152,9 +169,7 @@ export default function SignupPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">
-                Password
-              </Label>
+              <Label htmlFor="password">Password</Label>
 
               <Input
                 id="password"
@@ -183,26 +198,19 @@ export default function SignupPage() {
                 }
               />
 
-              <Label
-                htmlFor="terms"
-                className="cursor-pointer"
-              >
+              <Label htmlFor="terms" className="cursor-pointer">
                 I accept the terms and conditions
               </Label>
             </div>
 
-            {error && (
-              <p className="text-sm text-red-500">{error}</p>
-            )}
+            {error && <p className="text-sm text-red-500">{error}</p>}
 
             <Button
               type="submit"
               className="w-full"
               disabled={loading || !form.terms}
             >
-              {loading
-                ? "Creating account..."
-                : "Create account"}
+              {loading ? "Creating account..." : "Create account"}
             </Button>
           </form>
         </CardContent>

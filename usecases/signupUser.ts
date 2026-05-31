@@ -7,21 +7,42 @@ export interface SignupRequest {
   terms: boolean;
 }
 
-export interface User {
+interface User {
   id: string;
   firstname: string;
   lastname: string;
   email: string;
-  createdat: string;
-  updatedat: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface session {
+  id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface tokens {
+  access_token: {
+    token: string;
+    expires_in: number;
+    updated_at: string;
+  };
+  refresh_token: {
+    token: string;
+    expires_in: number;
+    created_at: string;
+  };
 }
 
 export interface SignupResponse {
   success: boolean;
   message: string;
-  token: string;
   data: {
     user: User;
+    session: session;
+    tokens: tokens;
+    terms: boolean;
   };
 }
 
@@ -43,7 +64,9 @@ export const SignupUser = async (
   }
 
   if (!response.ok) {
-    throw new Error(`Unknown error, Failed to create user, if the problem persists contact suppourt`);
+    throw new Error(
+      `Unknown error, Failed to create user, if the problem persists contact suppourt`,
+    );
   }
   return response.json();
 };
