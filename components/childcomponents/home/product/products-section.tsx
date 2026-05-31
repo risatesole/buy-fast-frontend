@@ -3,10 +3,10 @@
 import { useState } from "react";
 
 import type { Product } from "@/types/products";
-import type { ProductCategory } from "@/types/ProductCategory";
+import type { HardCodedProductCategory } from "@/types/ProductCategory";
 
 /** Renders a simple line-art icon matching the product's category. */
-function ProductGlyph({ category }: { category: ProductCategory }) {
+function ProductGlyph({ category }: { category: HardCodedProductCategory }) {
   const stroke = "oklch(0.708 0 0)";
   const props = {
     width: 48,

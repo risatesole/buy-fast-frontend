@@ -1,4 +1,4 @@
-export type ProductCategory = "Books" | "Notebooks" | "Pens" | "College";
+export type HardCodedProductCategory = "Books" | "Notebooks" | "Pens" | "College";
 
 export type Category = {
     id: number;
