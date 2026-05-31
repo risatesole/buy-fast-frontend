@@ -1,59 +1,36 @@
-import { pb } from "@/server/pocketbase";
-
 export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    const { firstname, lastname, email, password } = body;
+    const backendUrl = process.env.BACKEND_URL;
 
-    const data = {
-      email,
-      emailVisibility: true,
-      firstname,
-      lastname,
-      password,
-      passwordConfirm: password,
-    };
+    if (!backendUrl) {
+      throw new Error("BACKEND_URL is not defined");
+    }
 
-    await pb.collection("users").create(data);
-
-    const authData = await pb
-      .collection("users")
-      .authWithPassword(email, password);
-
-    await pb.collection("users").requestVerification(email);
-
-    return Response.json(
-      {
-        success: true,
-        message: "User created successfully.",
-        token: authData.token,
-        data: {
-          user: {
-            id: authData.record.id,
-            firstname: authData.record.firstname,
-            lastname: authData.record.lastname,
-            email: authData.record.email,
-            createdat: authData.record.created,
-            updatedat: authData.record.updated
-          },
-        },
+    const response = await fetch(`${backendUrl}/api/v1/signup`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-      { status: 201 },
-    );
+      body: JSON.stringify(body),
+    });
+
+    const data = await response.json();
+
+    return Response.json(data, {
+      status: response.status,
+    });
   } catch (error: any) {
     console.error(error);
 
     return Response.json(
       {
         success: false,
-        message: "Failed to create user",
-        error: error?.response?.message || error?.message || "Unknown error",
-        data: error?.response?.data,
+        message: "Internal server error",
+        error: error?.message || "Unknown error",
       },
-      {
-        status: error?.status || 500,
-      },
+      { status: 500 },
     );
   }
 }
