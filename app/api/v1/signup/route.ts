@@ -1,17 +1,15 @@
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-
     const backendUrl = process.env.BACKEND_URL;
 
-    if (!backendUrl) {
-      throw new Error("BACKEND_URL is not defined");
-    }
+    const cookie = request.headers.get("cookie");
 
     const response = await fetch(`${backendUrl}/api/v1/signup`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Cookie: cookie ?? "",
       },
       body: JSON.stringify(body),
     });
@@ -21,16 +19,10 @@ export async function POST(request: Request) {
     return Response.json(data, {
       status: response.status,
     });
-  } catch (error: any) {
-    console.error(error);
-
+  } catch {
     return Response.json(
-      {
-        success: false,
-        message: "Internal server error",
-        error: error?.message || "Unknown error",
-      },
-      { status: 500 },
+      { success: false, message: "Internal server error" },
+      { status: 500 }
     );
   }
 }
