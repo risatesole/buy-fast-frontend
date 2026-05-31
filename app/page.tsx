@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 
-import { Datamock } from "@/mock/mock";
 
 // components
 import { Navbar } from "@/components/navbar";
@@ -17,9 +16,10 @@ import type { Product } from "@/types/products";
 import type { CartItem } from "@/types/CartItem";
 
 // temp
+import { Datamock } from "@/mock/mock";
 import {
   addProductToCart,
-} from "@/components/childcomponents/home/cartdrawer";
+} from "@/mock/shoppingcart";
 
 export default function Page() {
   const [cart, setCart] = useState<CartItem[]>([]);
