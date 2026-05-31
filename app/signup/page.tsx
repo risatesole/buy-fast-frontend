@@ -22,6 +22,7 @@ export default function SignupPage() {
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const [form, setForm] = useState({
     firstname: "",
@@ -39,6 +40,7 @@ export default function SignupPage() {
 
     try {
       setLoading(true);
+      setError("");
 
       const response = await SignupUser(form);
 
@@ -48,7 +50,7 @@ export default function SignupPage() {
       router.push("/");
     } catch (error) {
       console.error(error);
-      alert("Failed to create account");
+      setError("Failed to create account");
     } finally {
       setLoading(false);
     }
@@ -188,6 +190,10 @@ export default function SignupPage() {
                 I accept the terms and conditions
               </Label>
             </div>
+
+            {error && (
+              <p className="text-sm text-red-500">{error}</p>
+            )}
 
             <Button
               type="submit"
