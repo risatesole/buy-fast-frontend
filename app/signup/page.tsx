@@ -50,7 +50,7 @@ export default function SignupPage() {
       router.push("/");
     } catch (error) {
       console.error(error);
-      setError("Failed to create account");
+      setError(error instanceof Error ? error.message : "Failed to create account");
     } finally {
       setLoading(false);
     }
