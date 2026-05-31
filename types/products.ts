@@ -6,5 +6,6 @@ export type Product = {
   price: number;
   /** Optional label shown as a small badge on the card (e.g. "New", "Bestseller") */
   badge?: string;
+  create: Date;
+  update: Date;
 };
-
