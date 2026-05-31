@@ -1,46 +1,32 @@
-import { pb } from "@/server/pocketbase";
-
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const authorization = request.headers.get("Authorization");
 
-    const { email, password } = body;
-
-    const authData = await pb
-      .collection("users")
-      .authWithPassword(email, password);
+    if (!authorization) {
+      return Response.json(
+        {
+          success: false,
+          message: "Authorization header is required.",
+        },
+        { status: 401 },
+      );
+    }
 
     return Response.json(
       {
         success: true,
-        message: "Signed in successfully.",
-        data: {
-          token: authData.token,
-          user: {
-            id: authData.record.id,
-            firstname: authData.record.firstname,
-            lastname: authData.record.lastname,
-            email: authData.record.email,
-            verified: authData.record.verified,
-            createdat: authData.record.created,
-            updatedat: authData.record.updated,
-          },
-        },
+        message: "Signed out successfully.",
       },
       { status: 200 },
     );
   } catch (error: any) {
-    console.error(error);
-
     return Response.json(
       {
         success: false,
-        message: "Failed to sign in",
-        error: error?.response?.message || error?.message || "Unknown error",
+        message: "Failed to sign out",
+        error: error?.message || "Unknown error",
       },
-      {
-        status: error?.status || 401,
-      },
+      { status: 500 },
     );
   }
 }
