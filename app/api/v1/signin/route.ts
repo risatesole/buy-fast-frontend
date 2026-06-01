@@ -1,49 +1,43 @@
-import { pb } from "@/server/pocketbase";
-
 export async function POST(request: Request) {
   try {
+    const backendUrl = process.env.BACKEND_URL;
+
+    if (!backendUrl) {
+      throw new Error("BACKEND_URL is not defined");
+    }
+
     const body = await request.json();
 
-    const { email, password } = body;
-
-    const authData = await pb
-      .collection("users")
-      .authWithPassword(email, password);
-
-    return Response.json(
-      {
-        success: true,
-        message: "Signed in successfully.",
-        token: authData.token,
-        data: {
-          user: {
-            id: authData.record.id,
-            firstname: authData.record.firstname,
-            lastname: authData.record.lastname,
-            email: authData.record.email,
-            avatar: authData.record.avatar,
-            verified: authData.record.verified,
-            createdat: authData.record.created,
-            updatedat: authData.record.updated,
-          },
-          token: authData.token
-        },
+    const response = await fetch(`${backendUrl}/api/v1/signin/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-      { status: 200 },
-    );
-  } catch (error: any) {
+      body: JSON.stringify(body),
+    });
+
+    const data = await response.json();
+
+    const nextResponse = Response.json(data, {
+      status: response.status,
+    });
+
+    const setCookie = response.headers.get("set-cookie");
+
+    if (setCookie) {
+      nextResponse.headers.set("set-cookie", setCookie);
+    }
+
+    return nextResponse;
+  } catch (error) {
     console.error(error);
 
     return Response.json(
       {
         success: false,
-        message: "Failed to sign in",
-        error: error?.response?.message || error?.message || "Unknown error",
-        data: error?.response?.data,
+        message: "Internal server error",
       },
-      {
-        status: error?.status || 401,
-      },
+      { status: 500 }
     );
   }
 }
