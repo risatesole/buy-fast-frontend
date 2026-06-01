@@ -1,17 +1,14 @@
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
     const backendUrl = process.env.BACKEND_URL;
 
-<<<<<<< Updated upstream
-    const response = await fetch(`${backendUrl}/api/v1/signup`, {
-=======
     if (!backendUrl) {
       throw new Error("BACKEND_URL is not defined");
     }
 
+    const body = await request.json();
+
     const response = await fetch(`${backendUrl}/api/v1/signup/`, {
->>>>>>> Stashed changes
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -20,22 +17,29 @@ export async function POST(request: Request) {
     });
 
     const data = await response.json();
-    const headers = new Headers();
+
+    const nextResponse = Response.json(data, {
+      status: response.status,
+    });
+
     const setCookie = response.headers.get("set-cookie");
 
     if (setCookie) {
-      headers.append("Set-Cookie", setCookie);
+      nextResponse.headers.set("set-cookie", setCookie);
     }
 
-    return new Response(JSON.stringify(data), {
-      status: response.status,
-      headers,
-    });
+    return nextResponse;
+  } catch (error) {
+    console.error(error);
 
-  } catch {
     return Response.json(
-      { success: false, message: "Internal server error" },
-      { status: 500 }
+      {
+        success: false,
+        message: "Internal server error",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }
