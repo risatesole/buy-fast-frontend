@@ -3,7 +3,15 @@ export async function POST(request: Request) {
     const body = await request.json();
     const backendUrl = process.env.BACKEND_URL;
 
+<<<<<<< Updated upstream
     const response = await fetch(`${backendUrl}/api/v1/signup`, {
+=======
+    if (!backendUrl) {
+      throw new Error("BACKEND_URL is not defined");
+    }
+
+    const response = await fetch(`${backendUrl}/api/v1/signup/`, {
+>>>>>>> Stashed changes
       method: "POST",
       headers: {
         "Content-Type": "application/json",
