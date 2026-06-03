@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 
-
 // components
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/Footer";
@@ -28,9 +27,13 @@ export default function Page() {
     const updatedCart = addProductToCart(cart, product);
     setCart(updatedCart);
   }
+  const user = {
+    name: "Henry",
+    profilePicture: null,
+  };
   return (
     <div style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}>
-      <Navbar />
+      <Navbar user={user} />
 
       <main>
         <HeroSection
