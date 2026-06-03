@@ -1,51 +1,36 @@
-import { pb } from "@/server/pocketbase";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const authorization = request.headers.get("Authorization");
+    const backendUrl = process.env.BACKEND_URL;
 
-    if (!authorization?.startsWith("Bearer ")) {
-      return Response.json(
-        {
-          success: false,
-          message: "Authorization token is required.",
-        },
-        { status: 401 },
-      );
+    if (!backendUrl) {
+      throw new Error("BACKEND_URL is not defined");
     }
 
-    const token = authorization.replace("Bearer ", "").trim();
+    const cookieHeader = request.headers.get("cookie") ?? "";
 
-    pb.authStore.save(token, null);
-
-    const authData = await pb.collection("users").authRefresh();
-
-    return Response.json(
-      {
-        success: true,
-        data: {
-          user: {
-            id: authData.record.id,
-            firstname: authData.record.firstname,
-            lastname: authData.record.lastname,
-            email: authData.record.email,
-            avatar: authData.record.avatar,
-            verified: authData.record.verified,
-            createdat: authData.record.created,
-            updatedat: authData.record.updated,
-          },
-        },
+    const response = await fetch(`${backendUrl}/api/v1/me/`, {
+      method: "GET",
+      headers: {
+        Cookie: cookieHeader,
       },
-      { status: 200 },
-    );
-  } catch (error: any) {
-    return Response.json(
+    });
+
+    const data = await response.json();
+
+    return NextResponse.json(data, {
+      status: response.status,
+    });
+  } catch (error) {
+    console.error(error);
+
+    return NextResponse.json(
       {
-        success: false,
-        message: "Invalid or expired token",
-        error: error?.response?.message || error?.message,
+        status: "error",
+        message: "Internal server error",
       },
-      { status: 401 },
+      { status: 500 }
     );
   }
 }
