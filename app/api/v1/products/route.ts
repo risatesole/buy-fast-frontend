@@ -1,73 +1,34 @@
-export async function GET(request: Request) {
+import { NextRequest, NextResponse } from "next/server";
+
+const BACKEND_URL = process.env.BACKEND_URL ?? "http://localhost:8000";
+
+export async function GET(req: NextRequest) {
+  const search = req.nextUrl.searchParams.get("search") ?? "";
+
   try {
-    const backendUrl = process.env.BACKEND_URL;
-
-    if (!backendUrl) {
-      throw new Error("BACKEND_URL is not defined");
-    }
-
-    const response = await fetch(`${backendUrl}/api/v1/products/`, {
-      method: "GET",
-      headers: {
-        Cookie: request.headers.get("cookie") || "",
-      },
-    });
-
-    const data = await response.json();
-
-    return Response.json(data, {
-      status: response.status,
-    });
-  } catch (error) {
-    console.error(error);
-
-    return Response.json(
+    const res = await fetch(
+      `${BACKEND_URL}/api/v1/products?search=${encodeURIComponent(search)}`,
       {
-        success: false,
-        message: "Internal server error",
-      },
-      {
-        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
     );
-  }
-}
 
-export async function POST(request: Request) {
-  try {
-    const backendUrl = process.env.BACKEND_URL;
-
-    if (!backendUrl) {
-      throw new Error("BACKEND_URL is not defined");
+    if (!res.ok) {
+      return NextResponse.json(
+        { error: "Failed to fetch products" },
+        { status: res.status }
+      );
     }
 
-    const body = await request.json();
-
-    const response = await fetch(`${backendUrl}/api/v1/products/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Cookie: request.headers.get("cookie") || "",
-      },
-      body: JSON.stringify(body),
-    });
-
-    const data = await response.json();
-
-    return Response.json(data, {
-      status: response.status,
-    });
-  } catch (error) {
-    console.error(error);
-
-    return Response.json(
-      {
-        success: false,
-        message: "Internal server error",
-      },
-      {
-        status: 500,
-      }
+    const data = await res.json();
+    return NextResponse.json(data);
+  } catch (err) {
+    console.error("[/api/v1/products] proxy error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
     );
   }
 }

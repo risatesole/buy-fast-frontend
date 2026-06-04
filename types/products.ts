@@ -8,4 +8,5 @@ export type Product = {
   badge?: string;
   create: Date;
   update: Date;
+  image: string;
 };
