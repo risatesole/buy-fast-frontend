@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { SignupUser } from "@/usecases/signupUser";
+import { SignupUser } from "@/services/auth/signupUser";
 import { SignUpHelper } from "./SignupHelper";
 
 import { Button } from "@/components/ui/button";

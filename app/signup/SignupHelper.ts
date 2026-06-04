@@ -1,4 +1,4 @@
-import type { SignupResponse } from "@/usecases/signupUser";
+import type { SignupResponse } from "@/services/auth/signupUser";
 
 import {
   setLocalStorageUser,
