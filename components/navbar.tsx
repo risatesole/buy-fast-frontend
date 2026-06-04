@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Search, Menu, X, ShoppingCart, Settings, LogOut } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   NavigationMenu,
@@ -40,6 +41,16 @@ const navLinks = [
 
 export function Navbar({ user }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const router = useRouter();
+
+  function handleSearch(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key !== "Enter") return;
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    setMobileOpen(false);
+    router.push(`/search?q=${encodeURIComponent(trimmed)}`);
+  }
 
   function handleLogout() {
     console.log("User logged out");
@@ -62,7 +73,10 @@ export function Navbar({ user }: NavbarProps) {
               {navLinks.map((link) => (
                 <NavigationMenuItem key={link.href}>
                   <NavigationMenuLink asChild>
-                    <Link href={link.href} className="px-4 py-2 text-sm font-medium">
+                    <Link
+                      href={link.href}
+                      className="px-4 py-2 text-sm font-medium"
+                    >
                       {link.label}
                     </Link>
                   </NavigationMenuLink>
@@ -73,7 +87,14 @@ export function Navbar({ user }: NavbarProps) {
 
           <div className="relative w-72">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input type="search" placeholder="Search products..." className="pl-9" />
+            <Input
+              type="search"
+              placeholder="Search products..."
+              className="pl-9"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={handleSearch}
+            />
           </div>
 
           {user ? (
@@ -97,7 +118,9 @@ export function Navbar({ user }: NavbarProps) {
                   <Link href="/cart">Shopping Cart</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>Log Out</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
+                  Log Out
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
@@ -119,7 +142,11 @@ export function Navbar({ user }: NavbarProps) {
             onClick={() => setMobileOpen((prev) => !prev)}
             className="rounded-md p-2 text-foreground transition-colors hover:bg-accent"
           >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {mobileOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
           </button>
         </div>
       </div>
@@ -131,7 +158,14 @@ export function Navbar({ user }: NavbarProps) {
             {/* Search */}
             <div className="relative mb-2">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input type="search" placeholder="Search products..." className="pl-9 w-full" />
+              <Input
+                type="search"
+                placeholder="Search products..."
+                className="pl-9 w-full"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={handleSearch}
+              />
             </div>
 
             {/* Nav links */}
