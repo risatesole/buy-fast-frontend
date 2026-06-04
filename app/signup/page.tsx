@@ -107,7 +107,7 @@ export default function SignupPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="john@example.com"
+                placeholder="user@example.com"
                 value={form.email}
                 onChange={(event) =>
                   setForm({
