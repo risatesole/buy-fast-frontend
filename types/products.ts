@@ -2,11 +2,10 @@ import type { HardCodedProductCategory } from "./ProductCategory";
 export type Product = {
   id: number;
   name: string;
-  category: HardCodedProductCategory;
-  price: number;
-  /** Optional label shown as a small badge on the card (e.g. "New", "Bestseller") */
-  badge?: string;
-  create: Date;
-  update: Date;
-  image: string;
+  description: string;
+  category: string;
+  image: string | null;
+  brand: string;
+  selling_price: number;
+  status: boolean;
 };

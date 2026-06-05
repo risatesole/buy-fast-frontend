@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 // components
 import { Navbar } from "@/components/navbar";
@@ -173,7 +174,7 @@ function ProductCard({
           alignItems: "center",
         }}
       >
-        <span style={{ fontFamily: "monospace" }}>{formatPrice(product.price)}</span>
+        <span style={{ fontFamily: "monospace" }}>{formatPrice(product.selling_price)}</span>
         <button onClick={handleAdd}>{added ? "Added ✓" : "Add to cart"}</button>
       </div>
     </article>
@@ -221,7 +222,7 @@ function EmptyState({ query }: { query: string }) {
 
 // ─── Page ─────────────────────────────────────────────────────
 
-export default function SearchPage() {
+function SearchContent() {
   const searchParams = useSearchParams();
   const q = searchParams.get("q") ?? "";
 
@@ -339,5 +340,13 @@ export default function SearchPage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <SearchContent />
+    </Suspense>
   );
 }

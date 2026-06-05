@@ -203,14 +203,15 @@ function ProfileSection({ user }: { user: UserDetails }) {
       <FieldRow label="Last name">
         <Input
           value={lastName}
-          onChange={setLastName}
+          onChange={(e) => setLastName(e.target.value)}
+
           placeholder="Last name"
         />
       </FieldRow>
       <FieldRow label="Email" hint="Address associated with your account.">
         <Input
           value={email}
-          onChange={setEmail}
+          onChange={(e) => setEmail(e.target.value)}
           type="email"
           placeholder="you@example.com"
         />

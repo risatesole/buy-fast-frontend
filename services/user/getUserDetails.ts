@@ -1,6 +1,10 @@
 export type UserDetails = {
   name: string;
   profilePicture: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  bio?: string;
 };
 
 type MeResponse = {
@@ -35,6 +39,7 @@ export async function getUserDetails(): Promise<UserDetails | null> {
 
   return {
     name: data.data.user.firstname,
-    profilePicture: data.data.user.profilepicture ?? "https://i.pravatar.cc/150?img=12",
+    profilePicture:
+      data.data.user.profilepicture ?? "https://i.pravatar.cc/150?img=12",
   };
 }

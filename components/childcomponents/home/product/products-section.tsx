@@ -172,7 +172,7 @@ function ProductCard({ product, onAdd }: ProductCardProps) {
         }}
       >
         <span style={{ fontFamily: "monospace" }}>
-          {formatPrice(product.price)}
+          {formatPrice(product.selling_price)}
         </span>
 
         <button onClick={handleAdd}>
