@@ -5,6 +5,11 @@ import "../globals.css";
 import { cookies } from "next/headers";
 
 import { Navbar } from "@/components/navbar";
+import { Footer } from "@/components/Footer";
+import { HeroSection } from "@/components/childcomponents/home/sections/hero";
+import { TrustBadgeStrip } from "@/components/childcomponents/home/sections/TrustBadgeStrip";
+import { Datamock } from "@/mock/mock";
+import type { Product } from "@/types/products";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,7 +41,6 @@ type MeResponse = {
   };
 };
 
-
 async function getUserDetails(): Promise<MeResponse | null> {
   try {
     const backendUrl = process.env.BACKEND_URL;
@@ -51,23 +55,48 @@ async function getUserDetails(): Promise<MeResponse | null> {
     });
 
     if (!res.ok) return null;
-
     return await res.json();
-  } catch (err) {
+  } catch {
     return null;
   }
 }
+
+async function getProducts(): Promise<Product[]> {
+  try {
+    const backendUrl = process.env.BACKEND_URL;
+    if (!backendUrl) return [];
+
+    const res = await fetch(
+      `${backendUrl}/api/v1/products?sort=id&status=true&limit=20&offset=0`,
+      { cache: "no-store" }
+    );
+
+    if (!res.ok) return [];
+
+    const json = await res.json();
+    return json.data ?? [];
+  } catch {
+    return [];
+  }
+}
+
 export default async function HomeLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const data = await getUserDetails();
+  const [userData, products] = await Promise.all([
+    getUserDetails(),
+    getProducts(),
+  ]);
 
-  const user = data?.data?.user;
+  const user = userData?.data?.user;
 
   return (
-    <main className={`${geistSans.variable} ${geistMono.variable}`}>
+    <div
+      style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}
+      className={`${geistSans.variable} ${geistMono.variable}`}
+    >
       <Navbar
         user={
           user
@@ -79,6 +108,9 @@ export default async function HomeLayout({
         }
       />
       {children}
-    </main>
+      <Footer />
+    </div>
   );
 }
+
+export { getProducts };
