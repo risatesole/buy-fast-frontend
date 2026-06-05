@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 import { SignupUser } from "@/services/auth/signupUser";
-import { SignUpHelper } from "./SignupHelper";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,8 +17,6 @@ import {
 } from "@/components/ui/card";
 
 export default function SignupPage() {
-  const router = useRouter();
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -39,11 +35,10 @@ export default function SignupPage() {
     try {
       setLoading(true);
       setError("");
-      const response = await SignupUser(form);
-      SignUpHelper(response)
-      
-      router.push("/");
 
+      await SignupUser(form);
+
+      window.location.href = "/";
     } catch (error) {
       console.error(error);
       setError(
@@ -59,7 +54,6 @@ export default function SignupPage() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Create Account</CardTitle>
-
           <CardDescription>Create your account to continue.</CardDescription>
         </CardHeader>
 
@@ -68,16 +62,12 @@ export default function SignupPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstname">First Name</Label>
-
                 <Input
                   id="firstname"
                   placeholder="John"
                   value={form.firstname}
                   onChange={(event) =>
-                    setForm({
-                      ...form,
-                      firstname: event.target.value,
-                    })
+                    setForm({ ...form, firstname: event.target.value })
                   }
                   required
                 />
@@ -85,16 +75,12 @@ export default function SignupPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="lastname">Last Name</Label>
-
                 <Input
                   id="lastname"
                   placeholder="Doe"
                   value={form.lastname}
                   onChange={(event) =>
-                    setForm({
-                      ...form,
-                      lastname: event.target.value,
-                    })
+                    setForm({ ...form, lastname: event.target.value })
                   }
                   required
                 />
@@ -103,17 +89,13 @@ export default function SignupPage() {
 
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-
               <Input
                 id="email"
                 type="email"
                 placeholder="user@example.com"
                 value={form.email}
                 onChange={(event) =>
-                  setForm({
-                    ...form,
-                    email: event.target.value,
-                  })
+                  setForm({ ...form, email: event.target.value })
                 }
                 required
               />
@@ -121,16 +103,12 @@ export default function SignupPage() {
 
             <div className="space-y-2">
               <Label htmlFor="phone">Phone</Label>
-
               <Input
                 id="phone"
                 placeholder="8095551234"
                 value={form.phone}
                 onChange={(event) =>
-                  setForm({
-                    ...form,
-                    phone: event.target.value,
-                  })
+                  setForm({ ...form, phone: event.target.value })
                 }
                 required
               />
@@ -138,17 +116,13 @@ export default function SignupPage() {
 
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-
               <Input
                 id="password"
                 type="password"
                 placeholder="********"
                 value={form.password}
                 onChange={(event) =>
-                  setForm({
-                    ...form,
-                    password: event.target.value,
-                  })
+                  setForm({ ...form, password: event.target.value })
                 }
                 required
               />
@@ -159,13 +133,9 @@ export default function SignupPage() {
                 id="terms"
                 checked={form.terms}
                 onCheckedChange={(checked) =>
-                  setForm({
-                    ...form,
-                    terms: checked === true,
-                  })
+                  setForm({ ...form, terms: checked === true })
                 }
               />
-
               <Label htmlFor="terms" className="cursor-pointer">
                 I accept the terms and conditions
               </Label>

@@ -16,13 +16,13 @@ interface User {
   updated_at: string;
 }
 
-interface session {
+interface Session {
   id: string;
   created_at: string;
   updated_at: string;
 }
 
-interface tokens {
+interface Tokens {
   access_token: {
     token: string;
     expires_in: number;
@@ -40,8 +40,8 @@ export interface SignupResponse {
   message: string;
   data: {
     user: User;
-    session: session;
-    tokens: tokens;
+    session: Session;
+    tokens: Tokens;
     terms: boolean;
   };
 }
@@ -54,9 +54,7 @@ export const SignupUser = async (
   try {
     response = await fetch("/api/v1/signup", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify(payload),
     });
@@ -65,9 +63,12 @@ export const SignupUser = async (
   }
 
   if (!response.ok) {
+    const body = await response.json().catch(() => null);
     throw new Error(
-      `Unknown error, Failed to create user, if the problem persists contact suppourt`,
+      body?.message ??
+        "Failed to create account. If the problem persists, contact support.",
     );
   }
+
   return response.json();
 };
