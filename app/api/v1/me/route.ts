@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
 
     const cookieHeader = request.headers.get("cookie") ?? "";
 
-    const response = await fetch(`${backendUrl}/api/v1/me/`, {
+    const response = await fetch(`${backendUrl}/api/v1/me`, {
       method: "GET",
       headers: {
         Cookie: cookieHeader,

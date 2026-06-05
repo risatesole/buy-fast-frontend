@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 
 // components
-import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/Footer";
 
 // sections
@@ -14,7 +13,6 @@ import { TrustBadgeStrip } from "@/components/childcomponents/home/sections/Trus
 // types
 import type { Product } from "@/types/products";
 import type { CartItem } from "@/types/CartItem";
-import type { UserDetails } from "@/services/user/getUserDetails";
 
 // services
 import { getUserDetails } from "@/services/user/getUserDetails";
@@ -26,26 +24,12 @@ import { addProductToCart } from "@/mock/shoppingcart";
 
 export default function Page() {
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [user, setUser] = useState<UserDetails | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
 
   function handleAddToCart(product: Product) {
     const updatedCart = addProductToCart(cart, product);
     setCart(updatedCart);
   }
-
-  useEffect(() => {
-    async function loadUser() {
-      try {
-        const userData = await getUserDetails();
-        setUser(userData);
-      } catch (err) {
-        console.error("Failed to load user", err);
-      }
-    }
-
-    loadUser();
-  }, []);
 
   useEffect(() => {
     async function loadProducts() {
@@ -62,7 +46,7 @@ export default function Page() {
 
   return (
     <div style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}>
-      <Navbar user={user} />
+      
 
       <main>
         <HeroSection
