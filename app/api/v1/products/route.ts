@@ -3,11 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 const BACKEND_URL = process.env.BACKEND_URL ?? "http://localhost:8000";
 
 export async function GET(req: NextRequest) {
-  const search = req.nextUrl.searchParams.get("search") ?? "";
-
   try {
     const res = await fetch(
-      `${BACKEND_URL}/api/v1/products?search=${encodeURIComponent(search)}`,
+      `${BACKEND_URL}/api/v1/products?${req.nextUrl.searchParams.toString()}`,
       {
         headers: {
           "Content-Type": "application/json",

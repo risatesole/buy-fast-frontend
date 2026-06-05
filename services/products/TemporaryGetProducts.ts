@@ -19,7 +19,7 @@ export type ProductsResponse = {
 // TEMPORARY: quick implementation (technical debt)
 // TODO: replace with official API client later
 export async function temporaryGetProducts(): Promise<Product[]> {
-  const res = await fetch("/api/v1/products");
+  const res = await fetch("/api/v1/products/?sort=id&status=true&limit=20&offset=0");
 
   if (!res.ok) {
     throw new Error(`Failed to fetch products: ${res.status}`);
