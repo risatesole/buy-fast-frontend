@@ -6,6 +6,7 @@ export type ProductQueryParameters = {
     limit?: number;
     offset?: number;
     tags?: string[];
+    category?: number|null;
 }
 
 const DEFAULT_QUERY_PARAMS: Omit<ProductQueryParameters, "tags"> = {
@@ -13,6 +14,7 @@ const DEFAULT_QUERY_PARAMS: Omit<ProductQueryParameters, "tags"> = {
     status: "true",
     limit: 20,
     offset: 0,
+    category: null
 };
 
 export default class ProductService {

@@ -1,34 +1,8 @@
 "use client";
 
 import { useState } from "react";
-
 import type { Product } from "@/types/products";
 
-/** ─────────────────────────────────────────────────────────────
- *  NOTE:
- *  API returns `selling_price`, but UI uses `price`
- *  We normalize it inside this file for simplicity.
- *  ──────────────────────────────────────────────────────────── */
-type ApiProduct = {
-  id: number;
-  name: string;
-  description: string;
-  category: string;
-  image: string | null;
-  brand: string;
-  selling_price: number;
-  status: boolean;
-};
-
-/** Normalize API product → UI product */
-function normalizeProduct(p: ApiProduct): Product {
-  return {
-    ...(p as any),
-    price: p.selling_price,
-  };
-}
-
-/** Renders a simple line-art icon matching the product's category. */
 function ProductGlyph({ category }: { category: string }) {
   const stroke = "oklch(0.708 0 0)";
   const props = {
@@ -78,12 +52,9 @@ function ProductGlyph({ category }: { category: string }) {
 // ─── Currency formatter ────────────────────────────────────────
 
 const formatPrice = (n: number) =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(n);
-
-// ─── ProductCard ───────────────────────────────────────────────
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
+    n,
+  );
 
 type ProductCardProps = {
   product: Product;
@@ -100,6 +71,9 @@ function ProductCard({ product, onAdd }: ProductCardProps) {
     setTimeout(() => setAdded(false), 900);
   };
 
+  // category is now an object — use category.name
+  const categoryName = product.category.name;
+
   return (
     <article
       onMouseEnter={() => setHovered(true)}
@@ -111,7 +85,6 @@ function ProductCard({ product, onAdd }: ProductCardProps) {
         paddingBottom: "2rem",
       }}
     >
-      {/* ── IMAGE AREA ── */}
       <div
         style={{
           aspectRatio: "4/3",
@@ -121,7 +94,6 @@ function ProductCard({ product, onAdd }: ProductCardProps) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          position: "relative",
           overflow: "hidden",
         }}
       >
@@ -129,15 +101,10 @@ function ProductCard({ product, onAdd }: ProductCardProps) {
           <img
             src={product.image}
             alt={product.name}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              display: "block",
-            }}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
           />
         ) : (
-          <ProductGlyph category={product.category} />
+          <ProductGlyph category={categoryName} />
         )}
       </div>
 
@@ -150,7 +117,7 @@ function ProductCard({ product, onAdd }: ProductCardProps) {
           marginBottom: "0.4rem",
         }}
       >
-        {product.category}
+        {categoryName} {/* ← was: product.category (object!) */}
       </p>
 
       <h3
@@ -174,20 +141,15 @@ function ProductCard({ product, onAdd }: ProductCardProps) {
         <span style={{ fontFamily: "monospace" }}>
           {formatPrice(product.selling_price)}
         </span>
-
-        <button onClick={handleAdd}>
-          {added ? "Added ✓" : "Add to cart"}
-        </button>
+        <button onClick={handleAdd}>{added ? "Added ✓" : "Add to cart"}</button>
       </div>
     </article>
   );
 }
 
-// ─── ProductsSection ───────────────────────────────────────────
-
-type ProductsSectionProps = {
+export type ProductsSectionProps = {
   onAddToCart: (product: Product) => void;
-  products: ApiProduct[];
+  products: Product[]; // ← was ApiProduct[], now matches what Page passes
 };
 
 export function ProductsSection({
@@ -197,11 +159,7 @@ export function ProductsSection({
   return (
     <section
       id="products"
-      style={{
-        maxWidth: 1280,
-        margin: "0 auto",
-        padding: "4rem 2rem 6rem",
-      }}
+      style={{ maxWidth: 1280, margin: "0 auto", padding: "4rem 2rem 6rem" }}
     >
       <h2
         style={{
@@ -213,7 +171,6 @@ export function ProductsSection({
       >
         The Collection
       </h2>
-
       <div
         style={{
           display: "grid",
@@ -221,17 +178,9 @@ export function ProductsSection({
           gap: "2.5rem 2rem",
         }}
       >
-        {products.map((p) => {
-          const product = normalizeProduct(p);
-
-          return (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onAdd={onAddToCart}
-            />
-          );
-        })}
+        {products.map((product) => (
+          <ProductCard key={product.id} product={product} onAdd={onAddToCart} />
+        ))}
       </div>
     </section>
   );
