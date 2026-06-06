@@ -6,10 +6,7 @@ import { cookies } from "next/headers";
 
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/Footer";
-import { HeroSection } from "@/components/childcomponents/home/sections/hero";
-import { TrustBadgeStrip } from "@/components/childcomponents/home/sections/TrustBadgeStrip";
-import { Datamock } from "@/mock/mock";
-import type { Product } from "@/types/products";
+import ProductService from "@/services/products/ProductService";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -61,33 +58,15 @@ async function getUserDetails(): Promise<MeResponse | null> {
   }
 }
 
-async function getProducts(): Promise<Product[]> {
-  try {
-    const backendUrl = process.env.BACKEND_URL;
-    if (!backendUrl) return [];
-
-    const res = await fetch(
-      `${backendUrl}/api/v1/products?sort=id&status=true&limit=20&offset=0`,
-      { cache: "no-store" }
-    );
-
-    if (!res.ok) return [];
-
-    const json = await res.json();
-    return json.data ?? [];
-  } catch {
-    return [];
-  }
-}
-
 export default async function HomeLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const product_service = new ProductService();
   const [userData, products] = await Promise.all([
     getUserDetails(),
-    getProducts(),
+    product_service.getProducts(),
   ]);
 
   const user = userData?.data?.user;
@@ -112,5 +91,3 @@ export default async function HomeLayout({
     </div>
   );
 }
-
-export { getProducts };
