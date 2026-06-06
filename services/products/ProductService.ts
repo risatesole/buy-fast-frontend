@@ -5,9 +5,10 @@ export type ProductQueryParameters = {
     status?: string;
     limit?: number;
     offset?: number;
+    tags?: string[];
 }
 
-const DEFAULT_QUERY_PARAMS: ProductQueryParameters = {
+const DEFAULT_QUERY_PARAMS: Omit<ProductQueryParameters, "tags"> = {
     sort: "id",
     status: "true",
     limit: 20,
@@ -35,11 +36,18 @@ export default class ProductService {
     }
 
     private buildQueryParams(overrides: ProductQueryParameters): string {
-        const params = { ...DEFAULT_QUERY_PARAMS, ...overrides };
+        const { tags, ...rest } = overrides;
+        const params = { ...DEFAULT_QUERY_PARAMS, ...rest };
 
         const entries = Object.entries(params).filter(([, value]) => value !== undefined);
         const stringEntries = entries.map(([key, value]) => [key, String(value)]);
 
-        return new URLSearchParams(stringEntries).toString();
+        const searchParams = new URLSearchParams(stringEntries);
+
+        if (tags && tags.length > 0) {
+            searchParams.set("tags", tags.join(","));
+        }
+
+        return searchParams.toString();
     }
 }

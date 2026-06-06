@@ -6,7 +6,11 @@ import { ProductsInteractive } from "./ProductsInteractive";
 
 export default async function Page() {
   const productService = new ProductService();
-  const products = await productService.getProducts({ limit: 20, offset: 0 });
+  const products = await productService.getProducts({
+    tags: ["featured"],
+    limit: 20,
+    offset: 0,
+  });
   return (
     <main>
       <HeroSection

@@ -1,4 +1,5 @@
 import type { HardCodedProductCategory } from "./ProductCategory";
+
 export type Product = {
   id: number;
   name: string;
@@ -8,4 +9,5 @@ export type Product = {
   brand: string;
   selling_price: number;
   status: boolean;
+  tags: string[];
 };
