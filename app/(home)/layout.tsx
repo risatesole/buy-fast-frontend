@@ -64,10 +64,7 @@ export default async function HomeLayout({
   children: React.ReactNode;
 }) {
   const product_service = new ProductService();
-  const [userData, products] = await Promise.all([
-    getUserDetails(),
-    product_service.getProducts(),
-  ]);
+  const [userData] = await Promise.all([getUserDetails()]);
 
   const user = userData?.data?.user;
 

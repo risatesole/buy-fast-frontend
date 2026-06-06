@@ -37,10 +37,14 @@ function normalizeProduct(p: ApiProduct): Product {
 }
 
 const formatPrice = (n: number) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
+    n,
+  );
 
 async function searchProducts(query: string): Promise<ApiProduct[]> {
-  const res = await fetch(`/api/v1/products?search=${encodeURIComponent(query)}`);
+  const res = await fetch(
+    `/api/v1/products?search=${encodeURIComponent(query)}`,
+  );
   if (!res.ok) throw new Error("Search failed");
   const json = await res.json();
   return json.data;
@@ -174,14 +178,14 @@ function ProductCard({
           alignItems: "center",
         }}
       >
-        <span style={{ fontFamily: "monospace" }}>{formatPrice(product.selling_price)}</span>
+        <span style={{ fontFamily: "monospace" }}>
+          {formatPrice(product.selling_price)}
+        </span>
         <button onClick={handleAdd}>{added ? "Added ✓" : "Add to cart"}</button>
       </div>
     </article>
   );
 }
-
-
 
 // ─── Empty state ──────────────────────────────────────────────
 
@@ -312,7 +316,9 @@ function SearchContent() {
             Something went wrong. Please try again.
           </p>
         ) : (
-          <div style={{ display: "flex", gap: "4rem", alignItems: "flex-start" }}>
+          <div
+            style={{ display: "flex", gap: "4rem", alignItems: "flex-start" }}
+          >
             {/* Results grid */}
             {products.length === 0 ? (
               <EmptyState query={q} />

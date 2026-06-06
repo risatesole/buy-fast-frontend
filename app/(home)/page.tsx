@@ -5,8 +5,8 @@ import ProductService from "@/services/products/ProductService";
 import { ProductsInteractive } from "./ProductsInteractive";
 
 export default async function Page() {
-  const product_service = new ProductService()
-  const products = await product_service.getProducts();
+  const productService = new ProductService();
+  const products = await productService.getProducts({ limit: 20, offset: 0 });
   return (
     <main>
       <HeroSection
