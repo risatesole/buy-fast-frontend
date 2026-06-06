@@ -144,7 +144,7 @@ function ProductCard({
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
           />
         ) : (
-          <ProductGlyph category={product.category} />
+          <ProductGlyph category={product.category.name} />
         )}
       </div>
 
@@ -157,7 +157,7 @@ function ProductCard({
           marginBottom: "0.4rem",
         }}
       >
-        {product.category}
+        {product.category.name}
       </p>
 
       <h3
