@@ -79,6 +79,7 @@ export default async function HomeLayout({
             ? {
                 name: `${user.firstname} ${user.lastname}`,
                 profilePicture: user.profilepicture ?? "",
+                role: user.role ?? "",
               }
             : null
         }

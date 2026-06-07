@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 type User = {
   name: string;
   profilePicture: string;
+  role: string;
 };
 
 type NavbarProps = {
@@ -52,9 +53,17 @@ export function Navbar({ user }: NavbarProps) {
     router.push(`/search?q=${encodeURIComponent(trimmed)}`);
   }
 
-  function handleLogout() {
-    console.log("User logged out");
-    setMobileOpen(false);
+  async function handleLogout() {
+    try {
+      await fetch("/api/v1/signout/", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch {
+    } finally {
+      setMobileOpen(false);
+      router.push("/signin");
+    }
   }
 
   return (
@@ -114,6 +123,11 @@ export function Navbar({ user }: NavbarProps) {
                 <DropdownMenuItem asChild>
                   <Link href="/settings">Settings</Link>
                 </DropdownMenuItem>
+                {user.role === "employee" && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin">Admin</Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem asChild>
                   <Link href="/cart">Shopping Cart</Link>
                 </DropdownMenuItem>
