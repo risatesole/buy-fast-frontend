@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { Product } from "@/types/products";
 
 function ProductGlyph({ category }: { category: string }) {
@@ -85,28 +86,30 @@ function ProductCard({ product, onAdd }: ProductCardProps) {
         paddingBottom: "2rem",
       }}
     >
-      <div
-        style={{
-          aspectRatio: "4/3",
-          background: hovered ? "oklch(0.97 0 0)" : "oklch(0.985 0 0)",
-          borderRadius: 4,
-          marginBottom: "1.25rem",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          overflow: "hidden",
-        }}
-      >
-        {product.image ? (
-          <img
-            src={product.image}
-            alt={product.name}
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          />
-        ) : (
-          <ProductGlyph category={categoryName} />
-        )}
-      </div>
+      <Link href={`/products/${product.id}`}>
+        <div
+          style={{
+            aspectRatio: "4/3",
+            background: hovered ? "oklch(0.97 0 0)" : "oklch(0.985 0 0)",
+            borderRadius: 4,
+            marginBottom: "1.25rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            overflow: "hidden",
+          }}
+        >
+          {product.image ? (
+            <img
+              src={product.image}
+              alt={product.name}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          ) : (
+            <ProductGlyph category={categoryName} />
+          )}
+        </div>
+      </Link>
 
       <p
         style={{
@@ -120,16 +123,24 @@ function ProductCard({ product, onAdd }: ProductCardProps) {
         {categoryName} {/* ← was: product.category (object!) */}
       </p>
 
-      <h3
+      <Link
+        href={`/products/${product.id}`}
         style={{
-          fontFamily: "'Georgia', serif",
-          fontSize: "1rem",
-          fontWeight: 400,
-          marginBottom: "0.75rem",
+          textDecoration: "none",
+          color: "inherit",
         }}
       >
-        {product.name}
-      </h3>
+        <h3
+          style={{
+            fontFamily: "'Georgia', serif",
+            fontSize: "1rem",
+            fontWeight: 400,
+            marginBottom: "0.75rem",
+          }}
+        >
+          {product.name}
+        </h3>
+      </Link>
 
       <div
         style={{
