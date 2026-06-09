@@ -70,9 +70,14 @@ export default async function HomeLayout({
   const user = rawUser?.is_authenticated ? rawUser : null;
 
   const mockCartItems: CartItem[] = [
-    { id: 1, name: "Leuchtturm1917 Notebook A5", price: 24.5, quantity: 2, image: "https://example.com/image.jpg" },
+    {
+      id: 1,
+      name: "Leuchtturm1917 Notebook A5",
+      price: 24.5,
+      quantity: 2,
+      image: "https://example.com/image.jpg",
+    },
     { id: 2, name: "Pilot G2 Pen Set", price: 12.99, quantity: 1 },
-
   ];
 
   return (
