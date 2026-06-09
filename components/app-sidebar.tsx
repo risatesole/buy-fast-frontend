@@ -46,16 +46,14 @@ const platformItems = [
     sub: [
       { title: "Overview", url: "/admin/dashboard/overview" },
       { title: "Stats", url: "/admin/dashboard/stats" },
-      { title: "Reports", url: "/admin/dashboard/reports" }
+      { title: "Reports", url: "/admin/dashboard/reports" },
     ],
   },
-   {
+  {
     title: "Customer",
     url: "/admin",
     icon: LayoutDashboard,
-    sub: [
-      {title: "orders", url: "/admin/customers/orders"}
-    ],
+    sub: [{ title: "orders", url: "/admin/customers/orders" }],
   },
   {
     title: "Users",
@@ -139,51 +137,58 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>Platform</SidebarGroupLabel>
           <SidebarMenu>
-            {platformItems.map((item) => (
-              <Collapsible
-                key={item.title}
-                defaultOpen={pathname.startsWith(item.url)}
-                className="group/collapsible"
-              >
-                <SidebarMenuItem>
-                  <div className="flex items-center w-full">
-                    {/* Clickable label — navigates to item.url */}
-                    <SidebarMenuButton
-                      asChild
-                      isActive={pathname.startsWith(item.url)}
-                      className="flex-1"
-                    >
-                      <Link href={item.url}>
-                        <item.icon className="size-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
+            {platformItems.map((item) => {
+              // Check if the current pathname matches the parent URL or any sub-item URL
+              const isCurrentGroupActive =
+                pathname === item.url ||
+                item.sub?.some((subItem) => pathname.startsWith(subItem.url));
 
-                    {/* Chevron — only toggles the collapsible */}
-                    <CollapsibleTrigger asChild>
-                      <button className="ml-auto p-1 rounded hover:bg-sidebar-accent transition-colors">
-                        <ChevronRight className="size-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
-                      </button>
-                    </CollapsibleTrigger>
-                  </div>
+              return (
+                <Collapsible
+                  key={item.title}
+                  defaultOpen={isCurrentGroupActive}
+                  className="group/collapsible"
+                >
+                  <SidebarMenuItem>
+                    <div className="flex items-center w-full">
+                      {/* Clickable label — navigates to item.url */}
+                      <SidebarMenuButton
+                        asChild
+                        isActive={pathname.startsWith(item.url)}
+                        className="flex-1"
+                      >
+                        <Link href={item.url}>
+                          <item.icon className="size-4" />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
 
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {item.sub.map((sub) => (
-                        <SidebarMenuSubItem key={sub.title}>
-                          <SidebarMenuSubButton
-                            asChild
-                            isActive={pathname === sub.url}
-                          >
-                            <Link href={sub.url}>{sub.title}</Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </SidebarMenuItem>
-              </Collapsible>
-            ))}
+                      {/* Chevron — only toggles the collapsible */}
+                      <CollapsibleTrigger asChild>
+                        <button className="ml-auto p-1 rounded hover:bg-sidebar-accent transition-colors">
+                          <ChevronRight className="size-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                        </button>
+                      </CollapsibleTrigger>
+                    </div>
+
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {item.sub.map((sub) => (
+                          <SidebarMenuSubItem key={sub.title}>
+                            <SidebarMenuSubButton
+                              asChild
+                              isActive={pathname === sub.url}
+                            >
+                              <Link href={sub.url}>{sub.title}</Link>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </SidebarMenuItem>
+                </Collapsible>
+              );
+            })}
           </SidebarMenu>
         </SidebarGroup>
 
