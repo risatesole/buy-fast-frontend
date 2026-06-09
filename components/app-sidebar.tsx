@@ -146,7 +146,7 @@ export function AppSidebar() {
               return (
                 <Collapsible
                   key={item.title}
-                  defaultOpen={isCurrentGroupActive}
+                  defaultOpen={false}
                   className="group/collapsible"
                 >
                   <SidebarMenuItem>
