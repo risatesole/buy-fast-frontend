@@ -4,9 +4,9 @@ import "../globals.css";
 
 import { cookies } from "next/headers";
 
-import { Navbar } from "@/components/navbar";
+import { NavbarWithCart } from "@/components/navbar-with-cart";
 import { Footer } from "@/components/Footer";
-import ProductService from "@/services/products/ProductService";
+import type { CartItem } from "@/components/navbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -64,18 +64,23 @@ export default async function HomeLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const product_service = new ProductService();
-  const [userData] = await Promise.all([getUserDetails()]);
+  const userData = await getUserDetails();
 
   const rawUser = userData?.data?.user;
   const user = rawUser?.is_authenticated ? rawUser : null;
+
+  const mockCartItems: CartItem[] = [
+    { id: 1, name: "Leuchtturm1917 Notebook A5", price: 24.5, quantity: 2, image: "https://example.com/image.jpg" },
+    { id: 2, name: "Pilot G2 Pen Set", price: 12.99, quantity: 1 },
+
+  ];
 
   return (
     <div
       style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
-      <Navbar
+      <NavbarWithCart
         user={
           user
             ? {
@@ -85,6 +90,7 @@ export default async function HomeLayout({
               }
             : null
         }
+        initialCartItems={mockCartItems}
       />
       {children}
       <Footer />
