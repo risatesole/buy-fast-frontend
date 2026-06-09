@@ -46,7 +46,15 @@ const platformItems = [
     sub: [
       { title: "Overview", url: "/admin/dashboard/overview" },
       { title: "Stats", url: "/admin/dashboard/stats" },
-      { title: "Reports", url: "/admin/dashboard/reports" },
+      { title: "Reports", url: "/admin/dashboard/reports" }
+    ],
+  },
+   {
+    title: "Customer",
+    url: "/admin",
+    icon: LayoutDashboard,
+    sub: [
+      {title: "orders", url: "/admin/customers/orders"}
     ],
   },
   {
@@ -138,13 +146,26 @@ export function AppSidebar() {
                 className="group/collapsible"
               >
                 <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton isActive={pathname.startsWith(item.url)}>
-                      <item.icon className="size-4" />
-                      <span>{item.title}</span>
-                      <ChevronRight className="ml-auto size-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                  <div className="flex items-center w-full">
+                    {/* Clickable label — navigates to item.url */}
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname.startsWith(item.url)}
+                      className="flex-1"
+                    >
+                      <Link href={item.url}>
+                        <item.icon className="size-4" />
+                        <span>{item.title}</span>
+                      </Link>
                     </SidebarMenuButton>
-                  </CollapsibleTrigger>
+
+                    {/* Chevron — only toggles the collapsible */}
+                    <CollapsibleTrigger asChild>
+                      <button className="ml-auto p-1 rounded hover:bg-sidebar-accent transition-colors">
+                        <ChevronRight className="size-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                      </button>
+                    </CollapsibleTrigger>
+                  </div>
 
                   <CollapsibleContent>
                     <SidebarMenuSub>
