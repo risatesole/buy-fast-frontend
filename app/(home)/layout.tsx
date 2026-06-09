@@ -34,6 +34,7 @@ type MeResponse = {
       email: string;
       role: string;
       profilepicture: string | null;
+      is_authenticated: boolean;
     } | null;
   };
 };
@@ -66,7 +67,8 @@ export default async function HomeLayout({
   const product_service = new ProductService();
   const [userData] = await Promise.all([getUserDetails()]);
 
-  const user = userData?.data?.user;
+  const rawUser = userData?.data?.user;
+  const user = rawUser?.is_authenticated ? rawUser : null;
 
   return (
     <div
