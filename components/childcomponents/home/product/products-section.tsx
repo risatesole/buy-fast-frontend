@@ -3,10 +3,9 @@
 import type { Product } from "@/types/products";
 import { ProductCard } from "@/components/ProductCard";
 
-
 export type ProductsSectionProps = {
   onAddToCart: (product: Product) => void;
-  products: Product[]; // ← was ApiProduct[], now matches what Page passes
+  products: Product[];
 };
 
 export function ProductsSection({
@@ -28,17 +27,28 @@ export function ProductsSection({
       >
         The Collection
       </h2>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-          gap: "2.5rem 2rem",
-        }}
-      >
-        {products.map((product) => (
-          <ProductCard key={product.id} product={product} onAdd={onAddToCart} />
-        ))}
-      </div>
+
+      {products.length === 0 ? (
+        <p style={{ color: "#888", fontSize: "1rem" }}>
+          No featured products available.
+        </p>
+      ) : (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+            gap: "2.5rem 2rem",
+          }}
+        >
+          {products.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              onAdd={onAddToCart}
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
