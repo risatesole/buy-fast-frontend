@@ -51,9 +51,14 @@ const platformItems = [
   },
   {
     title: "Customer",
-    url: "/admin",
+    url: "/admin/customer",
     icon: LayoutDashboard,
     sub: [{ title: "orders", url: "/admin/customers/orders" }],
+  },
+  {
+    title: "Products",
+    url: "/admin/products",
+    icon: LayoutDashboard,
   },
   {
     title: "Users",
@@ -151,10 +156,12 @@ export function AppSidebar() {
                 >
                   <SidebarMenuItem>
                     <div className="flex items-center w-full">
-                      {/* Clickable label — navigates to item.url */}
                       <SidebarMenuButton
                         asChild
-                        isActive={pathname.startsWith(item.url)}
+                        isActive={
+                          pathname === item.url ||
+                          item.sub?.some((sub) => pathname.startsWith(sub.url))
+                        }
                         className="flex-1"
                       >
                         <Link href={item.url}>
@@ -163,28 +170,33 @@ export function AppSidebar() {
                         </Link>
                       </SidebarMenuButton>
 
-                      {/* Chevron — only toggles the collapsible */}
-                      <CollapsibleTrigger asChild>
-                        <button className="ml-auto p-1 rounded hover:bg-sidebar-accent transition-colors">
-                          <ChevronRight className="size-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
-                        </button>
-                      </CollapsibleTrigger>
+                      {/* Only render the chevron if there are sub-items */}
+                      {item.sub && (
+                        <CollapsibleTrigger asChild>
+                          <button className="ml-auto p-1 rounded hover:bg-sidebar-accent transition-colors">
+                            <ChevronRight className="size-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                          </button>
+                        </CollapsibleTrigger>
+                      )}
                     </div>
 
-                    <CollapsibleContent>
-                      <SidebarMenuSub>
-                        {item.sub.map((sub) => (
-                          <SidebarMenuSubItem key={sub.title}>
-                            <SidebarMenuSubButton
-                              asChild
-                              isActive={pathname === sub.url}
-                            >
-                              <Link href={sub.url}>{sub.title}</Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
-                      </SidebarMenuSub>
-                    </CollapsibleContent>
+                    {/* Only render the collapsible content if there are sub-items */}
+                    {item.sub && (
+                      <CollapsibleContent>
+                        <SidebarMenuSub>
+                          {item.sub.map((sub) => (
+                            <SidebarMenuSubItem key={sub.title}>
+                              <SidebarMenuSubButton
+                                asChild
+                                isActive={pathname === sub.url}
+                              >
+                                <Link href={sub.url}>{sub.title}</Link>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          ))}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    )}
                   </SidebarMenuItem>
                 </Collapsible>
               );
