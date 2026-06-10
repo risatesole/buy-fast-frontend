@@ -1,5 +1,4 @@
 import { HeroSection } from "@/components/childcomponents/home/sections/hero";
-import { TrustBadgeStrip } from "@/components/childcomponents/home/sections/TrustBadgeStrip";
 import ProductService from "@/services/products/ProductService";
 import { ProductsInteractive } from "./ProductsInteractive";
 
@@ -18,8 +17,6 @@ export default async function Page() {
       <HeroSection preheadline={preheadline} headline={headline} />
 
       <ProductsInteractive products={products} />
-
-      <TrustBadgeStrip />
     </main>
   );
 }
