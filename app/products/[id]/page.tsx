@@ -154,6 +154,34 @@ export default function ProductPage() {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.4; }
         }
+
+        .product-layout {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 5rem;
+          align-items: start;
+        }
+
+        .product-image-col {
+          /* no extra styles needed on desktop */
+        }
+
+        @media (max-width: 768px) {
+          .product-layout {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+          }
+
+          .product-image-col {
+            max-width: 480px;
+            width: 100%;
+            margin: 0 auto;
+          }
+
+          .product-details-col {
+            padding-top: 0 !important;
+          }
+        }
       `}</style>
 
       <Navbar user={user} />
@@ -176,6 +204,7 @@ export default function ProductPage() {
             display: "flex",
             gap: "0.5rem",
             alignItems: "center",
+            flexWrap: "wrap",
           }}
         >
           <button
@@ -266,16 +295,9 @@ export default function ProductPage() {
 
         {/* ── Product layout ── */}
         {!error && (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "5rem",
-              alignItems: "start",
-            }}
-          >
+          <div className="product-layout">
             {/* LEFT — Image */}
-            <div>
+            <div className="product-image-col">
               <div
                 style={{
                   aspectRatio: "1/1",
@@ -303,7 +325,7 @@ export default function ProductPage() {
             </div>
 
             {/* RIGHT — Details */}
-            <div style={{ paddingTop: "1rem" }}>
+            <div className="product-details-col" style={{ paddingTop: "1rem" }}>
               {/* Category label */}
               {loading ? (
                 <Skeleton style={{ width: 80, height: 11, marginBottom: "0.75rem" }} />
