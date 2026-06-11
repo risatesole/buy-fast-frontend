@@ -73,6 +73,7 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
   };
 
   const categoryName = product.category.name;
+  const heroImage = product.images?.find((img) => img.type === "HERO")?.url;
 
   return (
     <article
@@ -98,9 +99,9 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
             overflow: "hidden",
           }}
         >
-          {product.image ? (
+          {heroImage ? (
             <img
-              src={product.image}
+              src={heroImage}
               alt={product.name}
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
