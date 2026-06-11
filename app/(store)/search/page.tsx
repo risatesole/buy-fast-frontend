@@ -5,17 +5,13 @@ import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
 // components
-import { Navbar } from "@/components/navbar";
 import { ProductCard } from "@/components/ProductCard";
-import { Footer } from "@/components/Footer";
 
 // types
 import type { Product } from "@/types/products";
 import type { CartItem } from "@/types/CartItem";
-import type { UserDetails } from "@/services/user/getUserDetails";
 
 // services
-import { getUserDetails } from "@/services/user/getUserDetails";
 import { addProductToCart } from "@/mock/shoppingcart";
 
 // ─── Types ────────────────────────────────────────────────────
@@ -90,33 +86,15 @@ function EmptyState({ query }: { query: string }) {
 
 // ─── Page ─────────────────────────────────────────────────────
 
-type NormalizedUser = {
-  firstname: string;
-  lastname: string;
-  profilepicture?: string | null;
-  role?: string | null;
-  is_authenticated: boolean;
-};
-
 function SearchContent() {
   const searchParams = useSearchParams();
   const q = searchParams.get("q") ?? "";
-
-  const [user, setUser] = useState<NormalizedUser | null>(null);
+  
   const [cart, setCart] = useState<CartItem[]>([]);
   const [rawProducts, setRawProducts] = useState<ApiProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  // load user
-  useEffect(() => {
-    getUserDetails()
-      .then((details) => {
-        const raw = details?.data?.user;
-        setUser(raw?.is_authenticated ? raw : null);
-      })
-      .catch(() => {});
-  }, []);
 
   // load results whenever query changes
   useEffect(() => {
@@ -146,17 +124,6 @@ function SearchContent() {
 
   return (
     <div style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}>
-      <Navbar
-        user={
-          user
-            ? {
-                name: `${user.firstname} ${user.lastname}`,
-                profilePicture: user.profilepicture ?? "",
-                role: user.role ?? "",
-              }
-            : null
-        }
-      />
 
       <main
         style={{
@@ -230,8 +197,6 @@ function SearchContent() {
           </div>
         )}
       </main>
-
-      <Footer />
     </div>
   );
 }
