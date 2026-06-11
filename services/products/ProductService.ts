@@ -37,6 +37,16 @@ export default class ProductService {
         }
     }
 
+        
+    async  getProductDetails(id: string): Promise<Product> { 
+    const res = await fetch(`${process.env.BACKEND_URL}/api/v1/products/${id}`, {
+        cache: "no-store",
+    });
+    if (!res.ok) throw new Error("Product not found");
+    const json = await res.json();
+    return json.data;
+    }
+    
     private buildQueryParams(overrides: ProductQueryParameters): string {
         const { tags, ...rest } = overrides;
         const params = { ...DEFAULT_QUERY_PARAMS, ...rest };

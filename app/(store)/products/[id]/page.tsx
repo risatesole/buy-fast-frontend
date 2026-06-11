@@ -2,21 +2,12 @@ import { notFound } from "next/navigation";
 import { ImageGallery } from "@/components/ImageGallery";
 import { AddToCartButton } from "@/components/AddToCartButton";
 import type { Product } from "@/types/products";
+import ProductService from "@/services/products/ProductService";
 
 const formatPrice = (n: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
     n,
   );
-
-async function fetchProduct(id: string): Promise<Product> {
-  const base = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
-  const res = await fetch(`${base}/api/v1/products/${id}`, {
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error("Product not found");
-  const json = await res.json();
-  return json.data;
-}
 
 // ─── Tag pill ─────────────────────────────────────────────────
 
@@ -201,11 +192,12 @@ export default async function ProductPage({
   params: { id: string };
 }) {
   let product: Product;
+  const productService = new ProductService();
 
   const { id } = await params;
 
   try {
-    product = await fetchProduct(id);
+    product = await productService.getProductDetails(id);
   } catch {
     notFound();
   }
