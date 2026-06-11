@@ -1,9 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-import { Navbar } from "@/components/navbar";
-import { Footer } from "@/components/Footer";
 import { Input } from "@/components/ui/input";
 
 import type { UserDetails } from "@/services/user/getUserDetails";
@@ -557,7 +554,7 @@ const SECTIONS: { id: Section; label: string }[] = [
   { id: "appearance", label: "Appearance" },
 ];
 
-export default function SettingsPage() {
+export default function AccountPage() {
   const [active, setActive] = useState<Section>("profile");
   const [user, setUser] = useState<UserDetails | null>(null);
 
@@ -575,7 +572,7 @@ export default function SettingsPage() {
 
   return (
     <div style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}>
-      <Navbar user={user} />
+     
 
       <main
         style={{ maxWidth: 1280, margin: "0 auto", padding: "4rem 2rem 6rem" }}
@@ -588,7 +585,7 @@ export default function SettingsPage() {
             marginBottom: "0.5rem",
           }}
         >
-          Settings
+          account
         </h1>
         <p
           style={{
@@ -641,7 +638,6 @@ export default function SettingsPage() {
         </div>
       </main>
 
-      <Footer />
     </div>
   );
 }
