@@ -2,13 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Navbar } from "@/components/navbar";
-import { Footer } from "@/components/Footer";
-import { getUserDetails } from "@/services/user/getUserDetails";
 import { addProductToCart } from "@/mock/shoppingcart";
-import type { Product } from "@/types/products";
+import type { Product, ProductImage } from "@/types/products";
 import type { CartItem } from "@/types/CartItem";
-import type { UserDetails } from "@/services/user/getUserDetails";
 
 // ─── Helpers ──────────────────────────────────────────────────
 
@@ -22,7 +18,7 @@ async function fetchProduct(id: string): Promise<Product> {
   return json.data;
 }
 
-// ─── Glyph (reused pattern from your codebase) ────────────────
+// ─── Glyph ────────────────────────────────────────────────────
 
 function ProductGlyph({ category }: { category: string }) {
   const stroke = "oklch(0.708 0 0)";
@@ -105,6 +101,81 @@ function Tag({ label }: { label: string }) {
   );
 }
 
+// ─── Image gallery ────────────────────────────────────────────
+
+function ImageGallery({
+  images,
+  productName,
+  category,
+}: {
+  images: ProductImage[];
+  productName: string;
+  category: string;
+}) {
+  const hero = images.find((img) => img.type === "HERO");
+  const [selected, setSelected] = useState<ProductImage>(hero ?? images[0]);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+      {/* Main image */}
+      <div
+        style={{
+          aspectRatio: "1/1",
+          background: "oklch(0.985 0 0)",
+          borderRadius: 4,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          overflow: "hidden",
+          border: "1px solid oklch(0.922 0 0)",
+        }}
+      >
+        {selected ? (
+          <img
+            src={selected.url}
+            alt={productName}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        ) : (
+          <ProductGlyph category={category} />
+        )}
+      </div>
+
+      {/* Thumbnails — only show if more than one image */}
+      {images.length > 1 && (
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+          {images.map((img) => (
+            <button
+              key={img.type}
+              onClick={() => setSelected(img)}
+              style={{
+                width: 72,
+                height: 72,
+                padding: 0,
+                border: selected.type === img.type
+                  ? "2px solid oklch(0.145 0 0)"
+                  : "2px solid oklch(0.922 0 0)",
+                borderRadius: 4,
+                overflow: "hidden",
+                cursor: "pointer",
+                background: "oklch(0.985 0 0)",
+                flexShrink: 0,
+                transition: "border-color 0.15s ease",
+              }}
+            >
+              <img
+                src={img.url}
+                alt={img.type}
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────
 
 export default function ProductPage() {
@@ -112,18 +183,11 @@ export default function ProductPage() {
   const router = useRouter();
   const id = params?.id as string;
 
-  const [user, setUser] = useState<UserDetails | null>(null);
   const [product, setProduct] = useState<Product | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [added, setAdded] = useState(false);
-
-  useEffect(() => {
-    getUserDetails()
-      .then(setUser)
-      .catch(() => {});
-  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -148,7 +212,7 @@ export default function ProductPage() {
   }
 
   return (
-    <div style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}>
+    <>
       <style>{`
         @keyframes pulse {
           0%, 100% { opacity: 1; }
@@ -160,10 +224,6 @@ export default function ProductPage() {
           grid-template-columns: 1fr 1fr;
           gap: 5rem;
           align-items: start;
-        }
-
-        .product-image-col {
-          /* no extra styles needed on desktop */
         }
 
         @media (max-width: 768px) {
@@ -183,8 +243,6 @@ export default function ProductPage() {
           }
         }
       `}</style>
-
-      <Navbar user={user} />
 
       <main
         style={{
@@ -296,37 +354,28 @@ export default function ProductPage() {
         {/* ── Product layout ── */}
         {!error && (
           <div className="product-layout">
-            {/* LEFT — Image */}
+            {/* LEFT — Images */}
             <div className="product-image-col">
-              <div
-                style={{
-                  aspectRatio: "1/1",
-                  background: "oklch(0.985 0 0)",
-                  borderRadius: 4,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  overflow: "hidden",
-                  border: "1px solid oklch(0.922 0 0)",
-                }}
-              >
-                {loading ? (
-                  <Skeleton style={{ width: "100%", height: "100%" }} />
-                ) : product?.image ? (
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  />
-                ) : (
-                  <ProductGlyph category={product?.category.name ?? ""} />
-                )}
-              </div>
+              {loading ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                  <Skeleton style={{ aspectRatio: "1/1", width: "100%", borderRadius: 4 }} />
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    {[0, 1].map((i) => (
+                      <Skeleton key={i} style={{ width: 72, height: 72, borderRadius: 4 }} />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <ImageGallery
+                  images={product?.images ?? []}
+                  productName={product?.name ?? ""}
+                  category={product?.category.name ?? ""}
+                />
+              )}
             </div>
 
             {/* RIGHT — Details */}
             <div className="product-details-col" style={{ paddingTop: "1rem" }}>
-              {/* Category label */}
               {loading ? (
                 <Skeleton style={{ width: 80, height: 11, marginBottom: "0.75rem" }} />
               ) : (
@@ -343,7 +392,6 @@ export default function ProductPage() {
                 </p>
               )}
 
-              {/* Product name */}
               {loading ? (
                 <Skeleton style={{ width: "70%", height: 32, marginBottom: "1.5rem" }} />
               ) : (
@@ -361,7 +409,6 @@ export default function ProductPage() {
                 </h1>
               )}
 
-              {/* Price */}
               {loading ? (
                 <Skeleton style={{ width: 100, height: 28, marginBottom: "2rem" }} />
               ) : (
@@ -377,15 +424,8 @@ export default function ProductPage() {
                 </p>
               )}
 
-              {/* Divider */}
-              <div
-                style={{
-                  borderTop: "1px solid oklch(0.922 0 0)",
-                  marginBottom: "2rem",
-                }}
-              />
+              <div style={{ borderTop: "1px solid oklch(0.922 0 0)", marginBottom: "2rem" }} />
 
-              {/* Description */}
               {loading ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "2rem" }}>
                   <Skeleton style={{ width: "100%", height: 14 }} />
@@ -405,7 +445,6 @@ export default function ProductPage() {
                 </p>
               )}
 
-              {/* Meta: Brand */}
               {!loading && product?.brand && (
                 <div
                   style={{
@@ -432,23 +471,14 @@ export default function ProductPage() {
                 </div>
               )}
 
-              {/* Tags */}
               {!loading && product?.tags && product.tags.length > 0 && (
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "0.5rem",
-                    flexWrap: "wrap",
-                    marginBottom: "2.5rem",
-                  }}
-                >
+                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "2.5rem" }}>
                   {product.tags.map((tag) => (
                     <Tag key={tag} label={tag} />
                   ))}
                 </div>
               )}
 
-              {/* Availability */}
               {!loading && (
                 <div
                   style={{
@@ -472,7 +502,6 @@ export default function ProductPage() {
                 </div>
               )}
 
-              {/* Add to cart */}
               {loading ? (
                 <Skeleton style={{ width: "100%", height: 48 }} />
               ) : (
@@ -488,8 +517,8 @@ export default function ProductPage() {
                     background: added
                       ? "oklch(0.45 0.15 145)"
                       : product?.status
-                      ? "oklch(0.145 0 0)"
-                      : "oklch(0.85 0 0)",
+                        ? "oklch(0.145 0 0)"
+                        : "oklch(0.85 0 0)",
                     color: product?.status ? "oklch(0.985 0 0)" : "oklch(0.556 0 0)",
                     border: "none",
                     borderRadius: 2,
@@ -504,8 +533,6 @@ export default function ProductPage() {
           </div>
         )}
       </main>
-
-      <Footer />
-    </div>
+    </>
   );
 }

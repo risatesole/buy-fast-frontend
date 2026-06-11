@@ -1,3 +1,5 @@
+import type { HardCodedProductCategory } from "./ProductCategory";
+
 type Category = {
   id: number;
   name: string;
@@ -6,9 +8,11 @@ type Category = {
   status: boolean;
 };
 
-type ProductImage = {
+export type ProductImageType = "HERO" | "SCALE" | "PACKING" | "FLATLAY" | "FREEZE_FRAME";
+
+export type ProductImage = {
   url: string;
-  type: "HERO" | "FLATLAY";
+  type: ProductImageType;
 };
 
 export type Product = {
