@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -35,113 +35,78 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { MoreHorizontal, PlusCircle, Upload, X, Trash2 } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Upload, X, Trash2, Loader2 } from "lucide-react";
 
-type ProductStatus = "Active" | "Draft" | "Archived";
+// Match the API response structure
+interface ApiProduct {
+  id: number;
+  name: string;
+  description: string;
+  brand: string;
+  selling_price: number;
+  status: boolean;
+  category: {
+    id: number;
+    name: string;
+    slug: string;
+    image: string;
+    status: boolean;
+  };
+  images: Array<{
+    url: string;
+    type: string;
+  }>;
+  tags: string[];
+}
 
-interface Product {
+// Converted product for UI display
+interface DisplayProduct {
   id: string;
   name: string;
   category: string;
   price: number;
-  stock: number;
-  status: ProductStatus;
+  stock: number; // API doesn't have stock, defaulting to random or you can remove
+  status: "Active" | "Draft" | "Archived";
+  description: string;
+  brand: string;
+  heroImage?: string;
 }
 
-const initialProducts: Product[] = [
-  {
-    id: "PRD-001",
-    name: "Wireless Headphones",
-    category: "Electronics",
-    price: 89.99,
-    stock: 142,
-    status: "Active",
-  },
-  {
-    id: "PRD-002",
-    name: "Mechanical Keyboard",
-    category: "Electronics",
-    price: 129.0,
-    stock: 57,
-    status: "Active",
-  },
-  {
-    id: "PRD-003",
-    name: "Ergonomic Mouse",
-    category: "Electronics",
-    price: 49.99,
-    stock: 0,
-    status: "Archived",
-  },
-  {
-    id: "PRD-004",
-    name: "Standing Desk Mat",
-    category: "Furniture",
-    price: 39.99,
-    stock: 88,
-    status: "Active",
-  },
-  {
-    id: "PRD-005",
-    name: "USB-C Hub 7-in-1",
-    category: "Accessories",
-    price: 34.99,
-    stock: 210,
-    status: "Active",
-  },
-  {
-    id: "PRD-006",
-    name: "Laptop Stand",
-    category: "Accessories",
-    price: 59.99,
-    stock: 34,
-    status: "Draft",
-  },
-  {
-    id: "PRD-007",
-    name: "Webcam 4K",
-    category: "Electronics",
-    price: 149.0,
-    stock: 19,
-    status: "Active",
-  },
-  {
-    id: "PRD-008",
-    name: "Desk Lamp LED",
-    category: "Furniture",
-    price: 44.99,
-    stock: 0,
-    status: "Draft",
-  },
-  {
-    id: "PRD-009",
-    name: "Cable Management Kit",
-    category: "Accessories",
-    price: 14.99,
-    stock: 305,
-    status: "Active",
-  },
-  {
-    id: "PRD-010",
-    name: "Monitor Light Bar",
-    category: "Electronics",
-    price: 69.99,
-    stock: 72,
-    status: "Active",
-  },
-];
-
-const statusStyles: Record<ProductStatus, string> = {
+const statusStyles: Record<string, string> = {
   Active: "text-emerald-600",
   Draft: "text-yellow-600",
   Archived: "text-zinc-400",
 };
 
-const dotStyles: Record<ProductStatus, string> = {
+const dotStyles: Record<string, string> = {
   Active: "bg-emerald-500",
   Draft: "bg-yellow-500",
   Archived: "bg-zinc-400",
 };
+
+// Helper to convert API product to display format
+function convertApiProduct(apiProduct: ApiProduct): DisplayProduct {
+  // Map boolean status to our status types
+  let displayStatus: "Active" | "Draft" | "Archived" = "Active";
+  if (!apiProduct.status) {
+    displayStatus = "Archived";
+  }
+  // You could add logic for "Draft" based on some condition
+
+  const heroImage = apiProduct.images?.find(img => img.type === "HERO")?.url;
+
+  return {
+    id: apiProduct.id.toString(),
+    name: apiProduct.name,
+    category: apiProduct.category?.name || "Uncategorized",
+    price: apiProduct.selling_price,
+    stock: Math.floor(Math.random() * 100), // API doesn't provide stock, generating random
+    status: displayStatus,
+    description: apiProduct.description,
+    brand: apiProduct.brand,
+    heroImage: heroImage,
+  };
+}
 
 // ─── Image Upload Field ───────────────────────────────────────────────────────
 function ImageUploadField({ label, hint }: { label: string; hint: string }) {
@@ -216,10 +181,10 @@ function EditDialog({
   onClose,
   onSave,
 }: {
-  product: Product;
+  product: DisplayProduct;
   open: boolean;
   onClose: () => void;
-  onSave: (updated: Product) => void;
+  onSave: (updated: DisplayProduct) => void;
 }) {
   const [form, setForm] = useState({ ...product });
 
@@ -250,11 +215,11 @@ function EditDialog({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="brand">Brand</Label>
               <Input
-                id="category"
-                value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                id="brand"
+                value={form.brand}
+                onChange={(e) => setForm({ ...form, brand: e.target.value })}
               />
             </div>
             <div className="space-y-1.5">
@@ -262,7 +227,7 @@ function EditDialog({
               <Select
                 value={form.status}
                 onValueChange={(v) =>
-                  setForm({ ...form, status: v as ProductStatus })
+                  setForm({ ...form, status: v as DisplayProduct["status"] })
                 }
               >
                 <SelectTrigger>
@@ -309,11 +274,24 @@ function EditDialog({
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder="Short product description…"
               className="resize-none"
               rows={3}
             />
           </div>
+
+          {form.heroImage && (
+            <div className="space-y-1.5">
+              <Label>Current Hero Image</Label>
+              <img 
+                src={form.heroImage} 
+                alt={form.name}
+                className="rounded-lg border max-h-32 object-cover"
+              />
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
             <ImageUploadField
@@ -345,7 +323,7 @@ function DeleteDialog({
   onClose,
   onConfirm,
 }: {
-  product: Product;
+  product: DisplayProduct;
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
@@ -388,16 +366,48 @@ function DeleteDialog({
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function ProductsAdminPage() {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [editTarget, setEditTarget] = useState<Product | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+  const [products, setProducts] = useState<DisplayProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [editTarget, setEditTarget] = useState<DisplayProduct | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DisplayProduct | null>(null);
 
-  const handleSave = (updated: Product) => {
+  // Fetch products from API
+  const fetchProducts = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/v1/products/");
+      if (!response.ok) {
+        throw new Error(`Failed to fetch: ${response.status}`);
+      }
+      const result = await response.json();
+      if (result.status === "ok" && Array.isArray(result.data)) {
+        const displayProducts = result.data.map(convertApiProduct);
+        setProducts(displayProducts);
+      } else {
+        throw new Error("Invalid response format");
+      }
+    } catch (err) {
+      console.error("Error fetching products:", err);
+      setError(err instanceof Error ? err.message : "Failed to load products");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const handleSave = (updated: DisplayProduct) => {
     setProducts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+    // TODO: Add PUT/PATCH API call to persist changes
   };
 
   const handleDelete = (id: string) => {
     setProducts((prev) => prev.filter((p) => p.id !== id));
+    // TODO: Add DELETE API call
   };
 
   const toggleActive = (id: string) => {
@@ -408,7 +418,33 @@ export default function ProductsAdminPage() {
           : p,
       ),
     );
+    // TODO: Add API call to update status
   };
+
+  if (loading) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="size-8 animate-spin text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">Loading products...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-destructive">
+          <p className="font-medium">Error loading products</p>
+          <p className="text-sm">{error}</p>
+          <Button variant="outline" size="sm" className="mt-3" onClick={fetchProducts}>
+            Try again
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-4">
@@ -431,6 +467,7 @@ export default function ProductsAdminPage() {
             <TableRow>
               <TableHead className="w-[100px]">ID</TableHead>
               <TableHead>Name</TableHead>
+              <TableHead>Brand</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Price</TableHead>
               <TableHead>Stock</TableHead>
@@ -444,7 +481,21 @@ export default function ProductsAdminPage() {
                 <TableCell className="font-mono text-xs text-muted-foreground">
                   {product.id}
                 </TableCell>
-                <TableCell className="font-medium">{product.name}</TableCell>
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-2">
+                    {product.heroImage && (
+                      <img 
+                        src={product.heroImage} 
+                        alt="" 
+                        className="size-8 rounded object-cover"
+                      />
+                    )}
+                    <span>{product.name}</span>
+                  </div>
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {product.brand}
+                </TableCell>
                 <TableCell className="text-muted-foreground">
                   {product.category}
                 </TableCell>
