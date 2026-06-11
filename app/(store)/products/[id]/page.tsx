@@ -11,7 +11,7 @@ const formatPrice = (n: number) =>
 
 // ─── Tag pill ─────────────────────────────────────────────────
 
-function Tag({ label }: { label: string }) {
+function TagBadge({ label }: { label: string }) {
   return (
     <span
       style={{
@@ -153,7 +153,7 @@ function ProductDetails({ product }: { product: Product }) {
           }}
         >
           {product.tags.map((tag) => (
-            <Tag key={tag} label={tag} />
+            <TagBadge key={tag} label={tag} />
           ))}
         </div>
       )}
