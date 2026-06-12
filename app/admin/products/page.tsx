@@ -64,12 +64,14 @@ interface DisplayProduct {
   id: string;
   name: string;
   category: string;
+  categoryId: number;
   price: number;
-  stock: number; // API doesn't have stock, defaulting to random or you can remove
+  stock: number;
   status: "Active" | "Draft" | "Archived";
   description: string;
   brand: string;
   heroImage?: string;
+  flatlayImage?: string;
 }
 
 const statusStyles: Record<string, string> = {
@@ -84,38 +86,69 @@ const dotStyles: Record<string, string> = {
   Archived: "bg-zinc-400",
 };
 
+// Backend base URL — set NEXT_PUBLIC_API_URL in .env.local if different
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
+// Reads the csrftoken cookie that Django sets on any GET request
+function getCsrfToken(): string {
+  if (typeof document === "undefined") return "";
+  const match = document.cookie.match(/csrftoken=([^;]+)/);
+  return match ? match[1] : "";
+}
+
 // Helper to convert API product to display format
+
 function convertApiProduct(apiProduct: ApiProduct): DisplayProduct {
-  // Map boolean status to our status types
   let displayStatus: "Active" | "Draft" | "Archived" = "Active";
   if (!apiProduct.status) {
     displayStatus = "Archived";
   }
-  // You could add logic for "Draft" based on some condition
 
-  const heroImage = apiProduct.images?.find(img => img.type === "HERO")?.url;
+  const rawHero = apiProduct.images?.find((img) => img.type === "HERO")?.url;
+  const rawFlatlay = apiProduct.images?.find((img) => img.type === "FLATLAY")?.url;
+
+  // Prefix relative URLs with the backend base URL
+  const toAbsolute = (url?: string) =>
+    url ? (url.startsWith("http") ? url : `${BASE_URL}${url}`) : undefined;
 
   return {
     id: apiProduct.id.toString(),
     name: apiProduct.name,
     category: apiProduct.category?.name || "Uncategorized",
+    categoryId: apiProduct.category?.id ?? 1,
     price: apiProduct.selling_price,
-    stock: Math.floor(Math.random() * 100), // API doesn't provide stock, generating random
+    stock: Math.floor(Math.random() * 100),
     status: displayStatus,
     description: apiProduct.description,
     brand: apiProduct.brand,
-    heroImage: heroImage,
+    heroImage: toAbsolute(rawHero),
+    flatlayImage: toAbsolute(rawFlatlay),
   };
 }
 
 // ─── Image Upload Field ───────────────────────────────────────────────────────
-function ImageUploadField({ label, hint }: { label: string; hint: string }) {
-  const [preview, setPreview] = useState<string | null>(null);
+function ImageUploadField({
+  label,
+  hint,
+  onFileChange,
+  existingUrl,
+}: {
+  label: string;
+  hint: string;
+  onFileChange: (file: File | null) => void;
+  existingUrl?: string;
+}) {
+  const [preview, setPreview] = useState<string | null>(existingUrl ?? null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Sync preview when existingUrl changes (e.g. dialog opens for a different product)
+  useEffect(() => {
+    setPreview(existingUrl ?? null);
+  }, [existingUrl]);
+
   const handleFile = (file: File) => {
-    const url = URL.createObjectURL(file);
-    setPreview(url);
+    setPreview(URL.createObjectURL(file));
+    onFileChange(file);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -147,6 +180,7 @@ function ImageUploadField({ label, hint }: { label: string; hint: string }) {
               onClick={(e) => {
                 e.stopPropagation();
                 setPreview(null);
+                onFileChange(null);
               }}
               className="absolute top-1.5 right-1.5 rounded-full bg-background/80 p-0.5 shadow hover:bg-background"
             >
@@ -187,10 +221,67 @@ function EditDialog({
   onSave: (updated: DisplayProduct) => void;
 }) {
   const [form, setForm] = useState({ ...product });
+  const [heroFile, setHeroFile] = useState<File | null>(null);
+  const [flatlayFile, setFlatlayFile] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
-  const handleSave = () => {
-    onSave(form);
-    onClose();
+  // Reset state when dialog opens with a new product
+  useEffect(() => {
+    if (open) {
+      setForm({ ...product });
+      setHeroFile(null);
+      setFlatlayFile(null);
+      setSaveError(null);
+    }
+  }, [open, product]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("name", form.name);
+      formData.append("description", form.description);
+      formData.append("brand", form.brand);
+      formData.append("selling_price", form.price.toString());
+      formData.append("status", form.status === "Active" ? "true" : "false");
+      formData.append("category_id", form.categoryId.toString());
+
+      // Only append images if the user selected new ones
+      if (heroFile) formData.append("images_HERO", heroFile);
+      if (flatlayFile) formData.append("images_FLATLAY", flatlayFile);
+
+      const response = await fetch(`${BASE_URL}/api/v1/products/${product.id}/`, {
+        method: "PATCH",
+        credentials: "include",          // send session cookie
+        headers: {
+          "X-CSRFToken": getCsrfToken(), // Django CSRF protection
+        },
+        body: formData,
+        // No Content-Type header — browser sets multipart boundary automatically
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Save failed (${response.status}): ${errorText}`);
+      }
+
+      const result = await response.json();
+      // Use fresh image URLs from the API response
+      if (result.status === "updated" && result.data) {
+        const updated = convertApiProduct(result.data as ApiProduct);
+        onSave({ ...updated, stock: form.stock });
+      } else {
+        onSave(form);
+      }
+      onClose();
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Failed to save changes");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -282,34 +373,36 @@ function EditDialog({
             />
           </div>
 
-          {form.heroImage && (
-            <div className="space-y-1.5">
-              <Label>Current Hero Image</Label>
-              <img 
-                src={form.heroImage} 
-                alt={form.name}
-                className="rounded-lg border max-h-32 object-cover"
-              />
-            </div>
-          )}
-
           <div className="grid grid-cols-2 gap-3">
             <ImageUploadField
-              label="Main image"
-              hint="Shown in listings and search"
+              label="Hero image"
+              hint="Main listing image"
+              existingUrl={form.heroImage}
+              onFileChange={setHeroFile}
             />
             <ImageUploadField
-              label="Scale image"
-              hint="Shows product size in context"
+              label="Flatlay image"
+              hint="Shows product in context"
+              existingUrl={form.flatlayImage}
+              onFileChange={setFlatlayFile}
             />
           </div>
+
+          {saveError && (
+            <p className="text-sm text-destructive rounded-md bg-destructive/10 px-3 py-2">
+              {saveError}
+            </p>
+          )}
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={saving}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>Save changes</Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving && <Loader2 className="mr-2 size-4 animate-spin" />}
+            Save changes
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -372,19 +465,17 @@ export default function ProductsAdminPage() {
   const [editTarget, setEditTarget] = useState<DisplayProduct | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DisplayProduct | null>(null);
 
-  // Fetch products from API
   const fetchProducts = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("/api/v1/products/");
+      const response = await fetch(`${BASE_URL}/api/v1/products/`, { credentials: "include" });
       if (!response.ok) {
         throw new Error(`Failed to fetch: ${response.status}`);
       }
       const result = await response.json();
       if (result.status === "ok" && Array.isArray(result.data)) {
-        const displayProducts = result.data.map(convertApiProduct);
-        setProducts(displayProducts);
+        setProducts(result.data.map(convertApiProduct));
       } else {
         throw new Error("Invalid response format");
       }
@@ -402,7 +493,6 @@ export default function ProductsAdminPage() {
 
   const handleSave = (updated: DisplayProduct) => {
     setProducts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
-    // TODO: Add PUT/PATCH API call to persist changes
   };
 
   const handleDelete = (id: string) => {
@@ -465,7 +555,8 @@ export default function ProductsAdminPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[100px]">ID</TableHead>
+              <TableHead className="w-[60px]">ID</TableHead>
+              <TableHead className="w-[60px]">Image</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Brand</TableHead>
               <TableHead>Category</TableHead>
@@ -481,17 +572,24 @@ export default function ProductsAdminPage() {
                 <TableCell className="font-mono text-xs text-muted-foreground">
                   {product.id}
                 </TableCell>
+                <TableCell>
+                  {product.heroImage ? (
+                    <img
+                      src={product.heroImage}
+                      alt={product.name}
+                      className="size-10 rounded-md object-cover border"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  ) : (
+                    <div className="size-10 rounded-md border bg-muted flex items-center justify-center text-muted-foreground text-xs">
+                      —
+                    </div>
+                  )}
+                </TableCell>
                 <TableCell className="font-medium">
-                  <div className="flex items-center gap-2">
-                    {product.heroImage && (
-                      <img 
-                        src={product.heroImage} 
-                        alt="" 
-                        className="size-8 rounded object-cover"
-                      />
-                    )}
-                    <span>{product.name}</span>
-                  </div>
+                  {product.name}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {product.brand}
@@ -531,12 +629,8 @@ export default function ProductsAdminPage() {
                       <DropdownMenuItem onClick={() => setEditTarget(product)}>
                         Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => toggleActive(product.id)}
-                      >
-                        {product.status === "Active"
-                          ? "Deactivate"
-                          : "Activate"}
+                      <DropdownMenuItem onClick={() => toggleActive(product.id)}>
+                        {product.status === "Active" ? "Deactivate" : "Activate"}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
