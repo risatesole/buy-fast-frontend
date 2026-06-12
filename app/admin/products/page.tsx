@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, KeyboardEvent, useCallback } from "react";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import {
   MoreHorizontal,
   PlusCircle,
@@ -796,30 +797,59 @@ function RowActions({ product, onEdit, onToggle, onDelete }: {
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
+const ITEMS_PER_PAGE = 50;
+
 export default function ProductsAdminPage() {
   const [products, setProducts] = useState<DisplayProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editTarget, setEditTarget] = useState<DisplayProduct | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DisplayProduct | null>(null);
+  const [offset, setOffset] = useState(0);
 
   usePreline([products.length]);
 
-  const fetchProducts = async () => {
-    setLoading(true); setError(null);
+  const fetchProducts = async (isInitial: boolean = true) => {
+    if (isInitial) {
+      setLoading(true);
+      setError(null);
+    }
+
     try {
-      const res = await fetch(`${BASE_URL}/api/v1/products/`, { credentials: "include" });
+      const res = await fetch(
+        `${BASE_URL}/api/v1/products/?limit=${ITEMS_PER_PAGE}&offset=${isInitial ? 0 : offset}`,
+        { credentials: "include" }
+      );
       if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
       const result = await res.json();
       if (result.status === "ok" && Array.isArray(result.data)) {
-        setProducts(result.data.map(convertApiProduct));
+        const newProducts = result.data.map(convertApiProduct);
+        if (isInitial) {
+          setProducts(newProducts);
+          setOffset(ITEMS_PER_PAGE);
+        } else {
+          setProducts((prev) => [...prev, ...newProducts]);
+          setOffset((prev) => prev + ITEMS_PER_PAGE);
+        }
       } else throw new Error("Invalid response format");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load products");
-    } finally { setLoading(false); }
+    } finally {
+      if (isInitial) setLoading(false);
+    }
   };
 
-  useEffect(() => { fetchProducts(); }, []);
+  useEffect(() => {
+    fetchProducts(true);
+  }, []);
+
+  const handleLoadMore = useCallback(async () => {
+    await fetchProducts(false);
+  }, [offset]);
+
+  const { observerTarget, isLoading: isLoadingMore } = useInfiniteScroll({
+    onLoadMore: handleLoadMore,
+  });
 
   const handleCreated = (p: DisplayProduct) => setProducts((prev) => [p, ...prev]);
   const handleSave = (updated: DisplayProduct) => setProducts((prev) => prev.map((p) => p.id === updated.id ? updated : p));
@@ -841,7 +871,7 @@ export default function ProductsAdminPage() {
       <p className="font-medium text-red-600 dark:text-red-400">Error loading products</p>
       <p className="text-sm text-red-500 dark:text-red-300 mt-1">{error}</p>
       <button
-        onClick={fetchProducts}
+        onClick={() => fetchProducts(true)}
         className="mt-3 py-1.5 px-3 text-sm font-medium rounded-lg border border-red-200 text-red-600 hover:bg-red-100 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/40"
       >
         Try again
@@ -964,6 +994,27 @@ export default function ProductsAdminPage() {
       </div>
 
       <p className="text-sm text-gray-400 dark:text-neutral-500">{products.length} products total</p>
+
+      {/* Infinite scroll sentinel */}
+      <div
+        ref={observerTarget}
+        style={{
+          height: "1px",
+          visibility: "hidden",
+        }}
+        aria-label="infinite scroll trigger"
+      />
+      {isLoadingMore && (
+        <div
+          style={{
+            textAlign: "center",
+            padding: "2rem",
+            color: "#888",
+          }}
+        >
+          Loading more products...
+        </div>
+      )}
 
       {/* Edit modal — mounted on demand */}
       {editTarget && (
