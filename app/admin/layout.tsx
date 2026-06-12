@@ -1,14 +1,22 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/app-sidebar"
+import type { ReactNode } from "react";
+import { AppSidebar } from "@/components/app-sidebar";
+import { AdminTopbar } from "@/components/admin-topbar";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <SidebarProvider>
+    // Preline requires HSStaticMethods.autoInit() — done inside AppSidebar via useEffect
+    <div className="min-h-screen bg-gray-50 dark:bg-neutral-900">
+      {/* ── Sidebar (fixed, 64 = w-64) ── */}
       <AppSidebar />
-      <main className="flex-1 p-6">
-        <SidebarTrigger /> {/* Toggle button */}
-        {children}
-      </main>
-    </SidebarProvider>
-  )
+
+      {/* ── Main column — offset on desktop to clear the sidebar ── */}
+      <div className="lg:ps-64">
+        {/* ── Sticky top bar ── */}
+        <AdminTopbar />
+
+        {/* ── Page content ── */}
+        <main className="p-4 sm:p-6 lg:p-8">{children}</main>
+      </div>
+    </div>
+  );
 }
