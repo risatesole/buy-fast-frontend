@@ -89,7 +89,7 @@ async function getFirstPage(): Promise<{
   try {
     const res = await fetch(
       `${BACKEND_URL}/api/v1/products/?paginate=cursor&limit=${PAGE_SIZE}`,
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
     if (!res.ok) throw new Error(`Django returned ${res.status}`);
 
