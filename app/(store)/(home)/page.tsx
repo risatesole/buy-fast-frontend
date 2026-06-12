@@ -6,7 +6,7 @@ export default async function Page() {
   const productService = new ProductService();
   const products = await productService.getProducts({
     tags: ["featured"],
-    limit: 20,
+    limit: 48,
     offset: 0,
   });
 

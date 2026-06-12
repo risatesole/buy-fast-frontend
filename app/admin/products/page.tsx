@@ -57,6 +57,12 @@ interface DisplayProduct {
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const CATEGORIES_URL = `${BASE_URL}/api/v1/productcategories/`;
 
+
+type ProductFormData = ReturnType<typeof makeEmptyForm> & Partial<Pick<DisplayProduct, 'heroImage' | 'flatlayImage' | 'scaleImage' | 'packingImage' | 'freezeFrameImage'>>;
+
+
+
+
 function getCsrfToken(): string {
   if (typeof document === "undefined") return "";
   const match = document.cookie.match(/csrftoken=([^;]+)/);
@@ -329,7 +335,7 @@ function useCategories(open: boolean, fallback?: { id: number; name: string }) {
 
 // ─── Shared form fields (used in both Add + Edit) ─────────────────────────────
 function ProductFormFields({ form, setForm, files, setFiles, categories, catLoading, addCategory }: {
-  form: ReturnType<typeof makeEmptyForm>;
+  form: ProductFormData;
   setForm: (f: ReturnType<typeof makeEmptyForm>) => void;
   files: Record<string, File | null>;
   setFiles: (fn: (prev: Record<string, File | null>) => Record<string, File | null>) => void;
