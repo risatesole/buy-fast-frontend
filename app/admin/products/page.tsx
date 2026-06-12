@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, KeyboardEvent } from "react";
 import {
   Table,
   TableBody,
@@ -35,9 +35,25 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { MoreHorizontal, PlusCircle, Upload, X, Trash2, Loader2 } from "lucide-react";
+import {
+  MoreHorizontal,
+  PlusCircle,
+  Upload,
+  X,
+  Trash2,
+  Loader2,
+} from "lucide-react";
 
-// Match the API response structure
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface ApiCategory {
+  id: number;
+  name: string;
+  slug: string;
+  image: string;
+  status: boolean;
+}
+
 interface ApiProduct {
   id: number;
   name: string;
@@ -45,26 +61,17 @@ interface ApiProduct {
   brand: string;
   selling_price: number;
   status: boolean;
-  category: {
-    id: number;
-    name: string;
-    slug: string;
-    image: string;
-    status: boolean;
-  };
-  images: Array<{
-    url: string;
-    type: string;
-  }>;
+  category: ApiCategory;
+  images: Array<{ url: string; type: string }>;
   tags: string[];
 }
 
-// Converted product for UI display
 interface DisplayProduct {
   id: string;
   name: string;
   category: string;
   categoryId: number;
+  tags: string[];
   price: number;
   stock: number;
   status: "Active" | "Draft" | "Archived";
@@ -73,6 +80,8 @@ interface DisplayProduct {
   heroImage?: string;
   flatlayImage?: string;
 }
+
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const statusStyles: Record<string, string> = {
   Active: "text-emerald-600",
@@ -86,28 +95,22 @@ const dotStyles: Record<string, string> = {
   Archived: "bg-zinc-400",
 };
 
-// Backend base URL — set NEXT_PUBLIC_API_URL in .env.local if different
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
-// Reads the csrftoken cookie that Django sets on any GET request
 function getCsrfToken(): string {
   if (typeof document === "undefined") return "";
   const match = document.cookie.match(/csrftoken=([^;]+)/);
   return match ? match[1] : "";
 }
 
-// Helper to convert API product to display format
-
 function convertApiProduct(apiProduct: ApiProduct): DisplayProduct {
   let displayStatus: "Active" | "Draft" | "Archived" = "Active";
-  if (!apiProduct.status) {
-    displayStatus = "Archived";
-  }
+  if (!apiProduct.status) displayStatus = "Archived";
 
   const rawHero = apiProduct.images?.find((img) => img.type === "HERO")?.url;
-  const rawFlatlay = apiProduct.images?.find((img) => img.type === "FLATLAY")?.url;
-
-  // Prefix relative URLs with the backend base URL
+  const rawFlatlay = apiProduct.images?.find(
+    (img) => img.type === "FLATLAY",
+  )?.url;
   const toAbsolute = (url?: string) =>
     url ? (url.startsWith("http") ? url : `${BASE_URL}${url}`) : undefined;
 
@@ -116,6 +119,7 @@ function convertApiProduct(apiProduct: ApiProduct): DisplayProduct {
     name: apiProduct.name,
     category: apiProduct.category?.name || "Uncategorized",
     categoryId: apiProduct.category?.id ?? 1,
+    tags: apiProduct.tags ?? [],
     price: apiProduct.selling_price,
     stock: Math.floor(Math.random() * 100),
     status: displayStatus,
@@ -124,6 +128,64 @@ function convertApiProduct(apiProduct: ApiProduct): DisplayProduct {
     heroImage: toAbsolute(rawHero),
     flatlayImage: toAbsolute(rawFlatlay),
   };
+}
+
+// ─── Tags Input ───────────────────────────────────────────────────────────────
+function TagsInput({
+  value,
+  onChange,
+}: {
+  value: string[];
+  onChange: (tags: string[]) => void;
+}) {
+  const [input, setInput] = useState("");
+
+  const addTag = (raw: string) => {
+    const tag = raw.trim().toLowerCase();
+    if (tag && !value.includes(tag)) {
+      onChange([...value, tag]);
+    }
+    setInput("");
+  };
+
+  const removeTag = (tag: string) => onChange(value.filter((t) => t !== tag));
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault();
+      addTag(input);
+    } else if (e.key === "Backspace" && input === "" && value.length > 0) {
+      removeTag(value[value.length - 1]);
+    }
+  };
+
+  return (
+    <div className="flex flex-wrap gap-1.5 rounded-md border border-input bg-background px-3 py-2 min-h-[40px] cursor-text focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+      {value.map((tag) => (
+        <span
+          key={tag}
+          className="inline-flex items-center gap-1 rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground"
+        >
+          {tag}
+          <button
+            type="button"
+            onClick={() => removeTag(tag)}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <X className="size-3" />
+          </button>
+        </span>
+      ))}
+      <input
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={() => input.trim() && addTag(input)}
+        placeholder={value.length === 0 ? "Type a tag and press Enter…" : ""}
+        className="flex-1 min-w-[120px] bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+      />
+    </div>
+  );
 }
 
 // ─── Image Upload Field ───────────────────────────────────────────────────────
@@ -141,7 +203,6 @@ function ImageUploadField({
   const [preview, setPreview] = useState<string | null>(existingUrl ?? null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Sync preview when existingUrl changes (e.g. dialog opens for a different product)
   useEffect(() => {
     setPreview(existingUrl ?? null);
   }, [existingUrl]);
@@ -225,15 +286,40 @@ function EditDialog({
   const [flatlayFile, setFlatlayFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [categories, setCategories] = useState<ApiCategory[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
 
-  // Reset state when dialog opens with a new product
+  // Reset form and fetch categories when dialog opens
   useEffect(() => {
-    if (open) {
-      setForm({ ...product });
-      setHeroFile(null);
-      setFlatlayFile(null);
-      setSaveError(null);
-    }
+    if (!open) return;
+    setForm({ ...product });
+    setHeroFile(null);
+    setFlatlayFile(null);
+    setSaveError(null);
+
+    setCategoriesLoading(true);
+    fetch(`${BASE_URL}/api/v1/categories/`, { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => {
+        // Handle both { data: [...] } and plain array responses
+        const list: ApiCategory[] = Array.isArray(data)
+          ? data
+          : (data.data ?? []);
+        setCategories(list);
+      })
+      .catch(() => {
+        // If categories endpoint fails, keep the current one as fallback
+        setCategories([
+          {
+            id: product.categoryId,
+            name: product.category,
+            slug: "",
+            image: "",
+            status: true,
+          },
+        ]);
+      })
+      .finally(() => setCategoriesLoading(false));
   }, [open, product]);
 
   const handleSave = async () => {
@@ -249,19 +335,21 @@ function EditDialog({
       formData.append("status", form.status === "Active" ? "true" : "false");
       formData.append("category_id", form.categoryId.toString());
 
-      // Only append images if the user selected new ones
+      // Append each tag separately — Django's getlist("tags") reads them all
+      form.tags.forEach((tag) => formData.append("tags", tag));
+
       if (heroFile) formData.append("images_HERO", heroFile);
       if (flatlayFile) formData.append("images_FLATLAY", flatlayFile);
 
-      const response = await fetch(`${BASE_URL}/api/v1/products/${product.id}/`, {
-        method: "PATCH",
-        credentials: "include",          // send session cookie
-        headers: {
-          "X-CSRFToken": getCsrfToken(), // Django CSRF protection
+      const response = await fetch(
+        `${BASE_URL}/api/v1/products/${product.id}/`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "X-CSRFToken": getCsrfToken() },
+          body: formData,
         },
-        body: formData,
-        // No Content-Type header — browser sets multipart boundary automatically
-      });
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -269,7 +357,6 @@ function EditDialog({
       }
 
       const result = await response.json();
-      // Use fresh image URLs from the API response
       if (result.status === "updated" && result.data) {
         const updated = convertApiProduct(result.data as ApiProduct);
         onSave({ ...updated, stock: form.stock });
@@ -278,7 +365,9 @@ function EditDialog({
       }
       onClose();
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : "Failed to save changes");
+      setSaveError(
+        err instanceof Error ? err.message : "Failed to save changes",
+      );
     } finally {
       setSaving(false);
     }
@@ -286,7 +375,7 @@ function EditDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit product</DialogTitle>
           <DialogDescription>
@@ -295,6 +384,7 @@ function EditDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-1">
+          {/* Name */}
           <div className="space-y-1.5">
             <Label htmlFor="name">Name</Label>
             <Input
@@ -304,6 +394,7 @@ function EditDialog({
             />
           </div>
 
+          {/* Brand + Status */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="brand">Brand</Label>
@@ -333,6 +424,40 @@ function EditDialog({
             </div>
           </div>
 
+          {/* Category */}
+          <div className="space-y-1.5">
+            <Label>Category</Label>
+            {categoriesLoading ? (
+              <div className="flex items-center gap-2 h-10 text-sm text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" /> Loading categories…
+              </div>
+            ) : (
+              <Select
+                value={form.categoryId.toString()}
+                onValueChange={(v) => {
+                  const cat = categories.find((c) => c.id.toString() === v);
+                  setForm({
+                    ...form,
+                    categoryId: parseInt(v),
+                    category: cat?.name ?? form.category,
+                  });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id.toString()}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
+          {/* Price + Stock */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="price">Price ($)</Label>
@@ -361,18 +486,34 @@ function EditDialog({
             </div>
           </div>
 
+          {/* Description */}
           <div className="space-y-1.5">
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
               value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, description: e.target.value })
+              }
               placeholder="Short product description…"
               className="resize-none"
               rows={3}
             />
           </div>
 
+          {/* Tags */}
+          <div className="space-y-1.5">
+            <Label>Tags</Label>
+            <TagsInput
+              value={form.tags}
+              onChange={(tags) => setForm({ ...form, tags })}
+            />
+            <p className="text-xs text-muted-foreground">
+              Press Enter or comma to add a tag
+            </p>
+          </div>
+
+          {/* Images */}
           <div className="grid grid-cols-2 gap-3">
             <ImageUploadField
               label="Hero image"
@@ -469,10 +610,10 @@ export default function ProductsAdminPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${BASE_URL}/api/v1/products/`, { credentials: "include" });
-      if (!response.ok) {
-        throw new Error(`Failed to fetch: ${response.status}`);
-      }
+      const response = await fetch(`${BASE_URL}/api/v1/products/`, {
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
       const result = await response.json();
       if (result.status === "ok" && Array.isArray(result.data)) {
         setProducts(result.data.map(convertApiProduct));
@@ -528,7 +669,12 @@ export default function ProductsAdminPage() {
         <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-destructive">
           <p className="font-medium">Error loading products</p>
           <p className="text-sm">{error}</p>
-          <Button variant="outline" size="sm" className="mt-3" onClick={fetchProducts}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-3"
+            onClick={fetchProducts}
+          >
             Try again
           </Button>
         </div>
@@ -560,6 +706,7 @@ export default function ProductsAdminPage() {
               <TableHead>Name</TableHead>
               <TableHead>Brand</TableHead>
               <TableHead>Category</TableHead>
+              <TableHead>Tags</TableHead>
               <TableHead>Price</TableHead>
               <TableHead>Stock</TableHead>
               <TableHead>Status</TableHead>
@@ -588,14 +735,28 @@ export default function ProductsAdminPage() {
                     </div>
                   )}
                 </TableCell>
-                <TableCell className="font-medium">
-                  {product.name}
-                </TableCell>
+                <TableCell className="font-medium">{product.name}</TableCell>
                 <TableCell className="text-muted-foreground">
                   {product.brand}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {product.category}
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {product.tags.length > 0 ? (
+                      product.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground"
+                        >
+                          {tag}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell>${product.price.toFixed(2)}</TableCell>
                 <TableCell>
@@ -629,8 +790,12 @@ export default function ProductsAdminPage() {
                       <DropdownMenuItem onClick={() => setEditTarget(product)}>
                         Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => toggleActive(product.id)}>
-                        {product.status === "Active" ? "Deactivate" : "Activate"}
+                      <DropdownMenuItem
+                        onClick={() => toggleActive(product.id)}
+                      >
+                        {product.status === "Active"
+                          ? "Deactivate"
+                          : "Activate"}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
