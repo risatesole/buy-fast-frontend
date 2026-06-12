@@ -42,6 +42,7 @@ import {
   X,
   Trash2,
   Loader2,
+  Plus,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -74,28 +75,31 @@ interface DisplayProduct {
   tags: string[];
   price: number;
   stock: number;
-  status: "Active" | "Draft" | "Archived";
+  status: "Active" | "Archived";
   description: string;
   brand: string;
+  // All supported image types
   heroImage?: string;
   flatlayImage?: string;
+  scaleImage?: string;
+  packingImage?: string;
+  freezeFrameImage?: string;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const statusStyles: Record<string, string> = {
   Active: "text-emerald-600",
-  Draft: "text-yellow-600",
   Archived: "text-zinc-400",
 };
 
 const dotStyles: Record<string, string> = {
   Active: "bg-emerald-500",
-  Draft: "bg-yellow-500",
   Archived: "bg-zinc-400",
 };
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const CATEGORIES_URL = `${BASE_URL}/api/v1/productcategories/`;
 
 function getCsrfToken(): string {
   if (typeof document === "undefined") return "";
@@ -103,16 +107,27 @@ function getCsrfToken(): string {
   return match ? match[1] : "";
 }
 
-function convertApiProduct(apiProduct: ApiProduct): DisplayProduct {
-  let displayStatus: "Active" | "Draft" | "Archived" = "Active";
-  if (!apiProduct.status) displayStatus = "Archived";
+function toAbsolute(url?: string): string | undefined {
+  if (!url) return undefined;
+  return url.startsWith("http") ? url : `${BASE_URL}${url}`;
+}
 
-  const rawHero = apiProduct.images?.find((img) => img.type === "HERO")?.url;
-  const rawFlatlay = apiProduct.images?.find(
-    (img) => img.type === "FLATLAY",
-  )?.url;
-  const toAbsolute = (url?: string) =>
-    url ? (url.startsWith("http") ? url : `${BASE_URL}${url}`) : undefined;
+function slugify(str: string): string {
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
+function convertApiProduct(apiProduct: ApiProduct): DisplayProduct {
+  const displayStatus: "Active" | "Archived" = apiProduct.status
+    ? "Active"
+    : "Archived";
+
+  const img = (type: string) =>
+    toAbsolute(apiProduct.images?.find((i) => i.type === type)?.url);
 
   return {
     id: apiProduct.id.toString(),
@@ -125,8 +140,11 @@ function convertApiProduct(apiProduct: ApiProduct): DisplayProduct {
     status: displayStatus,
     description: apiProduct.description,
     brand: apiProduct.brand,
-    heroImage: toAbsolute(rawHero),
-    flatlayImage: toAbsolute(rawFlatlay),
+    heroImage: img("HERO"),
+    flatlayImage: img("FLATLAY"),
+    scaleImage: img("SCALE"),
+    packingImage: img("PACKING"),
+    freezeFrameImage: img("FREEZE_FRAME"),
   };
 }
 
@@ -142,9 +160,7 @@ function TagsInput({
 
   const addTag = (raw: string) => {
     const tag = raw.trim().toLowerCase();
-    if (tag && !value.includes(tag)) {
-      onChange([...value, tag]);
-    }
+    if (tag && !value.includes(tag)) onChange([...value, tag]);
     setInput("");
   };
 
@@ -212,12 +228,6 @@ function ImageUploadField({
     onFileChange(file);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
-  };
-
   return (
     <div className="space-y-1.5">
       <Label className="text-sm font-medium">{label}</Label>
@@ -226,7 +236,11 @@ function ImageUploadField({
         className={`relative flex items-center justify-center rounded-lg border-2 border-dashed transition-colors cursor-pointer
           ${preview ? "border-border" : "border-muted-foreground/25 hover:border-muted-foreground/50"} h-28`}
         onClick={() => inputRef.current?.click()}
-        onDrop={handleDrop}
+        onDrop={(e) => {
+          e.preventDefault();
+          const file = e.dataTransfer.files[0];
+          if (file) handleFile(file);
+        }}
         onDragOver={(e) => e.preventDefault()}
       >
         {preview ? (
@@ -269,6 +283,502 @@ function ImageUploadField({
   );
 }
 
+// ─── Category Select with inline "New category" form ─────────────────────────
+function CategorySelect({
+  categories,
+  loading,
+  value, // categoryId as string
+  onChange, // (id: number, name: string) => void
+  onCategoryCreated,
+}: {
+  categories: ApiCategory[];
+  loading: boolean;
+  value: string;
+  onChange: (id: number, name: string) => void;
+  onCategoryCreated: (cat: ApiCategory) => void;
+}) {
+  const [showNew, setShowNew] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newSlug, setNewSlug] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+
+  // Auto-fill slug from name
+  useEffect(() => {
+    setNewSlug(slugify(newName));
+  }, [newName]);
+
+  const handleCreate = async () => {
+    if (!newName.trim()) {
+      setCreateError("Name is required");
+      return;
+    }
+    if (!newSlug.trim()) {
+      setCreateError("Slug is required");
+      return;
+    }
+
+    setCreating(true);
+    setCreateError(null);
+    try {
+      const res = await fetch(CATEGORIES_URL, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCsrfToken(),
+        },
+        body: JSON.stringify({ name: newName.trim(), slug: newSlug.trim() }),
+      });
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`Failed (${res.status}): ${txt}`);
+      }
+      const result = await res.json();
+      const created: ApiCategory = result.data ?? result;
+      onCategoryCreated(created);
+      onChange(created.id, created.name);
+      setShowNew(false);
+      setNewName("");
+      setNewSlug("");
+    } catch (err) {
+      setCreateError(
+        err instanceof Error ? err.message : "Failed to create category",
+      );
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 h-10 text-sm text-muted-foreground">
+        <Loader2 className="size-4 animate-spin" /> Loading categories…
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <Select
+        value={value}
+        onValueChange={(v) => {
+          const cat = categories.find((c) => c.id.toString() === v);
+          if (cat) onChange(cat.id, cat.name);
+        }}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Select a category" />
+        </SelectTrigger>
+        <SelectContent>
+          {categories.map((cat) => (
+            <SelectItem key={cat.id} value={cat.id.toString()}>
+              {cat.name}
+            </SelectItem>
+          ))}
+          {/* ── divider + inline create trigger ── */}
+          <div className="py-1">
+            <div className="h-px bg-border mb-1" />
+            {!showNew ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowNew(true);
+                }}
+                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              >
+                <Plus className="size-3.5" />
+                New category
+              </button>
+            ) : (
+              <div
+                className="px-2 py-2 space-y-2"
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+              >
+                <Input
+                  autoFocus
+                  placeholder="Category name"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  className="h-8 text-sm"
+                />
+                <Input
+                  placeholder="slug-here"
+                  value={newSlug}
+                  onChange={(e) => setNewSlug(e.target.value)}
+                  className="h-8 text-sm font-mono"
+                />
+                {createError && (
+                  <p className="text-xs text-destructive">{createError}</p>
+                )}
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    className="h-7 text-xs flex-1"
+                    onClick={handleCreate}
+                    disabled={creating}
+                  >
+                    {creating && (
+                      <Loader2 className="mr-1 size-3 animate-spin" />
+                    )}
+                    Create
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      setShowNew(false);
+                      setNewName("");
+                      setCreateError(null);
+                    }}
+                    disabled={creating}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
+// ─── Shared hook: fetch categories ───────────────────────────────────────────
+function useCategories(open: boolean, fallback?: { id: number; name: string }) {
+  const [categories, setCategories] = useState<ApiCategory[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    setLoading(true);
+    fetch(CATEGORIES_URL, { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => {
+        const list: ApiCategory[] = Array.isArray(data)
+          ? data
+          : (data.data ?? []);
+        setCategories(list);
+      })
+      .catch(() => {
+        if (fallback) {
+          setCategories([
+            {
+              id: fallback.id,
+              name: fallback.name,
+              slug: "",
+              image: "",
+              status: true,
+            },
+          ]);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [open]);
+
+  const addCategory = (cat: ApiCategory) =>
+    setCategories((prev) => [...prev, cat]);
+
+  return { categories, loading, addCategory };
+}
+
+// ─── Add Dialog ───────────────────────────────────────────────────────────────
+const EMPTY_FORM = {
+  name: "",
+  description: "",
+  brand: "",
+  price: 0,
+  stock: 0,
+  status: "Active" as "Active" | "Archived",
+  categoryId: 0,
+  category: "",
+  tags: [] as string[],
+};
+
+function AddDialog({
+  open,
+  onClose,
+  onCreated,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onCreated: (product: DisplayProduct) => void;
+}) {
+  const [form, setForm] = useState({ ...EMPTY_FORM });
+  const [files, setFiles] = useState<Record<string, File | null>>({});
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const { categories, loading: catLoading, addCategory } = useCategories(open);
+
+  useEffect(() => {
+    if (!open) return;
+    setForm({ ...EMPTY_FORM });
+    setFiles({});
+    setSaveError(null);
+  }, [open]);
+
+  // Pre-select first category once loaded
+  useEffect(() => {
+    if (categories.length > 0 && form.categoryId === 0) {
+      setForm((prev) => ({
+        ...prev,
+        categoryId: categories[0].id,
+        category: categories[0].name,
+      }));
+    }
+  }, [categories]);
+
+  const setFile = (key: string) => (file: File | null) =>
+    setFiles((prev) => ({ ...prev, [key]: file }));
+
+  const handleCreate = async () => {
+    if (!form.name.trim()) {
+      setSaveError("Product name is required.");
+      return;
+    }
+    if (!form.categoryId) {
+      setSaveError("Please select a category.");
+      return;
+    }
+
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const fd = new FormData();
+      fd.append("name", form.name);
+      fd.append("description", form.description);
+      fd.append("brand", form.brand);
+      fd.append("selling_price", form.price.toString());
+      fd.append("status", form.status === "Active" ? "true" : "false");
+      fd.append("category_id", form.categoryId.toString());
+      form.tags.forEach((tag) => fd.append("tags", tag));
+
+      const imageMap: Record<string, string> = {
+        hero: "HERO",
+        flatlay: "FLATLAY",
+        scale: "SCALE",
+        packing: "PACKING",
+        freezeFrame: "FREEZE_FRAME",
+      };
+      Object.entries(imageMap).forEach(([key, type]) => {
+        if (files[key]) fd.append(`images_${type}`, files[key] as File);
+      });
+
+      const res = await fetch(`${BASE_URL}/api/v1/products/`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "X-CSRFToken": getCsrfToken() },
+        body: fd,
+      });
+      if (!res.ok)
+        throw new Error(`Create failed (${res.status}): ${await res.text()}`);
+
+      const result = await res.json();
+      if (result.status === "created" && result.data) {
+        onCreated({
+          ...convertApiProduct(result.data as ApiProduct),
+          stock: form.stock,
+        });
+        onClose();
+      } else {
+        throw new Error("Unexpected response from server.");
+      }
+    } catch (err) {
+      setSaveError(
+        err instanceof Error ? err.message : "Failed to create product",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Add product</DialogTitle>
+          <DialogDescription>
+            Fill in the details to create a new product.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-1">
+          {/* Name */}
+          <div className="space-y-1.5">
+            <Label htmlFor="add-name">
+              Name <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="add-name"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              placeholder="e.g. Running Shoe Pro"
+            />
+          </div>
+
+          {/* Brand + Status */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="add-brand">Brand</Label>
+              <Input
+                id="add-brand"
+                value={form.brand}
+                onChange={(e) => setForm({ ...form, brand: e.target.value })}
+                placeholder="e.g. Nike"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Status</Label>
+              <Select
+                value={form.status}
+                onValueChange={(v) =>
+                  setForm({ ...form, status: v as DisplayProduct["status"] })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Archived">Archived</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Category */}
+          <div className="space-y-1.5">
+            <Label>
+              Category <span className="text-destructive">*</span>
+            </Label>
+            <CategorySelect
+              categories={categories}
+              loading={catLoading}
+              value={form.categoryId ? form.categoryId.toString() : ""}
+              onChange={(id, name) =>
+                setForm({ ...form, categoryId: id, category: name })
+              }
+              onCategoryCreated={addCategory}
+            />
+          </div>
+
+          {/* Price + Stock */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="add-price">Price ($)</Label>
+              <Input
+                id="add-price"
+                type="number"
+                min={0}
+                step={0.01}
+                value={form.price}
+                onChange={(e) =>
+                  setForm({ ...form, price: parseFloat(e.target.value) || 0 })
+                }
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="add-stock">Stock</Label>
+              <Input
+                id="add-stock"
+                type="number"
+                min={0}
+                value={form.stock}
+                onChange={(e) =>
+                  setForm({ ...form, stock: parseInt(e.target.value) || 0 })
+                }
+              />
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="space-y-1.5">
+            <Label htmlFor="add-description">Description</Label>
+            <Textarea
+              id="add-description"
+              value={form.description}
+              onChange={(e) =>
+                setForm({ ...form, description: e.target.value })
+              }
+              placeholder="Short product description…"
+              className="resize-none"
+              rows={3}
+            />
+          </div>
+
+          {/* Tags */}
+          <div className="space-y-1.5">
+            <Label>Tags</Label>
+            <TagsInput
+              value={form.tags}
+              onChange={(tags) => setForm({ ...form, tags })}
+            />
+            <p className="text-xs text-muted-foreground">
+              Press Enter or comma to add a tag
+            </p>
+          </div>
+
+          {/* Images — all 5 types */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Images</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <ImageUploadField
+                label="Hero"
+                hint="Main listing image"
+                onFileChange={setFile("hero")}
+              />
+              <ImageUploadField
+                label="Flatlay"
+                hint="Product in context"
+                onFileChange={setFile("flatlay")}
+              />
+              <ImageUploadField
+                label="Scale"
+                hint="Shows product size"
+                onFileChange={setFile("scale")}
+              />
+              <ImageUploadField
+                label="Packing"
+                hint="Packaging shot"
+                onFileChange={setFile("packing")}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <ImageUploadField
+                label="Freeze Frame"
+                hint="Action / motion shot"
+                onFileChange={setFile("freezeFrame")}
+              />
+            </div>
+          </div>
+
+          {saveError && (
+            <p className="text-sm text-destructive rounded-md bg-destructive/10 px-3 py-2">
+              {saveError}
+            </p>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={saving}>
+            Cancel
+          </Button>
+          <Button onClick={handleCreate} disabled={saving}>
+            {saving && <Loader2 className="mr-2 size-4 animate-spin" />}
+            Create product
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ─── Edit Dialog ──────────────────────────────────────────────────────────────
 function EditDialog({
   product,
@@ -282,84 +792,68 @@ function EditDialog({
   onSave: (updated: DisplayProduct) => void;
 }) {
   const [form, setForm] = useState({ ...product });
-  const [heroFile, setHeroFile] = useState<File | null>(null);
-  const [flatlayFile, setFlatlayFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<Record<string, File | null>>({});
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [categories, setCategories] = useState<ApiCategory[]>([]);
-  const [categoriesLoading, setCategoriesLoading] = useState(false);
 
-  // Reset form and fetch categories when dialog opens
+  const {
+    categories,
+    loading: catLoading,
+    addCategory,
+  } = useCategories(open, {
+    id: product.categoryId,
+    name: product.category,
+  });
+
   useEffect(() => {
     if (!open) return;
     setForm({ ...product });
-    setHeroFile(null);
-    setFlatlayFile(null);
+    setFiles({});
     setSaveError(null);
-
-    setCategoriesLoading(true);
-    fetch(`${BASE_URL}/api/v1/categories/`, { credentials: "include" })
-      .then((r) => r.json())
-      .then((data) => {
-        // Handle both { data: [...] } and plain array responses
-        const list: ApiCategory[] = Array.isArray(data)
-          ? data
-          : (data.data ?? []);
-        setCategories(list);
-      })
-      .catch(() => {
-        // If categories endpoint fails, keep the current one as fallback
-        setCategories([
-          {
-            id: product.categoryId,
-            name: product.category,
-            slug: "",
-            image: "",
-            status: true,
-          },
-        ]);
-      })
-      .finally(() => setCategoriesLoading(false));
   }, [open, product]);
+
+  const setFile = (key: string) => (file: File | null) =>
+    setFiles((prev) => ({ ...prev, [key]: file }));
 
   const handleSave = async () => {
     setSaving(true);
     setSaveError(null);
-
     try {
-      const formData = new FormData();
-      formData.append("name", form.name);
-      formData.append("description", form.description);
-      formData.append("brand", form.brand);
-      formData.append("selling_price", form.price.toString());
-      formData.append("status", form.status === "Active" ? "true" : "false");
-      formData.append("category_id", form.categoryId.toString());
+      const fd = new FormData();
+      fd.append("name", form.name);
+      fd.append("description", form.description);
+      fd.append("brand", form.brand);
+      fd.append("selling_price", form.price.toString());
+      fd.append("status", form.status === "Active" ? "true" : "false");
+      fd.append("category_id", form.categoryId.toString());
+      form.tags.forEach((tag) => fd.append("tags", tag));
 
-      // Append each tag separately — Django's getlist("tags") reads them all
-      form.tags.forEach((tag) => formData.append("tags", tag));
+      const imageMap: Record<string, string> = {
+        hero: "HERO",
+        flatlay: "FLATLAY",
+        scale: "SCALE",
+        packing: "PACKING",
+        freezeFrame: "FREEZE_FRAME",
+      };
+      Object.entries(imageMap).forEach(([key, type]) => {
+        if (files[key]) fd.append(`images_${type}`, files[key] as File);
+      });
 
-      if (heroFile) formData.append("images_HERO", heroFile);
-      if (flatlayFile) formData.append("images_FLATLAY", flatlayFile);
+      const res = await fetch(`${BASE_URL}/api/v1/products/${product.id}/`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "X-CSRFToken": getCsrfToken() },
+        body: fd,
+      });
+      if (!res.ok)
+        throw new Error(`Save failed (${res.status}): ${await res.text()}`);
 
-      const response = await fetch(
-        `${BASE_URL}/api/v1/products/${product.id}/`,
-        {
-          method: "PATCH",
-          credentials: "include",
-          headers: { "X-CSRFToken": getCsrfToken() },
-          body: formData,
-        },
-      );
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Save failed (${response.status}): ${errorText}`);
-      }
-
-      const result = await response.json();
+      const result = await res.json();
       if (result.status === "updated" && result.data) {
-        const updated = convertApiProduct(result.data as ApiProduct);
-        onSave({ ...updated, stock: form.stock });
+        onSave({
+          ...convertApiProduct(result.data as ApiProduct),
+          stock: form.stock,
+        });
       } else {
         onSave(form);
       }
@@ -386,9 +880,9 @@ function EditDialog({
         <div className="space-y-4 py-1">
           {/* Name */}
           <div className="space-y-1.5">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="edit-name">Name</Label>
             <Input
-              id="name"
+              id="edit-name"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
@@ -397,9 +891,9 @@ function EditDialog({
           {/* Brand + Status */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="brand">Brand</Label>
+              <Label htmlFor="edit-brand">Brand</Label>
               <Input
-                id="brand"
+                id="edit-brand"
                 value={form.brand}
                 onChange={(e) => setForm({ ...form, brand: e.target.value })}
               />
@@ -417,7 +911,6 @@ function EditDialog({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Draft">Draft</SelectItem>
                   <SelectItem value="Archived">Archived</SelectItem>
                 </SelectContent>
               </Select>
@@ -427,42 +920,23 @@ function EditDialog({
           {/* Category */}
           <div className="space-y-1.5">
             <Label>Category</Label>
-            {categoriesLoading ? (
-              <div className="flex items-center gap-2 h-10 text-sm text-muted-foreground">
-                <Loader2 className="size-4 animate-spin" /> Loading categories…
-              </div>
-            ) : (
-              <Select
-                value={form.categoryId.toString()}
-                onValueChange={(v) => {
-                  const cat = categories.find((c) => c.id.toString() === v);
-                  setForm({
-                    ...form,
-                    categoryId: parseInt(v),
-                    category: cat?.name ?? form.category,
-                  });
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id.toString()}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+            <CategorySelect
+              categories={categories}
+              loading={catLoading}
+              value={form.categoryId.toString()}
+              onChange={(id, name) =>
+                setForm({ ...form, categoryId: id, category: name })
+              }
+              onCategoryCreated={addCategory}
+            />
           </div>
 
           {/* Price + Stock */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="price">Price ($)</Label>
+              <Label htmlFor="edit-price">Price ($)</Label>
               <Input
-                id="price"
+                id="edit-price"
                 type="number"
                 min={0}
                 step={0.01}
@@ -473,9 +947,9 @@ function EditDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="stock">Stock</Label>
+              <Label htmlFor="edit-stock">Stock</Label>
               <Input
-                id="stock"
+                id="edit-stock"
                 type="number"
                 min={0}
                 value={form.stock}
@@ -488,9 +962,9 @@ function EditDialog({
 
           {/* Description */}
           <div className="space-y-1.5">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="edit-description">Description</Label>
             <Textarea
-              id="description"
+              id="edit-description"
               value={form.description}
               onChange={(e) =>
                 setForm({ ...form, description: e.target.value })
@@ -513,20 +987,46 @@ function EditDialog({
             </p>
           </div>
 
-          {/* Images */}
-          <div className="grid grid-cols-2 gap-3">
-            <ImageUploadField
-              label="Hero image"
-              hint="Main listing image"
-              existingUrl={form.heroImage}
-              onFileChange={setHeroFile}
-            />
-            <ImageUploadField
-              label="Flatlay image"
-              hint="Shows product in context"
-              existingUrl={form.flatlayImage}
-              onFileChange={setFlatlayFile}
-            />
+          {/* Images — all 5 types, showing existing previews */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Images</Label>
+            <p className="text-xs text-muted-foreground">
+              Upload a new file to replace an existing image.
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <ImageUploadField
+                label="Hero"
+                hint="Main listing image"
+                existingUrl={form.heroImage}
+                onFileChange={setFile("hero")}
+              />
+              <ImageUploadField
+                label="Flatlay"
+                hint="Product in context"
+                existingUrl={form.flatlayImage}
+                onFileChange={setFile("flatlay")}
+              />
+              <ImageUploadField
+                label="Scale"
+                hint="Shows product size"
+                existingUrl={form.scaleImage}
+                onFileChange={setFile("scale")}
+              />
+              <ImageUploadField
+                label="Packing"
+                hint="Packaging shot"
+                existingUrl={form.packingImage}
+                onFileChange={setFile("packing")}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <ImageUploadField
+                label="Freeze Frame"
+                hint="Action / motion shot"
+                existingUrl={form.freezeFrameImage}
+                onFileChange={setFile("freezeFrame")}
+              />
+            </div>
           </div>
 
           {saveError && (
@@ -603,6 +1103,7 @@ export default function ProductsAdminPage() {
   const [products, setProducts] = useState<DisplayProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<DisplayProduct | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DisplayProduct | null>(null);
 
@@ -610,18 +1111,17 @@ export default function ProductsAdminPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${BASE_URL}/api/v1/products/`, {
+      const res = await fetch(`${BASE_URL}/api/v1/products/`, {
         credentials: "include",
       });
-      if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
-      const result = await response.json();
+      if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
+      const result = await res.json();
       if (result.status === "ok" && Array.isArray(result.data)) {
         setProducts(result.data.map(convertApiProduct));
       } else {
         throw new Error("Invalid response format");
       }
     } catch (err) {
-      console.error("Error fetching products:", err);
       setError(err instanceof Error ? err.message : "Failed to load products");
     } finally {
       setLoading(false);
@@ -632,16 +1132,17 @@ export default function ProductsAdminPage() {
     fetchProducts();
   }, []);
 
-  const handleSave = (updated: DisplayProduct) => {
+  const handleCreated = (product: DisplayProduct) =>
+    setProducts((prev) => [product, ...prev]);
+
+  const handleSave = (updated: DisplayProduct) =>
     setProducts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
-  };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (id: string) =>
     setProducts((prev) => prev.filter((p) => p.id !== id));
-    // TODO: Add DELETE API call
-  };
+  // TODO: wire DELETE API call
 
-  const toggleActive = (id: string) => {
+  const toggleActive = (id: string) =>
     setProducts((prev) =>
       prev.map((p) =>
         p.id === id
@@ -649,8 +1150,7 @@ export default function ProductsAdminPage() {
           : p,
       ),
     );
-    // TODO: Add API call to update status
-  };
+  // TODO: wire status PATCH API call
 
   if (loading) {
     return (
@@ -691,7 +1191,7 @@ export default function ProductsAdminPage() {
             Manage your product catalog
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setAddOpen(true)}>
           <PlusCircle className="mr-2 size-4" />
           Add product
         </Button>
@@ -816,6 +1316,12 @@ export default function ProductsAdminPage() {
       <p className="text-sm text-muted-foreground">
         {products.length} products total
       </p>
+
+      <AddDialog
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onCreated={handleCreated}
+      />
 
       {editTarget && (
         <EditDialog
