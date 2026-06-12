@@ -281,37 +281,7 @@ export function AppSidebar() {
           className="hs-dropdown relative"
           data-hs-dropdown-placement="top-left"
         >
-          <button
-            id="sidebar-user-btn"
-            type="button"
-            className="hs-dropdown-toggle w-full flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-neutral-700 transition-colors"
-          >
-            <span className="flex items-center justify-center size-9 rounded-full bg-gray-200 text-gray-700 text-xs font-bold dark:bg-neutral-700 dark:text-neutral-300 shrink-0">
-              SC
-            </span>
-            <div className="flex flex-col text-left leading-tight overflow-hidden">
-              <span className="text-sm font-semibold text-gray-800 dark:text-neutral-200 truncate">
-                default
-              </span>
-              <span className="text-xs text-gray-500 dark:text-neutral-400 truncate">
-                default@example.com
-              </span>
-            </div>
-            <svg
-              className="ms-auto size-4 text-gray-400 shrink-0"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M8 9l4-4 4 4m0 6l-4 4-4-4"
-              />
-            </svg>
-          </button>
+          
 
           <div
             className="hs-dropdown-menu hs-dropdown-open:opacity-100 hidden min-w-48 bg-white shadow-md rounded-xl border border-gray-200 p-1 dark:bg-neutral-800 dark:border-neutral-700"
