@@ -1,29 +1,74 @@
-import ProductsList from "@/components/products-list";
-import { Product } from "@/types/products";
+// app/admin/products/page.tsx
+//
+// Server component. Fetches the first page of products from Django at request
+// time so the table is populated on the very first paint — no loading spinner.
+// Then hands the data to ProductsTable, which is a client component and takes
+// over from there (infinite scroll, modals, etc).
 
-type ProductsResponse = {
-  next: string | null;
-  previous: string | null;
-  results: Product[];
-};
+import { Suspense } from "react";
+import { ProductsTable } from "./ProductsTable";
+import { ProductsTableSkeleton } from "./ProductsTableSkeleton";
+import type { DisplayProduct } from "./types";
+import { convertApiProductToDisplayProduct } from "./utilities";
+import type { ApiProduct } from "./types";
 
-async function getProducts(): Promise<ProductsResponse> {
-  const response = await fetch(
-    "http://localhost:8000/api/v1/products/?paginate=cursor&limit=2",
-    {
-      cache: "no-store",
-    },
-  );
+// ── Configuration ─────────────────────────────────────────────────────────────
 
-  if (!response.ok) {
-    throw new Error(`HTTP error! Status: ${response.status}`);
+const backendBaseUrl = process.env.BACKEND_URL ?? "http://localhost:8000";
+const pageSize = 50;
+
+// ── First-page fetch ──────────────────────────────────────────────────────────
+
+async function fetchFirstPageOfProducts(): Promise<{
+  products: DisplayProduct[];
+  nextCursor: string | null;
+}> {
+  try {
+    const response = await fetch(
+      `${backendBaseUrl}/api/v1/products/?paginate=cursor&limit=${pageSize}`,
+      { cache: "no-store" }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Django returned ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Cursor pagination returns { next, previous, results }
+    if (data.results) {
+      return {
+        products: (data.results as ApiProduct[]).map(convertApiProductToDisplayProduct),
+        nextCursor: data.next ?? null,
+      };
+    }
+
+    // Fallback: old offset format returns { status, data }
+    if (data.status === "ok" && Array.isArray(data.data)) {
+      return {
+        products: (data.data as ApiProduct[]).map(convertApiProductToDisplayProduct),
+        nextCursor: null,
+      };
+    }
+
+    return { products: [], nextCursor: null };
+  } catch (error) {
+    console.error("[products page] First-page fetch failed:", error);
+    return { products: [], nextCursor: null };
   }
-
-  return response.json();
 }
 
-export default async function ProductsAdminPage() {
-  const initialData = await getProducts();
+// ── Page ──────────────────────────────────────────────────────────────────────
 
-  return <ProductsList initialData={initialData} />;
+export default async function ProductsAdminPage() {
+  const { products, nextCursor } = await fetchFirstPageOfProducts();
+
+  return (
+    <Suspense fallback={<ProductsTableSkeleton />}>
+      <ProductsTable
+        initialProducts={products}
+        initialNextCursor={nextCursor}
+      />
+    </Suspense>
+  );
 }
