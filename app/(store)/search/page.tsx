@@ -9,10 +9,9 @@ import { ProductCard } from "@/components/ProductCard";
 
 // types
 import type { Product } from "@/types/products";
-import type { CartItem } from "@/types/CartItem";
 
 // services
-import { addProductToCart } from "@/services/cart";
+import CartService from "@/services/cart";
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -32,11 +31,6 @@ type ApiProduct = {
 function normalizeProduct(p: ApiProduct): Product {
   return { ...(p as any), price: p.selling_price };
 }
-
-const formatPrice = (n: number) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
-    n,
-  );
 
 async function searchProducts(query: string): Promise<ApiProduct[]> {
   const res = await fetch(
@@ -89,14 +83,11 @@ function EmptyState({ query }: { query: string }) {
 function SearchContent() {
   const searchParams = useSearchParams();
   const q = searchParams.get("q") ?? "";
-  
-  const [cart, setCart] = useState<CartItem[]>([]);
+
   const [rawProducts, setRawProducts] = useState<ApiProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-
-  // load results whenever query changes
   useEffect(() => {
     if (!q) {
       setLoading(false);
@@ -116,15 +107,17 @@ function SearchContent() {
       });
   }, [q]);
 
-  function handleAddToCart(product: Product) {
-    setCart((prev) => addProductToCart(prev, product));
+  function handleAddToCart(product: Product, quantity: number) {
+    const service = new CartService();
+    service.addProduct(product.id, quantity).catch((err) => {
+      console.error("Failed to add product to cart:", err);
+    });
   }
 
   const products: Product[] = rawProducts.map(normalizeProduct);
 
   return (
     <div style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}>
-
       <main
         style={{
           maxWidth: 1280,
@@ -132,7 +125,6 @@ function SearchContent() {
           padding: "4rem 2rem 6rem",
         }}
       >
-        {/* Page heading */}
         <div
           style={{
             borderBottom: "1px solid oklch(0.922 0 0)",

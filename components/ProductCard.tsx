@@ -53,13 +53,15 @@ function ProductGlyph({ category }: { category: string }) {
 }
 
 const formatPrice = (n: number) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
+    n,
+  );
 
 // ─── Component ────────────────────────────────────────────────
 
 export type ProductCardProps = {
   product: Product;
-  onAdd: (product: Product) => void;
+  onAdd: (product: Product, quantity: number) => void;
 };
 
 export function ProductCard({ product, onAdd }: ProductCardProps) {
@@ -67,7 +69,7 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
   const [added, setAdded] = useState(false);
 
   const handleAdd = () => {
-    onAdd(product);
+    onAdd(product, 1);
     setAdded(true);
     setTimeout(() => setAdded(false), 900);
   };
