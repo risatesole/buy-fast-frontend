@@ -26,7 +26,7 @@ export function removeProductFromCart(
 }
 
 
-export type CartResponse = {
+export type AddProductToCartResponse = {
   status: string;
   message: string;
   data: {
@@ -42,7 +42,7 @@ export default class CartService {
   async addProduct(
     productId: number,
     quantity: number = 1,
-  ): Promise<CartResponse> {
+  ): Promise<AddProductToCartResponse> {
     const response = await fetch(`http://localhost:8000/api/v1/cart/`, {
       method: "POST",
       credentials: "include",
@@ -59,6 +59,6 @@ export default class CartService {
       throw new Error(`Request failed: ${response.status}`);
     }
 
-    return response.json() as Promise<CartResponse>;
+    return response.json() as Promise<AddProductToCartResponse>;
   }
 }
