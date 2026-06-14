@@ -1,8 +1,8 @@
 // app/page.tsx
 import { HeroSection } from "@/components/childcomponents/home/sections/hero";
 import { ProductsInteractive } from "./ProductsInteractive";
+export const dynamic = "force-dynamic"; 
 
-// Raw shape returned by Django for the first page
 type DjangoFirstPage = {
   next: string | null;
   previous: string | null;
