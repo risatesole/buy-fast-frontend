@@ -1,16 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { addProductToCart } from "@/services/cart";
+import CartService from "@/services/cart";
 import type { Product } from "@/types/products";
-import type { CartItem } from "@/types/CartItem";
 
 export function AddToCartButton({ product }: { product: Product }) {
-  const [cart, setCart] = useState<CartItem[]>([]);
   const [added, setAdded] = useState(false);
 
   function handleAddToCart() {
-    setCart((prev) => addProductToCart(prev, product));
+    const service = new CartService();
+    service.addProduct(product.id, 1).catch((err) => {
+      console.error("Failed to add product to cart:", err);
+    });
     setAdded(true);
     setTimeout(() => setAdded(false), 900);
   }
