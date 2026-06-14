@@ -32,8 +32,10 @@ export async function GET(request: NextRequest) {
 
   try {
     const djangoResponse = await fetch(cursorUrl, {
-      headers: { Accept: "application/json" },
-      // Revalidate every 30 s so the CDN cache stays fresh without hammering Django
+      headers: {
+        Accept: "application/json",
+        cookie: request.headers.get("cookie") ?? "",
+      },
       next: { revalidate: 30 },
     });
 
