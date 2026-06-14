@@ -1,6 +1,3 @@
-// warning temporary tape code
-// types
-import type { Product } from "@/types/products";
 import type { AddProductToCartResponse } from "@/types/cart/AddProductToCartResponse";
 
 export default class CartService {
@@ -8,7 +5,7 @@ export default class CartService {
     productId: number,
     quantity: number = 1,
   ): Promise<AddProductToCartResponse> {
-    const response = await fetch(`http://localhost:8000/api/v1/cart/`, {
+    const response = await fetch("/api/v1/cart", {
       method: "POST",
       credentials: "include",
       headers: {
