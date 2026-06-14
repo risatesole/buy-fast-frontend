@@ -3,27 +3,6 @@
 import type { Product } from "@/types/products";
 import type { AddProductToCartResponse } from "@/types/cart/AddProductToCartResponse";
 
-// delete
-export type CartItem = {
-  id: number;
-  product: Product;
-  quantity: number;
-};
-
-export function addProductToCart(
-  currentCart: CartItem[],
-  product: Product,
-): CartItem[] {
-  throw new Error("Unimplemented method.");
-}
-
-export function removeProductFromCart(
-  currentCart: CartItem[],
-  productId: number,
-): CartItem[] {
-  throw new Error("Method not implemented.");
-}
-
 export default class CartService {
   async addProduct(
     productId: number,
