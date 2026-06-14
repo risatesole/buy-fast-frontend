@@ -1,7 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { AddProductToCartResponse } from "@/types/cart/AddProductToCartResponse";
+import type { GetCartResponse } from "@/types/cart/GetCartResponse";
 
 const DJANGO_BASE = process.env.BACKEND_URL ?? "http://localhost:8000";
+
+export async function GET(req: NextRequest) {
+  const response = await fetch(`${DJANGO_BASE}/api/v1/cart/`, {
+    headers: {
+      cookie: req.headers.get("cookie") ?? "",
+    },
+  });
+
+  const data: GetCartResponse = await response.json();
+
+  return NextResponse.json(data, { status: response.status });
+}
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
