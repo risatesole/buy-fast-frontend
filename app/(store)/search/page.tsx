@@ -12,7 +12,7 @@ import type { Product } from "@/types/products";
 import type { CartItem } from "@/types/CartItem";
 
 // services
-import { addProductToCart } from "@/mock/shoppingcart";
+import { addProductToCart } from "@/services/cart";
 
 // ─── Types ────────────────────────────────────────────────────
 

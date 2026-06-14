@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { addProductToCart } from "@/mock/shoppingcart";
+import { addProductToCart } from "@/services/cart";
 import type { Product } from "@/types/products";
 import type { CartItem } from "@/types/CartItem";
 

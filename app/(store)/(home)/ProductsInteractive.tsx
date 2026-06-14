@@ -3,7 +3,7 @@
 
 import { useState, useCallback } from "react";
 import { ProductsSection } from "@/components/childcomponents/home/product/products-section";
-import { addProductToCart } from "@/mock/shoppingcart";
+import { addProductToCart } from "@/services/cart";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import type { Product } from "@/types/products";
 import type { CartItem } from "@/types/CartItem";
