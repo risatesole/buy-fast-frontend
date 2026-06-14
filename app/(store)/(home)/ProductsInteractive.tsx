@@ -3,10 +3,9 @@
 
 import { useState, useCallback } from "react";
 import { ProductsSection } from "@/components/childcomponents/home/product/products-section";
-import { addProductToCart } from "@/services/cart";
+import CartService from "@/services/cart";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import type { Product } from "@/types/products";
-import type { CartItem } from "@/types/CartItem";
 
 // Shape of the Django cursor-paginated response
 type DjangoPaginatedResponse = {
@@ -62,8 +61,8 @@ function mapProduct(raw: RawDjangoProduct): Product {
   };
 }
 
-// Direct Django base URL — only used server-side or via Next.js route handler
-const DJANGO_BASE = process.env.NEXT_PUBLIC_DJANGO_API_URL ?? "http://localhost:8000";
+const DJANGO_BASE =
+  process.env.NEXT_PUBLIC_DJANGO_API_URL ?? "http://localhost:8000";
 const TAG_URL = `${DJANGO_BASE}/api/v1/products/tag/featured/`;
 
 type Props = {
@@ -73,17 +72,19 @@ type Props = {
   initialNextCursor: string | null;
 };
 
-export function ProductsInteractive({ products: initialProducts, initialNextCursor }: Props) {
-  const [cart, setCart] = useState<CartItem[]>([]);
+export function ProductsInteractive({
+  products: initialProducts,
+  initialNextCursor,
+}: Props) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
-  // Store the full `next` URL Django returns — ready to use directly
-  const [nextCursor, setNextCursor] = useState<string | null>(initialNextCursor);
+  const [nextCursor, setNextCursor] = useState<string | null>(
+    initialNextCursor,
+  );
 
   const handleLoadMore = useCallback(async () => {
     if (!nextCursor) return;
 
     try {
-      // Hit our Next.js proxy route so we don't expose Django directly to the browser
       const proxyUrl = `/api/products/cursor?url=${encodeURIComponent(nextCursor)}`;
       const response = await fetch(proxyUrl);
 
@@ -94,7 +95,6 @@ export function ProductsInteractive({ products: initialProducts, initialNextCurs
       if (data.results.length > 0) {
         setProducts((prev) => [...prev, ...data.results.map(mapProduct)]);
       }
-      // Update cursor — null means we've reached the last page
       setNextCursor(data.next);
     } catch (error) {
       console.error("Error loading more products:", error);
@@ -106,15 +106,17 @@ export function ProductsInteractive({ products: initialProducts, initialNextCurs
     hasMore: nextCursor !== null,
   });
 
-  function handleAddToCart(product: Product) {
-    setCart((prev) => addProductToCart(prev, product));
+  function handleAddToCart(product: Product, quantity: number) {
+    const service = new CartService();
+    service.addProduct(product.id, quantity).catch((err) => {
+      console.error("Failed to add product to cart:", err);
+    });
   }
 
   return (
     <>
       <ProductsSection products={products} onAddToCart={handleAddToCart} />
 
-      {/* Sentinel — the IntersectionObserver watches this element */}
       <div
         ref={observerTarget}
         style={{ height: "1px", visibility: "hidden" }}

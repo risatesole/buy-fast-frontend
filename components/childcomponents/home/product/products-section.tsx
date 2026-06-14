@@ -4,7 +4,7 @@ import type { Product } from "@/types/products";
 import { ProductCard } from "@/components/ProductCard";
 
 export type ProductsSectionProps = {
-  onAddToCart: (product: Product) => void;
+  onAddToCart: (product: Product, quantity: number) => void;
   products: Product[];
 };
 
