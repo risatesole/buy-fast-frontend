@@ -1,6 +1,7 @@
 // warning temporary tape code
 // types
 import type { Product } from "@/types/products";
+import type { AddProductToCartResponse } from "@/types/cart/AddProductToCartResponse";
 
 // delete
 export type CartItem = {
@@ -8,8 +9,6 @@ export type CartItem = {
   product: Product;
   quantity: number;
 };
-
-
 
 export function addProductToCart(
   currentCart: CartItem[],
@@ -24,19 +23,6 @@ export function removeProductFromCart(
 ): CartItem[] {
   throw new Error("Method not implemented.");
 }
-
-
-export type AddProductToCartResponse = {
-  status: string;
-  message: string;
-  data: {
-    item: {
-      id: number;
-      product_id: number;
-      quantity: number;
-    };
-  };
-};
 
 export default class CartService {
   async addProduct(
