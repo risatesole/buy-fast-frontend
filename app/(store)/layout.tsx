@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import { NavbarWithCart } from "@/components/navbar-with-cart";
 import { Footer } from "@/components/Footer";
 import type { CartItem } from "@/components/navbar";
+import type { GetCartResponse } from "@/types/cart/GetCartResponse";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -59,26 +60,47 @@ async function getUserDetails(): Promise<MeResponse | null> {
   }
 }
 
+async function getCartItems(): Promise<CartItem[]> {
+  try {
+    const backendUrl = process.env.BACKEND_URL;
+    if (!backendUrl) return [];
+
+    const cookieStore = await cookies();
+    const cookieHeader = cookieStore.toString();
+
+    const res = await fetch(`${backendUrl}/api/v1/cart/`, {
+      headers: { Cookie: cookieHeader },
+      cache: "no-store",
+    });
+
+    if (!res.ok) return [];
+
+    const json: GetCartResponse = await res.json();
+
+    return json.data.items.map((item) => ({
+      id: item.id,
+      name: item.product.name,
+      price: item.product.selling_price,
+      quantity: item.quantity,
+      image: item.product.images.find((img) => img.type === "HERO")?.url,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export default async function HomeLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const userData = await getUserDetails();
+  const [userData, cartItems] = await Promise.all([
+    getUserDetails(),
+    getCartItems(),
+  ]);
 
   const rawUser = userData?.data?.user;
   const user = rawUser?.is_authenticated ? rawUser : null;
-
-  const mockCartItems: CartItem[] = [
-    {
-      id: 1,
-      name: "Leuchtturm1917 Notebook A5",
-      price: 24.5,
-      quantity: 2,
-      image: "https://example.com/image.jpg",
-    },
-    { id: 2, name: "Pilot G2 Pen Set", price: 12.99, quantity: 1 },
-  ];
 
   return (
     <div
@@ -95,7 +117,7 @@ export default async function HomeLayout({
               }
             : null
         }
-        initialCartItems={mockCartItems}
+        initialCartItems={cartItems}
       />
       {children}
       <Footer />
