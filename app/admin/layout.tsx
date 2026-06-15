@@ -4,18 +4,11 @@ import { AdminTopbar } from "@/components/admin-topbar";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    // Preline requires HSStaticMethods.autoInit() — done inside AppSidebar via useEffect
-    <div className="min-h-screen bg-gray-50 dark:bg-neutral-900">
-      {/* ── Sidebar (fixed, 64 = w-64) ── */}
+    <div className="min-h-screen bg-white dark:bg-neutral-950">
       <AppSidebar />
-
-      {/* ── Main column — offset on desktop to clear the sidebar ── */}
-      <div className="lg:ps-64">
-        {/* ── Sticky top bar ── */}
+      <div className="lg:pl-56">
         <AdminTopbar />
-
-        {/* ── Page content ── */}
-        <main className="p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="p-6 sm:p-8">{children}</main>
       </div>
     </div>
   );

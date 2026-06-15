@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -12,6 +12,8 @@ import {
   ShoppingBag,
   Package,
   ChevronDown,
+  Menu,
+  X,
 } from "lucide-react";
 
 const platformItems = [
@@ -85,230 +87,196 @@ const projectItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>(
+    {},
+  );
 
   useEffect(() => {
-    const init = async () => {
-      const { HSStaticMethods } = await import("preline");
-      // Defer one tick so the DOM is fully painted before Preline scans it
-      setTimeout(() => HSStaticMethods.autoInit(), 0);
-    };
-    init();
+    setIsMobileOpen(false);
   }, [pathname]);
+
+  const toggleAccordion = (id: string) => {
+    setOpenAccordions((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   const companyName = process.env.NEXT_PUBLIC_COMPANY_NAME || "My Company";
 
+  const isActive = (url: string) => pathname === url;
+  const isSubActive = (subItems?: { url: string }[]) =>
+    subItems?.some((sub) => pathname === sub.url);
+
   return (
-    /*
-      Preline overlay drawer requirements:
-      - class "hs-overlay" on the element
-      - class "hidden" initially (Preline removes/adds it)
-      - [--auto-close:lg] makes it auto-close when viewport >= lg (desktop shows it natively via CSS)
-      - data-hs-overlay-keyboard="true" allows ESC to close
-    */
-    <div
-      id="app-sidebar"
-      className="hs-overlay [--auto-close:lg] hs-overlay-open:translate-x-0 -translate-x-full transition-all duration-300 transform fixed top-0 start-0 bottom-0 z-[60] w-64 bg-white border-e border-gray-200 overflow-y-auto hidden lg:block lg:translate-x-0 lg:end-auto lg:bottom-0 dark:bg-neutral-800 dark:border-neutral-700"
-      role="dialog"
-      tabIndex={-1}
-      aria-label="Sidebar"
-    >
-      {/* ── Header / brand ── */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-neutral-700">
-        <Link href="/" className="flex items-center gap-x-3 group">
-          <div className="flex items-center justify-center size-9 rounded-lg bg-gray-900 text-white text-sm font-bold shrink-0 dark:bg-white dark:text-gray-900">
-            {companyName[0].toUpperCase()}
-          </div>
-          <div className="flex flex-col leading-tight">
-            <span className="text-sm font-semibold text-gray-800 dark:text-neutral-200 group-hover:text-blue-600 transition-colors">
+    <>
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+
+      <aside
+        className={`
+          fixed top-0 left-0 bottom-0 z-50 w-56 bg-white dark:bg-neutral-950
+          border-r border-neutral-100 dark:border-neutral-800
+          transition-transform duration-300 ease-out
+          lg:translate-x-0
+          ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
+        `}
+      >
+        {/* Header */}
+        <div className="px-5 py-5 border-b border-neutral-100 dark:border-neutral-800">
+          <Link href="/" className="flex items-center gap-x-2.5">
+            <div className="size-7 rounded bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-xs font-medium flex items-center justify-center">
+              {companyName[0].toUpperCase()}
+            </div>
+            <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
               {companyName}
             </span>
-            <span className="text-xs text-gray-500 dark:text-neutral-400">
-              Enterprise
-            </span>
-          </div>
-        </Link>
+          </Link>
+        </div>
 
-        {/* Mobile close button */}
-        <button
-          type="button"
-          className="lg:hidden p-1.5 rounded-md text-gray-500 hover:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-700"
-          data-hs-overlay="#app-sidebar"
-          aria-label="Close sidebar"
-        >
-          <svg
-            className="size-4"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
-      </div>
+        {/* Navigation */}
+        <nav className="flex flex-col gap-y-6 px-3 py-6 h-[calc(100%-57px)] overflow-y-auto">
+          {/* Platform */}
+          <div>
+            <p className="px-3 mb-2 text-[11px] font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-600">
+              Platform
+            </p>
+            <ul className="space-y-0.5">
+              {platformItems.map((item) => {
+                const Icon = item.icon;
+                const hasSub = !!item.sub;
+                const accordionId = `acc-${item.title.toLowerCase().replace(/\s+/g, "-")}`;
+                const isOpen =
+                  openAccordions[accordionId] || isSubActive(item.sub);
+                const isItemActive =
+                  isActive(item.url) || (hasSub && isSubActive(item.sub));
 
-      {/* ── Nav ── */}
-      <nav className="flex flex-col gap-y-5 px-3 py-4">
-        {/* Platform group */}
-        <div>
-          <p className="px-2 mb-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-neutral-500">
-            Platform
-          </p>
-          <ul className="space-y-0.5">
-            {platformItems.map((item) => {
-              const Icon = item.icon;
-              const isGroupActive =
-                pathname === item.url ||
-                item.sub?.some((s) => pathname.startsWith(s.url));
+                if (!hasSub) {
+                  return (
+                    <li key={item.title}>
+                      <Link
+                        href={item.url}
+                        className={`
+                          flex items-center gap-x-3 px-3 py-2 rounded-md text-sm transition-colors
+                          ${
+                            isItemActive
+                              ? "text-neutral-900 dark:text-neutral-100 bg-neutral-50 dark:bg-neutral-900"
+                              : "text-neutral-500 dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-900"
+                          }
+                        `}
+                      >
+                        <Icon className="size-4 shrink-0" />
+                        {item.title}
+                      </Link>
+                    </li>
+                  );
+                }
 
-              if (!item.sub) {
                 return (
                   <li key={item.title}>
-                    <Link
-                      href={item.url}
-                      className={[
-                        "flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm font-medium transition-colors",
-                        isGroupActive
-                          ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-                          : "text-gray-700 hover:bg-gray-100 dark:text-neutral-300 dark:hover:bg-neutral-700",
-                      ].join(" ")}
-                    >
-                      <Icon className="size-4 shrink-0" />
-                      {item.title}
-                    </Link>
-                  </li>
-                );
-              }
-
-              const accordionId = `acc-${item.title.toLowerCase().replace(/\s+/g, "-")}`;
-
-              return (
-                <li key={item.title}>
-                  {/*
-                    Preline accordion:
-                    - parent needs class "hs-accordion" and a unique id
-                    - trigger needs class "hs-accordion-toggle"
-                    - content needs class "hs-accordion-content" + "hidden"
-                    - Add "active" to parent to start open
-                  */}
-                  <div
-                    className={`hs-accordion${isGroupActive ? " active" : ""}`}
-                    id={accordionId}
-                  >
                     <button
-                      type="button"
-                      className="hs-accordion-toggle hs-accordion-active:text-blue-600 hs-accordion-active:bg-blue-50 dark:hs-accordion-active:text-blue-400 dark:hs-accordion-active:bg-blue-900/30 w-full flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-100 dark:text-neutral-300 dark:hover:bg-neutral-700"
+                      onClick={() => toggleAccordion(accordionId)}
+                      className={`
+                        w-full flex items-center gap-x-3 px-3 py-2 rounded-md text-sm transition-colors
+                        ${
+                          isItemActive
+                            ? "text-neutral-900 dark:text-neutral-100 bg-neutral-50 dark:bg-neutral-900"
+                            : "text-neutral-500 dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-900"
+                        }
+                      `}
                     >
                       <Icon className="size-4 shrink-0" />
-                      <span className="flex-1 text-start">{item.title}</span>
-                      <ChevronDown className="size-4 shrink-0 transition-transform hs-accordion-active:rotate-180" />
+                      <span className="flex-1 text-left">{item.title}</span>
+                      <ChevronDown
+                        className={`size-3.5 shrink-0 transition-transform duration-200 ${
+                          isOpen ? "-rotate-180" : ""
+                        }`}
+                      />
                     </button>
 
-                    <div
-                      className="hs-accordion-content w-full overflow-hidden transition-[height] duration-300 hidden"
-                      role="region"
-                      aria-labelledby={accordionId}
-                    >
-                      <ul className="ps-7 pt-1 space-y-0.5">
+                    {isOpen && (
+                      <ul className="ml-9 mt-1 space-y-0.5">
                         {item.sub.map((sub) => {
-                          const isSubActive = pathname === sub.url;
+                          const isSubActiveItem = isActive(sub.url);
                           return (
                             <li key={sub.title}>
                               <Link
                                 href={sub.url}
-                                className={[
-                                  "flex items-center gap-x-2 py-1.5 px-3 rounded-lg text-sm transition-colors",
-                                  isSubActive
-                                    ? "text-blue-600 font-medium dark:text-blue-400"
-                                    : "text-gray-600 hover:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-700",
-                                ].join(" ")}
+                                className={`
+                                  block px-3 py-1.5 rounded-md text-sm transition-colors
+                                  ${
+                                    isSubActiveItem
+                                      ? "text-neutral-900 dark:text-neutral-100 font-medium"
+                                      : "text-neutral-500 dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100"
+                                  }
+                                `}
                               >
-                                <span
-                                  className={[
-                                    "size-1.5 rounded-full shrink-0",
-                                    isSubActive
-                                      ? "bg-blue-600 dark:bg-blue-400"
-                                      : "bg-gray-300 dark:bg-neutral-500",
-                                  ].join(" ")}
-                                />
                                 {sub.title}
                               </Link>
                             </li>
                           );
                         })}
                       </ul>
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-
-        {/* Projects group */}
-        <div>
-          <p className="px-2 mb-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-neutral-500">
-            Projects
-          </p>
-          <ul className="space-y-0.5">
-            {projectItems.map((item) => (
-              <li key={item.title}>
-                <Link
-                  href={item.url}
-                  className={[
-                    "flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm font-medium transition-colors",
-                    pathname === item.url
-                      ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-                      : "text-gray-700 hover:bg-gray-100 dark:text-neutral-300 dark:hover:bg-neutral-700",
-                  ].join(" ")}
-                >
-                  {item.title}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </nav>
-
-      {/* ── Footer / user profile ── */}
-      <div className="mt-auto border-t border-gray-200 dark:border-neutral-700 px-3 py-3">
-        <div
-          className="hs-dropdown relative"
-          data-hs-dropdown-placement="top-left"
-        >
-          
-
-          <div
-            className="hs-dropdown-menu hs-dropdown-open:opacity-100 hidden min-w-48 bg-white shadow-md rounded-xl border border-gray-200 p-1 dark:bg-neutral-800 dark:border-neutral-700"
-            aria-labelledby="sidebar-user-btn"
-          >
-            <Link
-              href="/admin/profile"
-              className="flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 dark:text-neutral-200 dark:hover:bg-neutral-700"
-            >
-              Profile
-            </Link>
-            <Link
-              href="/admin/settings/billing"
-              className="flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 dark:text-neutral-200 dark:hover:bg-neutral-700"
-            >
-              Billing
-            </Link>
-            <div className="border-t border-gray-200 dark:border-neutral-700 my-1" />
-            <button
-              type="button"
-              className="w-full flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-            >
-              Sign out
-            </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
           </div>
-        </div>
-      </div>
-    </div>
+
+          {/* Projects */}
+          <div>
+            <p className="px-3 mb-2 text-[11px] font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-600">
+              Projects
+            </p>
+            <ul className="space-y-0.5">
+              {projectItems.map((item) => (
+                <li key={item.title}>
+                  <Link
+                    href={item.url}
+                    className={`
+                      block px-3 py-2 rounded-md text-sm transition-colors
+                      ${
+                        isActive(item.url)
+                          ? "text-neutral-900 dark:text-neutral-100 bg-neutral-50 dark:bg-neutral-900"
+                          : "text-neutral-500 dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-900"
+                      }
+                    `}
+                  >
+                    {item.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Footer */}
+          <div className="mt-auto pt-4 border-t border-neutral-100 dark:border-neutral-800">
+            <div className="px-3 py-2">
+              <div className="flex items-center gap-x-3">
+                <div className="size-7 rounded-full bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 text-xs font-medium flex items-center justify-center">
+                  {companyName[0].toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-neutral-900 dark:text-neutral-100 truncate">
+                    admin@example.com
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </nav>
+      </aside>
+
+      {/* Mobile menu button */}
+      <button
+        onClick={() => setIsMobileOpen(true)}
+        className="lg:hidden fixed bottom-5 right-5 z-30 p-3 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 shadow-md hover:opacity-80 transition-opacity"
+      >
+        <Menu className="size-4" />
+      </button>
+    </>
   );
 }
