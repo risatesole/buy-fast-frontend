@@ -1,4 +1,3 @@
-// components/ProductsInteractive.tsx
 "use client";
 
 import { useState, useCallback } from "react";
@@ -60,10 +59,6 @@ function mapProduct(raw: RawDjangoProduct): Product {
     })),
   };
 }
-
-const DJANGO_BASE =
-  process.env.NEXT_PUBLIC_DJANGO_API_URL ?? "http://localhost:8000";
-const TAG_URL = `${DJANGO_BASE}/api/v1/products/tag/featured/`;
 
 type Props = {
   /** First page of products, pre-fetched on the server */
