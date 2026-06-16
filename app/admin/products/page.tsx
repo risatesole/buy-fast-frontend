@@ -4,6 +4,14 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import ProductService from "@/services/products/ProductService";
 import type { Product } from "@/types/products";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const productService = new ProductService();
 
@@ -22,10 +30,9 @@ export default function ProductsPage() {
 
   const LIMIT = 100;
 
-  // Function to fetch products with search
   const fetchProducts = useCallback(async (search: string = "", resetOffset: boolean = true) => {
     const currentOffset = resetOffset ? 0 : offset;
-    
+
     setLoading(resetOffset);
     if (!resetOffset) setLoadingMore(true);
     setError(null);
@@ -38,7 +45,6 @@ export default function ProductsPage() {
         status: "true",
       };
 
-      // Add search parameter if there's a search term
       if (search.trim()) {
         params.search = search.trim();
       }
@@ -77,19 +83,15 @@ export default function ProductsPage() {
     }
   }, [offset, LIMIT]);
 
-  // Handle search with debounce
   const handleSearch = useCallback((value: string) => {
     setSearchTerm(value);
     setIsSearching(true);
-    
-    // Clear existing timeout
+
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
 
-    // Debounce search to avoid too many API calls
     searchTimeoutRef.current = setTimeout(() => {
-      // Reset everything and fetch with search
       setOffset(0);
       setHasMore(true);
       setTotalLoaded(0);
@@ -97,17 +99,14 @@ export default function ProductsPage() {
     }, 500);
   }, [fetchProducts]);
 
-  // Load more products
   const loadMoreProducts = useCallback(async () => {
     if (loadingMore || !hasMore || isSearching) return;
     await fetchProducts(searchTerm, false);
   }, [loadingMore, hasMore, isSearching, searchTerm, fetchProducts]);
 
-  // Load initial products on mount
   useEffect(() => {
     fetchProducts("", true);
-    
-    // Cleanup timeout on unmount
+
     return () => {
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
@@ -146,8 +145,8 @@ export default function ProductsPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Products</h1>
             <p className="text-gray-600 mt-1">
-              {isSearching ? 'Searching...' : 
-                totalLoaded > 0 ? `${totalLoaded} products found` : 
+              {isSearching ? 'Searching...' :
+                totalLoaded > 0 ? `${totalLoaded} products found` :
                 searchTerm ? 'No products found' : 'Loading products...'}
             </p>
           </div>
@@ -243,110 +242,82 @@ export default function ProductsPage() {
           <>
             {/* Table */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        ID
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Product
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Category
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Brand
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Price
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Tags
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {products.map((product) => (
-                      <tr key={product.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {product.id}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            {product.images && product.images.length > 0 && (
-                              <div className="flex-shrink-0 h-10 w-10">
-                                <img
-                                  className="h-10 w-10 rounded-lg object-cover"
-                                  src={product.images.find(img => img.type === "HERO")?.url || product.images[0].url}
-                                  alt={product.name}
-                                  onError={(e) => {
-                                    (e.target as HTMLImageElement).style.display = 'none';
-                                  }}
-                                />
-                              </div>
-                            )}
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">
-                                {product.name}
-                              </div>
-                              {product.description && (
-                                <div className="text-sm text-gray-500 truncate max-w-xs">
-                                  {product.description}
-                                </div>
-                              )}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Product</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Brand</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Tags</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {products.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell>{product.id}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          {product.images && product.images.length > 0 && (
+                            <div className="flex-shrink-0 h-10 w-10">
+                              <img
+                                className="h-10 w-10 rounded-lg object-cover"
+                                src={product.images.find(img => img.type === "HERO")?.url || product.images[0].url}
+                                alt={product.name}
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {product.category?.name || '-'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {product.brand || '-'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {formatPrice(product.selling_price)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {getStatusBadge(product.status)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex flex-wrap gap-1">
-                            {product.tags && product.tags.slice(0, 3).map((tag, index) => (
-                              <span
-                                key={index}
-                                className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600"
-                              >
-                                {tag}
-                              </span>
-                            ))}
-                            {product.tags && product.tags.length > 3 && (
-                              <span className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-400">
-                                +{product.tags.length - 3}
-                              </span>
+                          )}
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">
+                              {product.name}
+                            </div>
+                            {product.description && (
+                              <div className="text-sm text-gray-500 truncate max-w-xs">
+                                {product.description}
+                              </div>
                             )}
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <button
-                            onClick={() => handleEdit(product.id)}
-                            className="text-blue-600 hover:text-blue-900 transition-colors"
-                          >
-                            Edit
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{product.category?.name || '-'}</TableCell>
+                      <TableCell>{product.brand || '-'}</TableCell>
+                      <TableCell className="font-medium">{formatPrice(product.selling_price)}</TableCell>
+                      <TableCell>{getStatusBadge(product.status)}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {product.tags && product.tags.slice(0, 3).map((tag, index) => (
+                            <span
+                              key={index}
+                              className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                          {product.tags && product.tags.length > 3 && (
+                            <span className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-400">
+                              +{product.tags.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <button
+                          onClick={() => handleEdit(product.id)}
+                          className="text-blue-600 hover:text-blue-900 transition-colors text-sm font-medium"
+                        >
+                          Edit
+                        </button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
 
             {/* Load More */}
