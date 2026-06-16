@@ -1,259 +1,187 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
+import ProductService, { type ProductQueryParameters } from "@/services/products/ProductService";
+import type { Product } from "@/types/products";
 
-// Simulated API function - returns a slice of products with pagination info
-const fetchProducts = async (page: number, limit: number) => {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 500));
+// ============================================================================
+// Types
+// ============================================================================
 
-  // Full product list (20 products)
-  const allProducts = [
-    {
-      id: 1,
-      name: "Wireless Bluetooth Headphones",
-      description: "Premium noise-cancelling headphones with 40hr battery life",
-      category: "Electronics",
-      tags: ["wireless", "audio", "premium"],
-      status: "Published",
-    },
-    {
-      id: 2,
-      name: "Organic Cotton T-Shirt",
-      description:
-        "100% organic cotton, sustainably sourced and ethically made",
-      category: "Apparel",
-      tags: ["organic", "sustainable", "casual"],
-      status: "Draft",
-    },
-    {
-      id: 3,
-      name: "Stainless Steel Water Bottle",
-      description: "Vacuum insulated, keeps drinks cold for 24 hours",
-      category: "Home & Kitchen",
-      tags: ["eco-friendly", "insulated", "reusable"],
-      status: "Archived",
-    },
-    {
-      id: 4,
-      name: "USB-C Charging Cable 2m",
-      description: "Fast charging and data transfer for all USB-C devices",
-      category: "Electronics",
-      tags: ["fast-charge", "durable", "universal"],
-      status: "Published",
-    },
-    {
-      id: 5,
-      name: "Non-Slip Yoga Mat",
-      description: "Eco-friendly mat with excellent grip and cushioning",
-      category: "Sports & Fitness",
-      tags: ["eco-friendly", "non-slip", "durable"],
-      status: "Draft",
-    },
-    {
-      id: 6,
-      name: "Smartphone Tripod Stand",
-      description: "Adjustable tripod with Bluetooth remote for vlogging",
-      category: "Electronics",
-      tags: ["vlogging", "portable", "bluetooth"],
-      status: "Published",
-    },
-    {
-      id: 7,
-      name: "Ceramic Coffee Mug Set",
-      description: "Set of 4 handmade ceramic mugs with minimalist design",
-      category: "Home & Kitchen",
-      tags: ["ceramic", "handmade", "minimalist"],
-      status: "Published",
-    },
-    {
-      id: 8,
-      name: "Running Sneakers",
-      description: "Lightweight sneakers with responsive cushioning",
-      category: "Apparel",
-      tags: ["running", "athletic", "breathable"],
-      status: "Draft",
-    },
-    {
-      id: 9,
-      name: "LED Desk Lamp",
-      description: "Eye-caring desk lamp with 5 brightness levels",
-      category: "Home & Kitchen",
-      tags: ["led", "adjustable", "energy-saving"],
-      status: "Archived",
-    },
-    {
-      id: 10,
-      name: "Phone Case - Clear",
-      description: "Shockproof clear case with anti-yellowing technology",
-      category: "Electronics",
-      tags: ["protective", "clear", "shockproof"],
-      status: "Published",
-    },
-    {
-      id: 11,
-      name: "Resistance Bands Set",
-      description: "5-piece resistance band set for home workouts",
-      category: "Sports & Fitness",
-      tags: ["workout", "portable", "versatile"],
-      status: "Published",
-    },
-    {
-      id: 12,
-      name: "Leather Wallet",
-      description: "Genuine leather wallet with RFID protection",
-      category: "Apparel",
-      tags: ["leather", "rfid", "slim"],
-      status: "Draft",
-    },
-    {
-      id: 13,
-      name: "Air Purifier",
-      description: "HEPA air purifier for allergies and dust removal",
-      category: "Home & Kitchen",
-      tags: ["hepa", "air-quality", "quiet"],
-      status: "Published",
-    },
-    {
-      id: 14,
-      name: "Wireless Mouse",
-      description: "Ergonomic wireless mouse with adjustable DPI",
-      category: "Electronics",
-      tags: ["wireless", "ergonomic", "quiet-click"],
-      status: "Archived",
-    },
-    {
-      id: 15,
-      name: "Cotton Bedsheet Set",
-      description: "100% cotton bedsheet set, 400 thread count",
-      category: "Home & Kitchen",
-      tags: ["cotton", "breathable", "luxury"],
-      status: "Published",
-    },
-    {
-      id: 16,
-      name: "Dumbbell Set",
-      description: "Adjustable dumbbell set with weight plates",
-      category: "Sports & Fitness",
-      tags: ["adjustable", "strength", "home-gym"],
-      status: "Published",
-    },
-    {
-      id: 17,
-      name: "Sunglasses - Classic",
-      description: "UV protection sunglasses with polarized lenses",
-      category: "Apparel",
-      tags: ["uv-protection", "polarized", "classic"],
-      status: "Draft",
-    },
-    {
-      id: 18,
-      name: "Electric Kettle",
-      description: "Stainless steel kettle with auto shut-off",
-      category: "Home & Kitchen",
-      tags: ["stainless", "fast-boil", "safe"],
-      status: "Archived",
-    },
-    {
-      id: 19,
-      name: "Fitness Tracker Band",
-      description: "Smart fitness band with heart rate monitor",
-      category: "Electronics",
-      tags: ["fitness", "heart-rate", "waterproof"],
-      status: "Published",
-    },
-    {
-      id: 20,
-      name: "Yoga Blocks Set",
-      description: "Set of 2 eco-friendly foam yoga blocks",
-      category: "Sports & Fitness",
-      tags: ["yoga", "foam", "support"],
-      status: "Published",
-    },
-  ];
+type SortField = "name" | "category" | "price" | "status";
+type SortDirection = "asc" | "desc";
 
-  // Calculate pagination
-  const startIndex = (page - 1) * limit;
-  const endIndex = startIndex + limit;
-  const paginatedItems = allProducts.slice(startIndex, endIndex);
+interface ApiResponse {
+  next: string | null;
+  previous: string | null;
+  results: Product[];
+}
 
-  return {
-    products: paginatedItems,
-    total: allProducts.length,
-    page,
-    limit,
-    hasMore: endIndex < allProducts.length,
-  };
+// ============================================================================
+// Constants
+// ============================================================================
+
+const DEFAULT_LIMIT = 10;
+
+// Map UI sort fields to API sort field names
+const SORT_FIELD_MAP: Record<SortField, string> = {
+  name: "name",
+  category: "category",
+  price: "selling_price",
+  status: "status",
 };
 
+// ============================================================================
+// Utility Functions
+// ============================================================================
+
+const formatPrice = (price: number): string => {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(price);
+};
+
+const getHeroImage = (images: Product["images"]) => {
+  const heroImage = images.find((img) => img.type === "HERO");
+  return heroImage ? heroImage.url : images[0]?.url || null;
+};
+
+const getStatusColor = (status: boolean) => {
+  return status ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800";
+};
+
+const getSortIcon = (field: SortField, currentField: SortField, currentDirection: SortDirection): string => {
+  if (currentField !== field) return "↕";
+  return currentDirection === "asc" ? "↑" : "↓";
+};
+
+// ============================================================================
+// Main Component
+// ============================================================================
+
 export default function ProductsAdminPage() {
-  const [products, setProducts] = useState<any[]>([]);
-  const [page, setPage] = useState(1);
+  // State
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [nextUrl, setNextUrl] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [total, setTotal] = useState(0);
-  const limit = 10;
+  
+  // Sort state
+  const [sortField, setSortField] = useState<SortField>("name");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+
+  const productService = new ProductService();
+
+  // Helper function to fetch products directly from API
+  const fetchProducts = async (url: string): Promise<ApiResponse> => {
+    const response = await fetch(url);
+    return response.json();
+  };
+
+  // Load products
+  const loadProducts = async (loadMore: boolean = false) => {
+    if (loadMore) {
+      setLoading(true);
+    } else {
+      setInitialLoading(true);
+    }
+
+    let results: Product[];
+    let next: string | null = null;
+
+    if (loadMore && nextUrl) {
+      // Use the nextUrl for pagination
+      const data = await fetchProducts(nextUrl);
+      results = data.results;
+      next = data.next;
+    } else {
+      // Build sort string
+      const sortString = sortDirection === "asc" 
+        ? SORT_FIELD_MAP[sortField] 
+        : `-${SORT_FIELD_MAP[sortField]}`;
+
+      // Initial load using cursor pagination with sort
+      const baseUrl = process.env.BACKEND_URL || "http://localhost:8000";
+      const url = `${baseUrl}/api/v1/products/?paginate=cursor&limit=${DEFAULT_LIMIT}&sort=${sortString}`;
+      const data = await fetchProducts(url);
+      results = data.results;
+      next = data.next;
+    }
+
+    if (loadMore) {
+      setProducts((prev) => [...prev, ...results]);
+    } else {
+      setProducts(results);
+    }
+
+    setNextUrl(next);
+    setHasMore(!!next);
+    setTotal((prevTotal) =>
+      loadMore ? prevTotal + results.length : results.length
+    );
+
+    setInitialLoading(false);
+    setLoading(false);
+  };
 
   // Load initial products
   useEffect(() => {
-    loadProducts(1);
+    loadProducts();
   }, []);
 
-  const loadProducts = async (pageNum: number) => {
-    if (pageNum === 1) {
-      setInitialLoading(true);
-    } else {
-      setLoading(true);
-    }
-
-    try {
-      const result = await fetchProducts(pageNum, limit);
-
-      if (pageNum === 1) {
-        setProducts(result.products);
-      } else {
-        setProducts((prev) => [...prev, ...result.products]);
-      }
-
-      setHasMore(result.hasMore);
-      setTotal(result.total);
-      setPage(pageNum);
-    } catch (error) {
-      console.error("Failed to load products:", error);
-    } finally {
-      setInitialLoading(false);
-      setLoading(false);
-    }
-  };
+  // Reload when sort changes
+  useEffect(() => {
+    setProducts([]);
+    setNextUrl(null);
+    loadProducts();
+  }, [sortField, sortDirection]);
 
   const handleLoadMore = () => {
-    if (!loading && hasMore) {
-      loadProducts(page + 1);
+    if (!loading && hasMore && nextUrl) {
+      loadProducts(true);
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Published":
-        return "bg-green-100 text-green-800";
-      case "Draft":
-        return "bg-yellow-100 text-yellow-800";
-      case "Archived":
-        return "bg-gray-100 text-gray-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // Toggle direction if same field
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      // New field, default to ascending
+      setSortField(field);
+      setSortDirection("asc");
     }
   };
+
+  // Render sortable header
+  const renderSortableHeader = (field: SortField, label: string) => (
+    <th
+      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700 transition-colors select-none"
+      onClick={() => handleSort(field)}
+    >
+      <div className="flex items-center gap-1">
+        <span>{label}</span>
+        <span className="text-blue-500 text-sm">
+          {getSortIcon(field, sortField, sortDirection)}
+        </span>
+      </div>
+    </th>
+  );
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Products</h1>
           {!initialLoading && (
             <p className="text-sm text-gray-500 mt-1">
               Showing {products.length} of {total} products
+              {sortField !== "name" && ` • Sorted by ${sortField}`}
             </p>
           )}
         </div>
@@ -262,26 +190,25 @@ export default function ProductsAdminPage() {
         </button>
       </div>
 
+      {/* Table */}
       <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Product Name
+                  Image
                 </th>
+                {renderSortableHeader("name", "Product Name")}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Description
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Category
-                </th>
+                {renderSortableHeader("category", "Category")}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Tags
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
+                {renderSortableHeader("price", "Price")}
+                {renderSortableHeader("status", "Status")}
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
@@ -290,7 +217,7 @@ export default function ProductsAdminPage() {
             <tbody className="divide-y divide-gray-200">
               {initialLoading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center">
+                  <td colSpan={8} className="px-6 py-12 text-center">
                     <div className="flex justify-center items-center">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                       <span className="ml-3 text-gray-600">
@@ -301,80 +228,108 @@ export default function ProductsAdminPage() {
                 </tr>
               ) : products.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-12 text-center text-gray-500"
-                  >
+                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                     No products found
                   </td>
                 </tr>
               ) : (
-                products.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50 transition">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="font-medium text-gray-900">
-                        {product.name}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-gray-600 line-clamp-2">
-                        {product.description}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-600">
-                        {product.category}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-wrap gap-1">
-                        {product.tags.map((tag: string, index: number) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
-                          >
-                            {tag}
+                products.map((product) => {
+                  const heroImage = getHeroImage(product.images);
+                  return (
+                    <tr key={product.id} className="hover:bg-gray-50 transition">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {heroImage ? (
+                          <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
+                            <Image
+                              src={heroImage}
+                              alt={product.name}
+                              fill
+                              className="object-cover"
+                              sizes="64px"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-16 h-16 rounded-lg bg-gray-200 flex items-center justify-center">
+                            <span className="text-xs text-gray-500">No image</span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <span className="font-medium text-gray-900">
+                            {product.name}
                           </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                          product.status,
-                        )}`}
-                      >
-                        {product.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <a
-                        href={`https://example.com/edit/product/${product.id}`}
-                        className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition"
-                      >
-                        Edit
-                      </a>
-                    </td>
-                  </tr>
-                ))
+                          <span className="block text-xs text-gray-500">
+                            {product.brand}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-gray-600 line-clamp-2">
+                          {product.description}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-gray-600">
+                          {product.category.name}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-wrap gap-1">
+                          {product.tags.slice(0, 3).map((tag: string, index: number) => (
+                            <span
+                              key={index}
+                              className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                          {product.tags.length > 3 && (
+                            <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                              +{product.tags.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm font-medium text-gray-900">
+                          {formatPrice(product.selling_price)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                            product.status
+                          )}`}
+                        >
+                          {product.status ? "Published" : "Draft"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <a
+                          href={`https://example.com/edit/product/${product.id}`}
+                          className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition"
+                        >
+                          Edit
+                        </a>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Load More Section */}
+      {/* Load More */}
       <div className="mt-6 flex flex-col items-center gap-4">
         {!initialLoading && products.length > 0 && (
           <>
             <div className="flex items-center gap-4 text-sm text-gray-600">
-              <span>
-                Showing {products.length} of {total} products
-              </span>
+              <span>Showing {products.length} of {total} products</span>
               {hasMore && (
-                <span className="text-blue-600">
-                  ({total - products.length} more available)
-                </span>
+                <span className="text-blue-600">(Load more available)</span>
               )}
             </div>
 
