@@ -7,6 +7,7 @@ export type ProductQueryParameters = {
   offset?: number;
   tags?: string[];
   category?: number | null;
+  search?: string;
 };
 
 const DEFAULT_QUERY_PARAMS: Omit<ProductQueryParameters, "tags"> = {
@@ -18,28 +19,44 @@ const DEFAULT_QUERY_PARAMS: Omit<ProductQueryParameters, "tags"> = {
 };
 
 export default class ProductService {
-  private backendURL: string = process.env.BACKEND_URL || "";
+  private backendURL: string = process.env.NEXT_PUBLIC_API_URL || process.env.BACKEND_URL || "http://localhost:8000";
 
   async getProducts(params: ProductQueryParameters = {}): Promise<Product[]> {
-    if (!this.backendURL) return [];
+    if (!this.backendURL) {
+      console.error("BACKEND_URL is not set");
+      return [];
+    }
 
     const queryParams = this.buildQueryParams(params);
     const url = `${this.backendURL}/api/v1/products?${queryParams}`;
+    
+    console.log("Fetching URL:", url);
 
     try {
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) return [];
+      const res = await fetch(url, { 
+        cache: "no-store",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!res.ok) {
+        console.error("Response not OK:", res.status, res.statusText);
+        return [];
+      }
 
       const json = await res.json();
+      console.log("Response data:", json);
       return json.data ?? [];
-    } catch {
+    } catch (error) {
+      console.error("Error fetching products:", error);
       return [];
     }
   }
 
   async getProductDetails(id: string): Promise<Product> {
     const res = await fetch(
-      `${process.env.BACKEND_URL}/api/v1/products/${id}`,
+      `${this.backendURL}/api/v1/products/${id}`,
       {
         cache: "no-store",
       },

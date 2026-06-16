@@ -1,358 +1,379 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
-import ProductService, { type ProductQueryParameters } from "@/services/products/ProductService";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
+import ProductService from "@/services/products/ProductService";
 import type { Product } from "@/types/products";
 
-// ============================================================================
-// Types
-// ============================================================================
+const productService = new ProductService();
 
-type SortField = "name" | "category" | "price" | "status";
-type SortDirection = "asc" | "desc";
-
-interface ApiResponse {
-  next: string | null;
-  previous: string | null;
-  results: Product[];
-}
-
-// ============================================================================
-// Constants
-// ============================================================================
-
-const DEFAULT_LIMIT = 10;
-
-// Map UI sort fields to API sort field names
-const SORT_FIELD_MAP: Record<SortField, string> = {
-  name: "name",
-  category: "category",
-  price: "selling_price",
-  status: "status",
-};
-
-// ============================================================================
-// Utility Functions
-// ============================================================================
-
-const formatPrice = (price: number): string => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(price);
-};
-
-const getHeroImage = (images: Product["images"]) => {
-  const heroImage = images.find((img) => img.type === "HERO");
-  return heroImage ? heroImage.url : images[0]?.url || null;
-};
-
-const getStatusColor = (status: boolean) => {
-  return status ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800";
-};
-
-const getSortIcon = (field: SortField, currentField: SortField, currentDirection: SortDirection): string => {
-  if (currentField !== field) return "↕";
-  return currentDirection === "asc" ? "↑" : "↓";
-};
-
-// ============================================================================
-// Main Component
-// ============================================================================
-
-export default function ProductsAdminPage() {
-  // State
+export default function ProductsPage() {
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [nextUrl, setNextUrl] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [total, setTotal] = useState(0);
-  
-  // Sort state
-  const [sortField, setSortField] = useState<SortField>("name");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [offset, setOffset] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [totalLoaded, setTotalLoaded] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const productService = new ProductService();
+  const LIMIT = 100;
 
-  // Helper function to fetch products directly from API
-  const fetchProducts = async (url: string): Promise<ApiResponse> => {
-    const response = await fetch(url);
-    return response.json();
-  };
+  // Function to fetch products with search
+  const fetchProducts = useCallback(async (search: string = "", resetOffset: boolean = true) => {
+    const currentOffset = resetOffset ? 0 : offset;
+    
+    setLoading(resetOffset);
+    if (!resetOffset) setLoadingMore(true);
+    setError(null);
 
-  // Load products
-  const loadProducts = async (loadMore: boolean = false) => {
-    if (loadMore) {
-      setLoading(true);
-    } else {
-      setInitialLoading(true);
+    try {
+      const params: any = {
+        limit: LIMIT,
+        offset: currentOffset,
+        sort: "id",
+        status: "true",
+      };
+
+      // Add search parameter if there's a search term
+      if (search.trim()) {
+        params.search = search.trim();
+      }
+
+      const newProducts = await productService.getProducts(params);
+
+      if (!newProducts || newProducts.length === 0) {
+        setHasMore(false);
+        if (resetOffset) {
+          setProducts([]);
+        }
+      } else {
+        if (resetOffset) {
+          setProducts(newProducts);
+          setOffset(LIMIT);
+          setTotalLoaded(newProducts.length);
+        } else {
+          setProducts((prev) => [...prev, ...newProducts]);
+          setOffset((prev) => prev + newProducts.length);
+          setTotalLoaded((prev) => prev + newProducts.length);
+        }
+
+        if (newProducts.length < LIMIT) {
+          setHasMore(false);
+        } else {
+          setHasMore(true);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching products:", err);
+      setError("Failed to load products");
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+      setIsSearching(false);
+    }
+  }, [offset, LIMIT]);
+
+  // Handle search with debounce
+  const handleSearch = useCallback((value: string) => {
+    setSearchTerm(value);
+    setIsSearching(true);
+    
+    // Clear existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
     }
 
-    let results: Product[];
-    let next: string | null = null;
+    // Debounce search to avoid too many API calls
+    searchTimeoutRef.current = setTimeout(() => {
+      // Reset everything and fetch with search
+      setOffset(0);
+      setHasMore(true);
+      setTotalLoaded(0);
+      fetchProducts(value, true);
+    }, 500);
+  }, [fetchProducts]);
 
-    if (loadMore && nextUrl) {
-      // Use the nextUrl for pagination
-      const data = await fetchProducts(nextUrl);
-      results = data.results;
-      next = data.next;
-    } else {
-      // Build sort string
-      const sortString = sortDirection === "asc" 
-        ? SORT_FIELD_MAP[sortField] 
-        : `-${SORT_FIELD_MAP[sortField]}`;
+  // Load more products
+  const loadMoreProducts = useCallback(async () => {
+    if (loadingMore || !hasMore || isSearching) return;
+    await fetchProducts(searchTerm, false);
+  }, [loadingMore, hasMore, isSearching, searchTerm, fetchProducts]);
 
-      // Initial load using cursor pagination with sort
-      const baseUrl = process.env.BACKEND_URL || "http://localhost:8000";
-      const url = `${baseUrl}/api/v1/products/?paginate=cursor&limit=${DEFAULT_LIMIT}&sort=${sortString}`;
-      const data = await fetchProducts(url);
-      results = data.results;
-      next = data.next;
-    }
-
-    if (loadMore) {
-      setProducts((prev) => [...prev, ...results]);
-    } else {
-      setProducts(results);
-    }
-
-    setNextUrl(next);
-    setHasMore(!!next);
-    setTotal((prevTotal) =>
-      loadMore ? prevTotal + results.length : results.length
-    );
-
-    setInitialLoading(false);
-    setLoading(false);
-  };
-
-  // Load initial products
+  // Load initial products on mount
   useEffect(() => {
-    loadProducts();
+    fetchProducts("", true);
+    
+    // Cleanup timeout on unmount
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
   }, []);
 
-  // Reload when sort changes
-  useEffect(() => {
-    setProducts([]);
-    setNextUrl(null);
-    loadProducts();
-  }, [sortField, sortDirection]);
-
-  const handleLoadMore = () => {
-    if (!loading && hasMore && nextUrl) {
-      loadProducts(true);
-    }
+  const handleEdit = (productId: number) => {
+    router.push(`/admin/product/edit/${productId}`);
   };
 
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      // Toggle direction if same field
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      // New field, default to ascending
-      setSortField(field);
-      setSortDirection("asc");
-    }
+  const getStatusBadge = (status: boolean) => {
+    return status ? (
+      <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+        Active
+      </span>
+    ) : (
+      <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
+        Inactive
+      </span>
+    );
   };
 
-  // Render sortable header
-  const renderSortableHeader = (field: SortField, label: string) => (
-    <th
-      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700 transition-colors select-none"
-      onClick={() => handleSort(field)}
-    >
-      <div className="flex items-center gap-1">
-        <span>{label}</span>
-        <span className="text-blue-500 text-sm">
-          {getSortIcon(field, sortField, sortDirection)}
-        </span>
-      </div>
-    </th>
-  );
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(price);
+  };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Products</h1>
-          {!initialLoading && (
-            <p className="text-sm text-gray-500 mt-1">
-              Showing {products.length} of {total} products
-              {sortField !== "name" && ` • Sorted by ${sortField}`}
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Products</h1>
+            <p className="text-gray-600 mt-1">
+              {isSearching ? 'Searching...' : 
+                totalLoaded > 0 ? `${totalLoaded} products found` : 
+                searchTerm ? 'No products found' : 'Loading products...'}
             </p>
-          )}
+          </div>
+          <button
+            onClick={() => router.push('/admin/product/create')}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add Product
+          </button>
         </div>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-          + Add Product
-        </button>
-      </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Image
-                </th>
-                {renderSortableHeader("name", "Product Name")}
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Description
-                </th>
-                {renderSortableHeader("category", "Category")}
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tags
-                </th>
-                {renderSortableHeader("price", "Price")}
-                {renderSortableHeader("status", "Status")}
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {initialLoading ? (
-                <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center">
-                    <div className="flex justify-center items-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                      <span className="ml-3 text-gray-600">
-                        Loading products...
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              ) : products.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
-                    No products found
-                  </td>
-                </tr>
-              ) : (
-                products.map((product) => {
-                  const heroImage = getHeroImage(product.images);
-                  return (
-                    <tr key={product.id} className="hover:bg-gray-50 transition">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {heroImage ? (
-                          <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
-                            <Image
-                              src={heroImage}
-                              alt={product.name}
-                              fill
-                              className="object-cover"
-                              sizes="64px"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-16 h-16 rounded-lg bg-gray-200 flex items-center justify-center">
-                            <span className="text-xs text-gray-500">No image</span>
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <span className="font-medium text-gray-900">
-                            {product.name}
-                          </span>
-                          <span className="block text-xs text-gray-500">
-                            {product.brand}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm text-gray-600 line-clamp-2">
-                          {product.description}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-600">
-                          {product.category.name}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-wrap gap-1">
-                          {product.tags.slice(0, 3).map((tag: string, index: number) => (
-                            <span
-                              key={index}
-                              className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                          {product.tags.length > 3 && (
-                            <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                              +{product.tags.length - 3}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm font-medium text-gray-900">
-                          {formatPrice(product.selling_price)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                            product.status
-                          )}`}
-                        >
-                          {product.status ? "Published" : "Draft"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <a
-                          href={`https://example.com/edit/product/${product.id}`}
-                          className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition"
-                        >
-                          Edit
-                        </a>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search products by name, brand, category, or tags..."
+              value={searchTerm}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="w-full px-4 py-2 pl-10 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <svg
+              className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            {searchTerm && (
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setOffset(0);
+                  setHasMore(true);
+                  setTotalLoaded(0);
+                  fetchProducts("", true);
+                }}
+                className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Load More */}
-      <div className="mt-6 flex flex-col items-center gap-4">
-        {!initialLoading && products.length > 0 && (
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-red-700">{error}</p>
+            <button
+              onClick={() => fetchProducts(searchTerm, true)}
+              className="mt-2 bg-red-100 text-red-700 px-4 py-2 rounded hover:bg-red-200"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {loading ? (
+          <div className="flex justify-center items-center py-16">
+            <div className="flex space-x-2">
+              <div className="w-4 h-4 bg-blue-500 rounded-full animate-bounce" />
+              <div className="w-4 h-4 bg-blue-500 rounded-full animate-bounce [animation-delay:0.2s]" />
+              <div className="w-4 h-4 bg-blue-500 rounded-full animate-bounce [animation-delay:0.4s]" />
+            </div>
+          </div>
+        ) : products.length === 0 ? (
+          <div className="text-center py-16 bg-white rounded-xl shadow-sm">
+            <div className="text-6xl mb-4">📦</div>
+            <p className="text-gray-500 text-lg">
+              {searchTerm ? 'No products found matching your search' : 'No products found'}
+            </p>
+            {searchTerm && (
+              <p className="text-gray-400 text-sm mt-2">
+                Try adjusting your search terms
+              </p>
+            )}
+            {!searchTerm && (
+              <p className="text-gray-400 text-sm mt-2">Start by adding your first product</p>
+            )}
+          </div>
+        ) : (
           <>
-            <div className="flex items-center gap-4 text-sm text-gray-600">
-              <span>Showing {products.length} of {total} products</span>
-              {hasMore && (
-                <span className="text-blue-600">(Load more available)</span>
-              )}
+            {/* Table */}
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        ID
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Product
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Category
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Brand
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Price
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Tags
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {products.map((product) => (
+                      <tr key={product.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {product.id}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            {product.images && product.images.length > 0 && (
+                              <div className="flex-shrink-0 h-10 w-10">
+                                <img
+                                  className="h-10 w-10 rounded-lg object-cover"
+                                  src={product.images.find(img => img.type === "HERO")?.url || product.images[0].url}
+                                  alt={product.name}
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                  }}
+                                />
+                              </div>
+                            )}
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900">
+                                {product.name}
+                              </div>
+                              {product.description && (
+                                <div className="text-sm text-gray-500 truncate max-w-xs">
+                                  {product.description}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {product.category?.name || '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {product.brand || '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {formatPrice(product.selling_price)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {getStatusBadge(product.status)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex flex-wrap gap-1">
+                            {product.tags && product.tags.slice(0, 3).map((tag, index) => (
+                              <span
+                                key={index}
+                                className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                            {product.tags && product.tags.length > 3 && (
+                              <span className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-400">
+                                +{product.tags.length - 3}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <button
+                            onClick={() => handleEdit(product.id)}
+                            className="text-blue-600 hover:text-blue-900 transition-colors"
+                          >
+                            Edit
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
-            {hasMore ? (
-              <button
-                onClick={handleLoadMore}
-                disabled={loading}
-                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg text-sm font-medium transition flex items-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Loading...
-                  </>
-                ) : (
-                  "Load More Products"
-                )}
-              </button>
-            ) : (
-              <div className="text-sm text-gray-500 py-2">
-                ✓ All {total} products loaded
-              </div>
-            )}
+            {/* Load More */}
+            <div className="mt-8 text-center">
+              {loadingMore ? (
+                <div className="flex justify-center items-center py-4">
+                  <div className="flex space-x-2">
+                    <div className="w-4 h-4 bg-blue-500 rounded-full animate-bounce" />
+                    <div className="w-4 h-4 bg-blue-500 rounded-full animate-bounce [animation-delay:0.2s]" />
+                    <div className="w-4 h-4 bg-blue-500 rounded-full animate-bounce [animation-delay:0.4s]" />
+                  </div>
+                </div>
+              ) : hasMore ? (
+                <button
+                  onClick={loadMoreProducts}
+                  disabled={loadingMore || isSearching}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-8 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg disabled:cursor-not-allowed"
+                >
+                  Load More Products
+                </button>
+              ) : (
+                <p className="text-gray-400 text-sm">
+                  ✨ Showing all {totalLoaded} products
+                  {searchTerm && ` matching "${searchTerm}"`}
+                </p>
+              )}
+            </div>
           </>
         )}
       </div>
