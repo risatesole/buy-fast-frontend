@@ -1,4 +1,3 @@
-import { notFound } from "next/navigation";
 import type { Product } from "@/types/products";
 import { ImageGallery } from "@/components/ImageGallery";
 import { ProductDetails } from "./components/ProductDetails";
