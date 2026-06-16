@@ -121,7 +121,7 @@ export default function ProductsPage() {
   }, []);
 
   const handleEdit = (productId: number) => {
-    router.push(`/admin/product/edit/${productId}`);
+    router.push(`/admin/products/edit/${productId}`);
   };
 
   const getStatusBadge = (status: boolean) => {
