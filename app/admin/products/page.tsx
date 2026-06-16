@@ -30,74 +30,80 @@ export default function ProductsPage() {
 
   const LIMIT = 100;
 
-  const fetchProducts = useCallback(async (search: string = "", resetOffset: boolean = true) => {
-    const currentOffset = resetOffset ? 0 : offset;
+  const fetchProducts = useCallback(
+    async (search: string = "", resetOffset: boolean = true) => {
+      const currentOffset = resetOffset ? 0 : offset;
 
-    setLoading(resetOffset);
-    if (!resetOffset) setLoadingMore(true);
-    setError(null);
+      setLoading(resetOffset);
+      if (!resetOffset) setLoadingMore(true);
+      setError(null);
 
-    try {
-      const params: any = {
-        limit: LIMIT,
-        offset: currentOffset,
-        sort: "id",
-        status: "true",
-      };
+      try {
+        const params: any = {
+          limit: LIMIT,
+          offset: currentOffset,
+          sort: "id",
+          status: "true",
+        };
 
-      if (search.trim()) {
-        params.search = search.trim();
-      }
-
-      const newProducts = await productService.getProducts(params);
-
-      if (!newProducts || newProducts.length === 0) {
-        setHasMore(false);
-        if (resetOffset) {
-          setProducts([]);
-        }
-      } else {
-        if (resetOffset) {
-          setProducts(newProducts);
-          setOffset(LIMIT);
-          setTotalLoaded(newProducts.length);
-        } else {
-          setProducts((prev) => [...prev, ...newProducts]);
-          setOffset((prev) => prev + newProducts.length);
-          setTotalLoaded((prev) => prev + newProducts.length);
+        if (search.trim()) {
+          params.search = search.trim();
         }
 
-        if (newProducts.length < LIMIT) {
+        const newProducts = await productService.getProducts(params);
+
+        if (!newProducts || newProducts.length === 0) {
           setHasMore(false);
+          if (resetOffset) {
+            setProducts([]);
+          }
         } else {
-          setHasMore(true);
+          if (resetOffset) {
+            setProducts(newProducts);
+            setOffset(LIMIT);
+            setTotalLoaded(newProducts.length);
+          } else {
+            setProducts((prev) => [...prev, ...newProducts]);
+            setOffset((prev) => prev + newProducts.length);
+            setTotalLoaded((prev) => prev + newProducts.length);
+          }
+
+          if (newProducts.length < LIMIT) {
+            setHasMore(false);
+          } else {
+            setHasMore(true);
+          }
         }
+      } catch (err) {
+        console.error("Error fetching products:", err);
+        setError("Failed to load products");
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
+        setIsSearching(false);
       }
-    } catch (err) {
-      console.error("Error fetching products:", err);
-      setError("Failed to load products");
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-      setIsSearching(false);
-    }
-  }, [offset, LIMIT]);
+    },
+    [offset, LIMIT],
+  );
 
-  const handleSearch = useCallback((value: string) => {
-    setSearchTerm(value);
-    setIsSearching(true);
+  const handleSearch = useCallback(
+    (value: string) => {
+      setSearchTerm(value);
+      setIsSearching(true);
 
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
 
-    searchTimeoutRef.current = setTimeout(() => {
-      setOffset(0);
-      setHasMore(true);
-      setTotalLoaded(0);
-      fetchProducts(value, true);
-    }, 500);
-  }, [fetchProducts]);
+      searchTimeoutRef.current = setTimeout(() => {
+        setOffset(0);
+        setHasMore(true);
+        setTotalLoaded(0);
+        fetchProducts(value, true);
+      }, 500);
+    },
+    [fetchProducts],
+  );
 
   const loadMoreProducts = useCallback(async () => {
     if (loadingMore || !hasMore || isSearching) return;
@@ -131,31 +137,45 @@ export default function ProductsPage() {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
     }).format(price);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div>
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Products</h1>
             <p className="text-gray-600 mt-1">
-              {isSearching ? 'Searching...' :
-                totalLoaded > 0 ? `${totalLoaded} products found` :
-                searchTerm ? 'No products found' : 'Loading products...'}
+              {isSearching
+                ? "Searching..."
+                : totalLoaded > 0
+                  ? `${totalLoaded} products found`
+                  : searchTerm
+                    ? "No products found"
+                    : "Loading products..."}
             </p>
           </div>
           <button
-            onClick={() => router.push('/admin/product/create')}
+            onClick={() => router.push("/admin/product/create")}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
             </svg>
             Add Product
           </button>
@@ -195,8 +215,18 @@ export default function ProductsPage() {
                 }}
                 className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
               >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             )}
@@ -227,7 +257,9 @@ export default function ProductsPage() {
           <div className="text-center py-16 bg-white rounded-xl shadow-sm">
             <div className="text-6xl mb-4">📦</div>
             <p className="text-gray-500 text-lg">
-              {searchTerm ? 'No products found matching your search' : 'No products found'}
+              {searchTerm
+                ? "No products found matching your search"
+                : "No products found"}
             </p>
             {searchTerm && (
               <p className="text-gray-400 text-sm mt-2">
@@ -235,7 +267,9 @@ export default function ProductsPage() {
               </p>
             )}
             {!searchTerm && (
-              <p className="text-gray-400 text-sm mt-2">Start by adding your first product</p>
+              <p className="text-gray-400 text-sm mt-2">
+                Start by adding your first product
+              </p>
             )}
           </div>
         ) : (
@@ -265,10 +299,15 @@ export default function ProductsPage() {
                             <div className="flex-shrink-0 h-10 w-10">
                               <img
                                 className="h-10 w-10 rounded-lg object-cover"
-                                src={product.images.find(img => img.type === "HERO")?.url || product.images[0].url}
+                                src={
+                                  product.images.find(
+                                    (img) => img.type === "HERO",
+                                  )?.url || product.images[0].url
+                                }
                                 alt={product.name}
                                 onError={(e) => {
-                                  (e.target as HTMLImageElement).style.display = 'none';
+                                  (e.target as HTMLImageElement).style.display =
+                                    "none";
                                 }}
                               />
                             </div>
@@ -285,20 +324,23 @@ export default function ProductsPage() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>{product.category?.name || '-'}</TableCell>
-                      <TableCell>{product.brand || '-'}</TableCell>
-                      <TableCell className="font-medium">{formatPrice(product.selling_price)}</TableCell>
+                      <TableCell>{product.category?.name || "-"}</TableCell>
+                      <TableCell>{product.brand || "-"}</TableCell>
+                      <TableCell className="font-medium">
+                        {formatPrice(product.selling_price)}
+                      </TableCell>
                       <TableCell>{getStatusBadge(product.status)}</TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {product.tags && product.tags.slice(0, 3).map((tag, index) => (
-                            <span
-                              key={index}
-                              className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600"
-                            >
-                              {tag}
-                            </span>
-                          ))}
+                          {product.tags &&
+                            product.tags.slice(0, 3).map((tag, index) => (
+                              <span
+                                key={index}
+                                className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600"
+                              >
+                                {tag}
+                              </span>
+                            ))}
                           {product.tags && product.tags.length > 3 && (
                             <span className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-400">
                               +{product.tags.length - 3}
