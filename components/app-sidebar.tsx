@@ -35,8 +35,11 @@ const platformItems = [
   },
   {
     title: "Products",
-    url: "/admin/products",
     icon: Package,
+    sub: [
+      { title: "products", url: "/admin/products" },
+      { title: "details", url: "https://example.com" },
+    ],
   },
   {
     title: "Users",
