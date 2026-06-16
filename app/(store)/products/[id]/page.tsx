@@ -5,11 +5,7 @@ import type { Product } from "@/types/products";
 import ProductService from "@/services/products/ProductService";
 import { TagBadge } from "@/components/TagBadge";
 import { ProductPageBreadcrumb } from "@/components/breadcrums/productpage";
-
-const formatPrice = (n: number) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
-    n,
-  );
+import { formatPrice } from "@/utils/FormatPrice";
 
 function ProductDetails({ product }: { product: Product }) {
   return (
