@@ -31,7 +31,10 @@ const platformItems = [
     title: "Customer",
     url: "/admin/customer",
     icon: ShoppingBag,
-    sub: [{ title: "Orders", url: "/admin/customers/orders" }],
+    sub: [
+      { title: "Customers", url: "/admin/customers" },
+      { title: "Orders", url: "/admin/customers/orders" },
+    ],
   },
   {
     title: "Products",
