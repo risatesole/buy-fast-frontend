@@ -4,42 +4,12 @@ import { AddToCartButton } from "@/components/AddToCartButton";
 import type { Product } from "@/types/products";
 import ProductService from "@/services/products/ProductService";
 import { TagBadge } from "@/components/TagBadge";
+import { ProductPageBreadcrumb } from "@/components/breadcrums/productpage";
 
 const formatPrice = (n: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
     n,
   );
-
-function Breadcrumb({ product }: { product: Product }) {
-  return (
-    <nav
-      style={{
-        fontSize: "0.68rem",
-        letterSpacing: "0.1em",
-        textTransform: "uppercase",
-        color: "oklch(0.708 0 0)",
-        marginBottom: "3rem",
-        display: "flex",
-        gap: "0.5rem",
-        alignItems: "center",
-        flexWrap: "wrap",
-      }}
-    >
-      <a href="/" style={{ color: "oklch(0.708 0 0)", textDecoration: "none" }}>
-        Home
-      </a>
-      <span>/</span>
-      <a
-        href={`/?category=${product.category.id}`}
-        style={{ color: "oklch(0.708 0 0)", textDecoration: "none" }}
-      >
-        {product.category.name}
-      </a>
-      <span>/</span>
-      <span style={{ color: "oklch(0.35 0 0)" }}>{product.name}</span>
-    </nav>
-  );
-}
 
 function ProductDetails({ product }: { product: Product }) {
   return (
@@ -215,7 +185,7 @@ export default async function ProductPage({
       <main
         style={{ maxWidth: 1280, margin: "0 auto", padding: "4rem 2rem 6rem" }}
       >
-        <Breadcrumb product={product!} />
+        <ProductPageBreadcrumb product={product!} />
 
         <div className="product-layout">
           <div className="product-image-col">
