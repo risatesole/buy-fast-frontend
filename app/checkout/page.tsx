@@ -2,9 +2,318 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useCheckoutCart } from "@/components/checkout-with-cart";
+
+// ========== TYPES ==========
+
+type CheckoutFormData = {
+  name: string;
+  email: string;
+  phone: string;
+  pickupTime: string;
+  cardNumber: string;
+  expiryDate: string;
+  cvv: string;
+};
+
+type PaymentDetailsProps = {
+  formData: CheckoutFormData;
+  handleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+};
+
+type CustomerInformationProps = {
+  formData: CheckoutFormData;
+  handleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+};
+
+type CheckoutFormProps = {
+  formData: CheckoutFormData;
+  handleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  handleSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+};
+
+type ProductsSidebarProps = {
+  items: {
+    id: number | string;
+    name: string;
+    price: number;
+    quantity: number;
+    image?: string;
+  }[];
+  total: number;
+};
+
+type ProductItemProps = {
+  item: {
+    id: number | string;
+    name: string;
+    price: number;
+    quantity: number;
+    image?: string;
+  };
+};
+
+// ========== COMPONENTS ==========
+
+function ProductItem({ item }: ProductItemProps) {
+  const imageUrl = item.image || "https://placehold.co/100x100";
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        gap: "10px",
+        border: "1px solid black",
+        padding: "10px",
+        marginBottom: "10px",
+      }}
+    >
+      <Image
+        src={imageUrl}
+        alt={item.name}
+        width={80}
+        height={80}
+        style={{ objectFit: "cover" }}
+      />
+      <div>
+        <strong>{item.name}</strong>
+        <br />
+        Quantity: {item.quantity}
+        <br />${(item.price * item.quantity).toFixed(2)}
+      </div>
+    </div>
+  );
+}
+
+function ProductsSidebar({ items, total }: ProductsSidebarProps) {
+  if (items.length === 0) {
+    return (
+      <aside
+        style={{
+          width: "350px",
+          border: "1px solid black",
+          padding: "20px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <p>Your cart is empty</p>
+      </aside>
+    );
+  }
+
+  return (
+    <aside
+      style={{
+        width: "350px",
+        border: "1px solid black",
+        padding: "20px",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <h2>Products ({items.length})</h2>
+      <div style={{ flex: 1, overflowY: "auto", paddingRight: "5px" }}>
+        {items.map((item) => (
+          <ProductItem key={item.id} item={item} />
+        ))}
+      </div>
+      <hr />
+      <p>
+        <strong>Total:</strong> ${total.toFixed(2)}
+      </p>
+    </aside>
+  );
+}
+
+function PaymentDetails({ formData, handleChange }: PaymentDetailsProps) {
+  return (
+    <>
+      <h3>Payment Details</h3>
+
+      <label>Card Number</label>
+      <br />
+      <input
+        type="text"
+        name="cardNumber"
+        value={formData.cardNumber}
+        onChange={handleChange}
+        placeholder="1234 5678 9012 3456"
+        required
+        style={{
+          width: "100%",
+          border: "1px solid black",
+          boxSizing: "border-box",
+        }}
+      />
+
+      <br />
+      <br />
+
+      <div style={{ display: "flex", gap: "10px" }}>
+        <div style={{ flex: 1 }}>
+          <label>Expiry Date</label>
+          <br />
+          <input
+            type="month"
+            name="expiryDate"
+            value={formData.expiryDate}
+            onChange={handleChange}
+            required
+            style={{
+              width: "100%",
+              border: "1px solid black",
+              boxSizing: "border-box",
+            }}
+          />
+        </div>
+
+        <div style={{ width: "120px" }}>
+          <label>CVV</label>
+          <br />
+          <input
+            type="password"
+            name="cvv"
+            value={formData.cvv}
+            onChange={handleChange}
+            required
+            style={{
+              width: "100%",
+              border: "1px solid black",
+              boxSizing: "border-box",
+            }}
+          />
+        </div>
+      </div>
+    </>
+  );
+}
+
+function CustomerInformation({
+  formData,
+  handleChange,
+}: CustomerInformationProps) {
+  return (
+    <>
+      <label>Name</label>
+      <br />
+      <input
+        type="text"
+        name="name"
+        value={formData.name}
+        onChange={handleChange}
+        required
+        style={{
+          width: "100%",
+          border: "1px solid black",
+          boxSizing: "border-box",
+        }}
+      />
+
+      <br />
+      <br />
+
+      <label>Email</label>
+      <br />
+      <input
+        type="email"
+        name="email"
+        value={formData.email}
+        onChange={handleChange}
+        required
+        style={{
+          width: "100%",
+          border: "1px solid black",
+          boxSizing: "border-box",
+        }}
+      />
+
+      <br />
+      <br />
+
+      <label>Phone</label>
+      <br />
+      <input
+        type="tel"
+        name="phone"
+        value={formData.phone}
+        onChange={handleChange}
+        required
+        style={{
+          width: "100%",
+          border: "1px solid black",
+          boxSizing: "border-box",
+        }}
+      />
+
+      <br />
+      <br />
+
+      <label>Pick Up Time</label>
+      <br />
+      <input
+        type="time"
+        name="pickupTime"
+        value={formData.pickupTime}
+        onChange={handleChange}
+        required
+        style={{
+          width: "100%",
+          border: "1px solid black",
+          boxSizing: "border-box",
+        }}
+      />
+    </>
+  );
+}
+
+function CheckoutForm({
+  formData,
+  handleChange,
+  handleSubmit,
+}: CheckoutFormProps) {
+  return (
+    <form
+      onSubmit={handleSubmit}
+      style={{
+        flex: 1,
+        border: "1px solid black",
+        padding: "20px",
+        overflowY: "auto",
+      }}
+    >
+      <h2>Checkout</h2>
+
+      <CustomerInformation formData={formData} handleChange={handleChange} />
+
+      <PaymentDetails formData={formData} handleChange={handleChange} />
+
+      <br />
+
+      <button
+        type="submit"
+        style={{
+          width: "100%",
+          border: "1px solid black",
+          padding: "12px",
+          fontSize: "16px",
+          cursor: "pointer",
+        }}
+      >
+        Complete Checkout
+      </button>
+    </form>
+  );
+}
+
+// ========== MAIN PAGE ==========
 
 export default function CheckoutPage() {
-  const [formData, setFormData] = useState({
+  const cartItems = useCheckoutCart();
+
+  const [formData, setFormData] = useState<CheckoutFormData>({
     name: "",
     email: "",
     phone: "",
@@ -14,109 +323,57 @@ export default function CheckoutPage() {
     cvv: "",
   });
 
-  const products = [
-    {
-      id: 1,
-      name: "Burger",
-      price: "$8.99",
-      image: "https://placehold.co/100x100",
-    },
-    {
-      id: 2,
-      name: "Fries",
-      price: "$3.99",
-      image: "https://placehold.co/100x100",
-    },
-    {
-      id: 3,
-      name: "Drink",
-      price: "$2.99",
-      image: "https://placehold.co/100x100",
-    },
-    {
-      id: 4,
-      name: "Pizza Slice",
-      price: "$4.99",
-      image: "https://placehold.co/100x100",
-    },
-    {
-      id: 5,
-      name: "Chicken Sandwich",
-      price: "$7.99",
-      image: "https://placehold.co/100x100",
-    },
-    {
-      id: 6,
-      name: "Onion Rings",
-      price: "$3.49",
-      image: "https://placehold.co/100x100",
-    },
-    {
-      id: 7,
-      name: "Ice Cream",
-      price: "$2.49",
-      image: "https://placehold.co/100x100",
-    },
-    {
-      id: 8,
-      name: "Milkshake",
-      price: "$4.49",
-      image: "https://placehold.co/100x100",
-    },
-    {
-      id: 9,
-      name: "Hot Dog",
-      price: "$5.99",
-      image: "https://placehold.co/100x100",
-    },
-    {
-      id: 10,
-      name: "Nachos",
-      price: "$6.49",
-      image: "https://placehold.co/100x100",
-    },
-  ];
+  const total = cartItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0,
+  );
 
-  function handleChange(event) {
-    setFormData({
-      ...formData,
-      [event.target.name]: event.target.value,
-    });
+  function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+    setFormData({ ...formData, [event.target.name]: event.target.value });
   }
 
-  function showOrderSummary(data) {
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (cartItems.length === 0) {
+      alert("Your cart is empty. Please add items before checking out.");
+      return;
+    }
+
+    const productDetails = cartItems
+      .map(
+        (item) =>
+          `${item.name} x${item.quantity} - $${(item.price * item.quantity).toFixed(2)}`,
+      )
+      .join("\n");
+
     alert(`
 CHECKOUT INFORMATION
 
 Customer
 ------------------------
-Name: ${data.name}
-Email: ${data.email}
-Phone: ${data.phone}
+Name: ${formData.name}
+Email: ${formData.email}
+Phone: ${formData.phone}
 
 Pickup
 ------------------------
-Time: ${data.pickupTime}
+Time: ${formData.pickupTime}
 
 Payment
 ------------------------
-Card Number: ${data.cardNumber}
-Expiry Date: ${data.expiryDate}
-CVV: ${data.cvv}
+Card Number: ${formData.cardNumber}
+Expiry Date: ${formData.expiryDate}
+CVV: ${formData.cvv}
 
 Products
 ------------------------
-${products.map((product) => `${product.name} - ${product.price}`).join("\n")}
+${productDetails}
 
 Total
 ------------------------
-$50.90
+$${total.toFixed(2)}
     `);
-  }
-
-  function handleSubmit(event) {
-    event.preventDefault();
-    showOrderSummary(formData);
   }
 
   return (
@@ -139,218 +396,13 @@ $50.90
           height: "700px",
         }}
       >
-        <form
-          onSubmit={handleSubmit}
-          style={{
-            flex: 1,
-            border: "1px solid black",
-            padding: "20px",
-            overflowY: "auto",
-          }}
-        >
-          <h2>Checkout</h2>
+        <CheckoutForm
+          formData={formData}
+          handleChange={handleChange}
+          handleSubmit={handleSubmit}
+        />
 
-          <label>Name</label>
-          <br />
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            style={{
-              width: "100%",
-              border: "1px solid black",
-              boxSizing: "border-box",
-            }}
-          />
-
-          <br />
-          <br />
-
-          <label>Email</label>
-          <br />
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            style={{
-              width: "100%",
-              border: "1px solid black",
-              boxSizing: "border-box",
-            }}
-          />
-
-          <br />
-          <br />
-
-          <label>Phone</label>
-          <br />
-          <input
-            type="tel"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            required
-            style={{
-              width: "100%",
-              border: "1px solid black",
-              boxSizing: "border-box",
-            }}
-          />
-
-          <br />
-          <br />
-
-          <label>Pick Up Time</label>
-          <br />
-          <input
-            type="time"
-            name="pickupTime"
-            value={formData.pickupTime}
-            onChange={handleChange}
-            required
-            style={{
-              width: "100%",
-              border: "1px solid black",
-              boxSizing: "border-box",
-            }}
-          />
-
-          <br />
-          <br />
-
-          <h3>Payment Details</h3>
-
-          <label>Card Number</label>
-          <br />
-          <input
-            type="text"
-            name="cardNumber"
-            value={formData.cardNumber}
-            onChange={handleChange}
-            placeholder="1234 5678 9012 3456"
-            required
-            style={{
-              width: "100%",
-              border: "1px solid black",
-              boxSizing: "border-box",
-            }}
-          />
-
-          <br />
-          <br />
-
-          <div
-            style={{
-              display: "flex",
-              gap: "10px",
-            }}
-          >
-            <div style={{ flex: 1 }}>
-              <label>Expiry Date</label>
-              <br />
-              <input
-                type="month"
-                name="expiryDate"
-                value={formData.expiryDate}
-                onChange={handleChange}
-                required
-                style={{
-                  width: "100%",
-                  border: "1px solid black",
-                  boxSizing: "border-box",
-                }}
-              />
-            </div>
-
-            <div style={{ width: "120px" }}>
-              <label>CVV</label>
-              <br />
-              <input
-                type="password"
-                name="cvv"
-                value={formData.cvv}
-                onChange={handleChange}
-                required
-                style={{
-                  width: "100%",
-                  border: "1px solid black",
-                  boxSizing: "border-box",
-                }}
-              />
-            </div>
-          </div>
-
-          <br />
-
-          <button
-            type="submit"
-            style={{
-              width: "100%",
-              border: "1px solid black",
-              padding: "12px",
-              fontSize: "16px",
-              cursor: "pointer",
-            }}
-          >
-            Complete Checkout
-          </button>
-        </form>
-
-        <aside
-          style={{
-            width: "350px",
-            border: "1px solid black",
-            padding: "20px",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <h2>Products</h2>
-
-          <div
-            style={{
-              flex: 1,
-              overflowY: "auto",
-              paddingRight: "5px",
-            }}
-          >
-            {products.map((product) => (
-              <div
-                key={product.id}
-                style={{
-                  display: "flex",
-                  gap: "10px",
-                  border: "1px solid black",
-                  padding: "10px",
-                  marginBottom: "10px",
-                }}
-              >
-                <Image
-                  src={product.image}
-                  alt={product.name}
-                  width={80}
-                  height={80}
-                />
-
-                <div>
-                  <strong>{product.name}</strong>
-                  <br />
-                  {product.price}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <hr />
-
-          <p>
-            <strong>Total:</strong> $50.90
-          </p>
-        </aside>
+        <ProductsSidebar items={cartItems} total={total} />
       </div>
     </main>
   );

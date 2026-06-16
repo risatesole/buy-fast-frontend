@@ -1,10 +1,4 @@
-import type { Product } from "@/types/products";
-
-export type CartItem = {
-  id: number;
-  product: Product;
-  quantity: number;
-};
+import type { CartItem } from "@/types/cart/CartItem";
 
 export type GetCartResponse = {
   status: string;
