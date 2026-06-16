@@ -284,6 +284,7 @@ export default function ProductsPage() {
                     <TableHead>Category</TableHead>
                     <TableHead>Brand</TableHead>
                     <TableHead>Price</TableHead>
+                    <TableHead>Inventory</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Tags</TableHead>
                     <TableHead>Actions</TableHead>
@@ -329,6 +330,7 @@ export default function ProductsPage() {
                       <TableCell className="font-medium">
                         {formatPrice(product.selling_price)}
                       </TableCell>
+                      <TableCell>x avialable</TableCell>
                       <TableCell>{getStatusBadge(product.status)}</TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
