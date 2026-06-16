@@ -18,7 +18,7 @@ export default async function ProductPage({
   try {
     product = await productService.getProductDetails(id);
   } catch {
-    notFound();
+    return <h1>Product not found</h1>;
   }
 
   return (
