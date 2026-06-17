@@ -10,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 
 // ========== SERVICE ==========
 
@@ -39,7 +40,9 @@ function buildQueryParams(overrides: CustomerQueryParameters): string {
   return new URLSearchParams(entries).toString();
 }
 
-async function getCustomers(params: CustomerQueryParameters = {}): Promise<Customer[]> {
+async function getCustomers(
+  params: CustomerQueryParameters = {},
+): Promise<Customer[]> {
   if (!BACKEND_URL) {
     console.error("NEXT_PUBLIC_API_URL is not set");
     return [];
@@ -193,7 +196,15 @@ function BouncingDots() {
   );
 }
 
-function SearchBar({ value, onChange, onClear }: { value: string; onChange: (v: string) => void; onClear: () => void }) {
+function SearchBar({
+  value,
+  onChange,
+  onClear,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  onClear: () => void;
+}) {
   return (
     <div className="mb-6">
       <div className="relative">
@@ -204,13 +215,36 @@ function SearchBar({ value, onChange, onClear }: { value: string; onChange: (v: 
           onChange={(e) => onChange(e.target.value)}
           className="w-full px-4 py-2 pl-10 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
-        <svg className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        <svg
+          className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
         </svg>
         {value && (
-          <button onClick={onClear} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <button
+            onClick={onClear}
+            className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+          >
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         )}
@@ -221,9 +255,13 @@ function SearchBar({ value, onChange, onClear }: { value: string; onChange: (v: 
 
 function StatusBadge({ status }: { status: boolean }) {
   return status ? (
-    <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">Active</span>
+    <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+      Active
+    </span>
   ) : (
-    <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">Inactive</span>
+    <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
+      Inactive
+    </span>
   );
 }
 
@@ -246,7 +284,32 @@ function CustomerRow({ customer }: { customer: Customer }) {
       <TableCell>{customer.lastname}</TableCell>
       <TableCell>{customer.email}</TableCell>
       <TableCell>{customer.role}</TableCell>
-      <TableCell><StatusBadge status={customer.status} /></TableCell>
+      <TableCell>
+        <StatusBadge status={customer.status} />
+      </TableCell>
+      <TableCell>
+        <Button variant="outline" size="sm" asChild>
+          <a
+            href={`/admin/customers/edit/${customer.id}`}
+            className="inline-flex items-center gap-1.5"
+          >
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
+            </svg>
+            Edit
+          </a>
+        </Button>
+      </TableCell>
     </TableRow>
   );
 }
@@ -272,7 +335,9 @@ export default function CustomersPage() {
   return (
     <div className="container mx-auto px-4 py-10">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Customers</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          Customers
+        </h1>
       </div>
 
       <SearchBar value={searchTerm} onChange={search} onClear={clearSearch} />
@@ -280,17 +345,26 @@ export default function CustomersPage() {
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
           <p className="text-red-700">{error}</p>
-          <button onClick={retry} className="mt-2 bg-red-100 text-red-700 px-4 py-2 rounded hover:bg-red-200">Retry</button>
+          <button
+            onClick={retry}
+            className="mt-2 bg-red-100 text-red-700 px-4 py-2 rounded hover:bg-red-200"
+          >
+            Retry
+          </button>
         </div>
       )}
 
       {loading ? (
-        <div className="flex justify-center items-center py-16"><BouncingDots /></div>
+        <div className="flex justify-center items-center py-16">
+          <BouncingDots />
+        </div>
       ) : customers.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-xl shadow-sm">
           <div className="text-6xl mb-4">👤</div>
           <p className="text-gray-500 text-lg">
-            {searchTerm ? "No customers found matching your search" : "No customers found"}
+            {searchTerm
+              ? "No customers found matching your search"
+              : "No customers found"}
           </p>
         </div>
       ) : (
@@ -305,6 +379,7 @@ export default function CustomersPage() {
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -317,7 +392,9 @@ export default function CustomersPage() {
 
           <div className="mt-8 text-center">
             {loadingMore ? (
-              <div className="flex justify-center items-center py-4"><BouncingDots /></div>
+              <div className="flex justify-center items-center py-4">
+                <BouncingDots />
+              </div>
             ) : hasMore ? (
               <button
                 onClick={loadMore}
@@ -328,7 +405,8 @@ export default function CustomersPage() {
               </button>
             ) : (
               <p className="text-gray-400 text-sm">
-                ✨ Showing all {totalLoaded} customers{searchTerm && ` matching "${searchTerm}"`}
+                ✨ Showing all {totalLoaded} customers
+                {searchTerm && ` matching "${searchTerm}"`}
               </p>
             )}
           </div>
