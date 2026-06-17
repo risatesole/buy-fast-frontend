@@ -3,57 +3,12 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useCheckoutCart } from "@/components/checkout-with-cart";
-
-// ========== TYPES ==========
-
-type CheckoutFormData = {
-  name: string;
-  email: string;
-  phone: string;
-  pickupTime: string;
-  cardNumber: string;
-  expiryDate: string;
-  cvv: string;
-};
-
-type PaymentDetailsProps = {
-  formData: CheckoutFormData;
-  handleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-};
-
-type CustomerInformationProps = {
-  formData: CheckoutFormData;
-  handleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-};
-
-type CheckoutFormProps = {
-  formData: CheckoutFormData;
-  handleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  handleSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
-};
-
-type ProductsSidebarProps = {
-  items: {
-    id: number | string;
-    name: string;
-    price: number;
-    quantity: number;
-    image?: string;
-  }[];
-  total: number;
-};
-
-type ProductItemProps = {
-  item: {
-    id: number | string;
-    name: string;
-    price: number;
-    quantity: number;
-    image?: string;
-  };
-};
-
-// ========== COMPONENTS ==========
+import { type CheckoutFormData } from "@/types/checkout/CheckoutFormData";
+import { type PaymentDetailsProps } from "@/props/checkout/PaymentDetailsProps";
+import type { CustomerCheckoutInformationProps } from "@/props/checkout/CustomerCheckoutInformationProps";
+import type { CheckoutFormProps } from "@/props/checkout/CheckoutFormProps";
+import type { ProductsSidebarProps } from "@/props/checkout/ProductsSidebarProps";
+import type {ProductItemProps} from "@/props/checkout/ProductItemProps"
 
 function ProductItem({ item }: ProductItemProps) {
   const imageUrl = item.image || "https://placehold.co/100x100";
@@ -194,7 +149,7 @@ function PaymentDetails({ formData, handleChange }: PaymentDetailsProps) {
 function CustomerInformation({
   formData,
   handleChange,
-}: CustomerInformationProps) {
+}: CustomerCheckoutInformationProps) {
   return (
     <>
       <label>Name</label>
