@@ -1,6 +1,6 @@
 import { formatPrice } from "@/utils/FormatPrice";
 import { TagBadge } from "@/components/TagBadge";
-import { AddToCartButton } from "@/components/AddToCartButton";
+import { AddToCartButton } from "@/components/Buttons/AddToCartButton";
 import type { Product } from "@/types/products";
 
 export function ProductDetails({ product }: { product: Product }) {
