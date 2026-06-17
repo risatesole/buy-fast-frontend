@@ -149,16 +149,9 @@ export default function ProductsPage() {
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Products</h1>
-            <p className="text-gray-600 mt-1">
-              {isSearching
-                ? "Searching..."
-                : totalLoaded > 0
-                  ? `${totalLoaded} products found`
-                  : searchTerm
-                    ? "No products found"
-                    : "Loading products..."}
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Products
+            </h1>
           </div>
           <button
             onClick={() => router.push("/admin/product/create")}
