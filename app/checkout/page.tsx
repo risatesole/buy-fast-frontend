@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useCheckoutCart } from "@/components/checkout-with-cart";
-import { type CheckoutFormData } from "@/types/checkout/CheckoutFormData";
+import { type CheckoutFormData } from "@/app/checkout/types/CheckoutFormData";
 import { CheckoutProductsSidebar } from "./components/CheckoutProductsSidebar";
 import { CheckoutForm } from "./forms/CheckoutForm";
 

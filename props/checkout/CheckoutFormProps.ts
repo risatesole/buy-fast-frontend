@@ -1,4 +1,4 @@
-import type { CheckoutFormData } from "@/types/checkout/CheckoutFormData";
+import type { CheckoutFormData } from "@/app/checkout/types/CheckoutFormData";
 
 export type CheckoutFormProps = {
   formData: CheckoutFormData;
