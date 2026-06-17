@@ -4,8 +4,8 @@ import { addProductToCart } from "./helpers/AddProductToCart";
 import { getCart } from "./helpers/GetProductsInCart";
 
 export default class CartService {
-  async getCart(): Promise<GetCartResponse> {
-    return getCart();
+  async getCart(cookieHeader?: string): Promise<GetCartResponse> {
+    return getCart(cookieHeader);
   }
 
   async addProduct(
