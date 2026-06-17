@@ -84,6 +84,7 @@ export function ProductsInteractive({
       const response = await fetch(proxyUrl);
 
       if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
+      console.log(response)
 
       const data: DjangoPaginatedResponse = await response.json();
 

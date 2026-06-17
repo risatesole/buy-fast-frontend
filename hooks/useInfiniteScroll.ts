@@ -1,4 +1,3 @@
-// hooks/useInfiniteScroll.ts
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -38,7 +37,7 @@ export function useInfiniteScroll({
     );
 
     const currentTarget = observerTarget.current;
-    if (currentTarget) observer.observe(currentTarget);
+    if (currentTarget && hasMore) observer.observe(currentTarget);
 
     return () => {
       if (currentTarget) observer.unobserve(currentTarget);
