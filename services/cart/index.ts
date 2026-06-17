@@ -1,5 +1,6 @@
 import type { AddProductToCartResponse } from "@/types/cart/AddProductToCartResponse";
 import type { GetCartResponse } from "@/types/cart/GetCartResponse";
+import { addProductToCart } from "./helpers/AddProductToCart";
 
 export default class CartService {
   async getCart(): Promise<GetCartResponse> {
@@ -18,22 +19,6 @@ export default class CartService {
     productId: number,
     quantity: number = 1,
   ): Promise<AddProductToCartResponse> {
-    const response = await fetch("/api/v1/cart", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        product_id: productId,
-        quantity,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Request failed: ${response.status}`);
-    }
-
-    return response.json() as Promise<AddProductToCartResponse>;
+    return addProductToCart(productId, quantity);
   }
 }
