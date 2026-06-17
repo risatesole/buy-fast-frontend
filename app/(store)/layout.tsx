@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
 
 import { NavbarWithCart } from "@/components/navbar-with-cart";
 import { Footer } from "@/components/Footer";
-import type { CartItem } from "@/components/navbar";
+import type { NavbarCartItem } from "@/components/navbar";
 import type { GetCartResponse } from "@/types/cart/GetCartResponse";
 
 const geistSans = Geist({
@@ -60,7 +60,7 @@ async function getUserDetails(): Promise<MeResponse | null> {
   }
 }
 
-async function getCartItems(): Promise<CartItem[]> {
+async function getCartItems(): Promise<NavbarCartItem[]> {
   try {
     const backendUrl = process.env.BACKEND_URL;
     if (!backendUrl) return [];

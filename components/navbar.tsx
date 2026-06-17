@@ -23,7 +23,7 @@ type User = {
   role: string;
 };
 
-export type CartItem = {
+export type NavbarCartItem = {
   id: number | string;
   name: string;
   price: number;
@@ -34,9 +34,9 @@ export type CartItem = {
 
 type NavbarProps = {
   user: User | null;
-  cartItems?: CartItem[];
-  onRemoveCartItem?: (id: CartItem["id"]) => void;
-  onUpdateCartItemQuantity?: (id: CartItem["id"], quantity: number) => void;
+  cartItems?: NavbarCartItem[];
+  onRemoveCartItem?: (id: NavbarCartItem["id"]) => void;
+  onUpdateCartItemQuantity?: (id: NavbarCartItem["id"], quantity: number) => void;
   onCheckout?: () => void;
 };
 

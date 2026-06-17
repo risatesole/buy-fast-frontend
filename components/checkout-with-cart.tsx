@@ -1,9 +1,9 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import type { CartItem } from "@/components/navbar";
+import type { NavbarCartItem } from "@/components/navbar";
 
-const CartContext = createContext<CartItem[]>([]);
+const CartContext = createContext<NavbarCartItem[]>([]);
 export const useCheckoutCart = () => useContext(CartContext);
 
 export function CheckoutWithCart({
@@ -11,7 +11,7 @@ export function CheckoutWithCart({
   cartItems,
 }: {
   children: React.ReactNode;
-  cartItems: CartItem[];
+  cartItems: NavbarCartItem[];
 }) {
   return (
     <CartContext.Provider value={cartItems}>{children}</CartContext.Provider>

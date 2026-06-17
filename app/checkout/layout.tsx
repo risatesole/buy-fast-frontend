@@ -1,9 +1,9 @@
-import type { CartItem } from "@/components/navbar";
+import type { NavbarCartItem } from "@/components/navbar";
 import type { GetCartResponse } from "@/types/cart/GetCartResponse";
 import { cookies } from "next/headers";
 import { CheckoutWithCart } from "@/components/checkout-with-cart";
 
-async function getCartItems(): Promise<CartItem[]> {
+async function getCartItems(): Promise<NavbarCartItem[]> {
   try {
     const backendUrl = process.env.BACKEND_URL;
     if (!backendUrl) return [];

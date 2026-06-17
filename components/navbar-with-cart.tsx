@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Navbar, type CartItem } from "@/components/navbar";
+import { Navbar, type NavbarCartItem } from "@/components/navbar";
 
 type NavbarWithCartProps = {
   user: {
@@ -9,17 +9,17 @@ type NavbarWithCartProps = {
     profilePicture: string;
     role: string;
   } | null;
-  initialCartItems?: CartItem[];
+  initialCartItems?: NavbarCartItem[];
 };
 
 export function NavbarWithCart({ user, initialCartItems = [] }: NavbarWithCartProps) {
-  const [cartItems, setCartItems] = useState<CartItem[]>(initialCartItems);
+  const [cartItems, setCartItems] = useState<NavbarCartItem[]>(initialCartItems);
 
-  function handleRemove(id: CartItem["id"]) {
+  function handleRemove(id: NavbarCartItem["id"]) {
     setCartItems((prev) => prev.filter((item) => item.id !== id));
   }
 
-  function handleUpdateQuantity(id: CartItem["id"], quantity: number) {
+  function handleUpdateQuantity(id: NavbarCartItem["id"], quantity: number) {
     setCartItems((prev) =>
       prev.map((item) => (item.id === id ? { ...item, quantity } : item))
     );
