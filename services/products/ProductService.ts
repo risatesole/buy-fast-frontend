@@ -19,7 +19,7 @@ const DEFAULT_QUERY_PARAMS: Omit<ProductQueryParameters, "tags"> = {
 };
 
 export default class ProductService {
-  private backendURL: string = process.env.NEXT_PUBLIC_API_URL || process.env.BACKEND_URL || "http://localhost:8000";
+  private backendURL: string | undefined = process.env.NEXT_PUBLIC_API_URL;
 
   async getProducts(params: ProductQueryParameters = {}): Promise<Product[]> {
     if (!this.backendURL) {
@@ -29,17 +29,17 @@ export default class ProductService {
 
     const queryParams = this.buildQueryParams(params);
     const url = `${this.backendURL}/api/v1/products?${queryParams}`;
-    
+
     console.log("Fetching URL:", url);
 
     try {
-      const res = await fetch(url, { 
+      const res = await fetch(url, {
         cache: "no-store",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
-      
+
       if (!res.ok) {
         console.error("Response not OK:", res.status, res.statusText);
         return [];
@@ -55,12 +55,9 @@ export default class ProductService {
   }
 
   async getProductDetails(id: string): Promise<Product> {
-    const res = await fetch(
-      `${this.backendURL}/api/v1/products/${id}`,
-      {
-        cache: "no-store",
-      },
-    );
+    const res = await fetch(`${this.backendURL}/api/v1/products/${id}`, {
+      cache: "no-store",
+    });
     if (!res.ok) throw new Error("Product not found");
     const json = await res.json();
     return json.data;
