@@ -441,7 +441,7 @@ function OrderRow({ order }: { order: Order }) {
       <TableCell>
         <Button variant="outline" size="sm" asChild>
           <a
-            href={`/admin/orders/${order.id}`}
+            href={`/admin/customers/orders/${order.id}`}
             className="inline-flex items-center gap-1.5"
           >
             <Eye className="w-3.5 h-3.5" />
