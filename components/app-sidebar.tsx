@@ -108,7 +108,7 @@ export function AppSidebar() {
 
   const companyName = process.env.NEXT_PUBLIC_COMPANY_NAME || "My Company";
 
-  const isActive = (url: string) => pathname === url;
+  const isActive = (url?: string) => !!url && pathname === url;
   const isSubActive = (subItems?: { url: string }[]) =>
     subItems?.some((sub) => pathname === sub.url);
 
@@ -163,7 +163,7 @@ export function AppSidebar() {
                   return (
                     <li key={item.title}>
                       <Link
-                        href={item.url}
+                        href={item.url ?? "#"}
                         className={`
                           flex items-center gap-x-3 px-3 py-2 rounded-md text-sm transition-colors
                           ${
