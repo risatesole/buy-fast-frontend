@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import type { Customer } from "@/types/customers";
+import type { User } from "@/types/user";
 import {
   Table,
   TableBody,
@@ -42,7 +42,7 @@ function buildQueryParams(overrides: CustomerQueryParameters): string {
 
 async function getCustomers(
   params: CustomerQueryParameters = {},
-): Promise<Customer[]> {
+): Promise<User[]> {
   if (!BACKEND_URL) {
     console.error("NEXT_PUBLIC_API_URL is not set");
     return [];
@@ -72,7 +72,7 @@ async function getCustomers(
 // ========== HOOKS ==========
 
 function useCustomersList() {
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customers, setCustomers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -265,7 +265,7 @@ function StatusBadge({ status }: { status: boolean }) {
   );
 }
 
-function CustomerRow({ customer }: { customer: Customer }) {
+function CustomerRow({ customer }: { customer: User }) {
   return (
     <TableRow>
       <TableCell>

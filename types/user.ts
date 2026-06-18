@@ -9,7 +9,7 @@ type Permission =
 
   | "can_view_orders";
 
-export type Customer = {
+export type User = {
   id: number;
   profilepicture: string;
   firstname: string;
