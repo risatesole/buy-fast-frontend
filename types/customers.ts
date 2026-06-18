@@ -1,3 +1,14 @@
+type Permission =
+  | "can_add_products"
+  | "can_edit_products"
+  | "can_delete_products"
+
+  | "can_add_category"
+  | "can_edit_category"
+  | "can_deactivate_category"
+
+  | "can_view_orders";
+
 export type Customer = {
   id: number;
   profilepicture: string;
@@ -7,6 +18,7 @@ export type Customer = {
   lastLoggedIn: string;
   status: boolean;
   role: string;
+  permissions: Permission[] | null;
 };
 
 export type CustomerQueryParameters = {
