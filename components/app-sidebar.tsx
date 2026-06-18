@@ -22,8 +22,8 @@ const platformItems = [
     url: "/admin",
     icon: LayoutDashboard,
     sub: [
+      { title: "Admin", url: "/admin" },
       { title: "Overview", url: "/admin/dashboard/overview" },
-      { title: "Stats", url: "/admin/dashboard/stats" },
       { title: "Reports", url: "/admin/dashboard/reports" },
     ],
   },
@@ -41,54 +41,14 @@ const platformItems = [
     icon: Package,
     sub: [
       { title: "products", url: "/admin/products" },
-      { title: "details", url: "https://example.com" },
-    ],
-  },
-  {
-    title: "Users",
-    url: "/admin/users",
-    icon: Users,
-    sub: [
-      { title: "All Users", url: "/admin/users/all" },
-      { title: "Roles", url: "/admin/users/roles" },
-      { title: "Permissions", url: "/admin/users/permissions" },
-    ],
-  },
-  {
-    title: "Analytics",
-    url: "/admin/analytics",
-    icon: BarChart,
-    sub: [
-      { title: "Traffic", url: "/admin/analytics/traffic" },
-      { title: "Conversions", url: "/admin/analytics/conversions" },
-      { title: "Retention", url: "/admin/analytics/retention" },
-    ],
-  },
-  {
-    title: "Docs",
-    url: "/admin/docs",
-    icon: BookOpen,
-    sub: [
-      { title: "Getting Started", url: "/admin/docs/getting-started" },
-      { title: "API Reference", url: "/admin/docs/api-reference" },
-      { title: "Changelog", url: "/admin/docs/changelog" },
-    ],
-  },
-  {
-    title: "Settings",
-    url: "/admin/settings",
-    icon: Settings,
-    sub: [
-      { title: "General", url: "/admin/settings/general" },
-      { title: "Security", url: "/admin/settings/security" },
-      { title: "Billing", url: "/admin/settings/billing" },
+      { title: "Categories", url: "/admin/products/categories" },
     ],
   },
 ];
 
-const projectItems = [
-  { title: "Design Engineering", url: "/admin/projects/design" },
-  { title: "Sales & Marketing", url: "/admin/projects/sales" },
+const SidebarSubItems = [
+  { title: "Getting started", url: "/admin/help/gettingstarted" },
+  { title: "Manual", url: "/admin/help/gettingstarted" },
 ];
 
 export function AppSidebar() {
@@ -235,10 +195,10 @@ export function AppSidebar() {
           {/* Projects */}
           <div>
             <p className="px-3 mb-2 text-[11px] font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-600">
-              Projects
+              Help
             </p>
             <ul className="space-y-0.5">
-              {projectItems.map((item) => (
+              {SidebarSubItems.map((item) => (
                 <li key={item.title}>
                   <Link
                     href={item.url}
