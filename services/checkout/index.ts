@@ -1,6 +1,5 @@
 import type { User } from "@/types/user";
 import type { CartItem } from "@/types/cart/CartItem";
-import { Product } from "@/types/products";
 
 type BillingContactInfo = {
   firstname: string;
