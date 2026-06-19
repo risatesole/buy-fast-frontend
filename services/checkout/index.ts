@@ -26,11 +26,11 @@ type CardInfo = {
 };
 
 type OrderItem = {
-  product: Product;
+  productid: number;
   quantity: number;
 };
 
-type CheckoutFormData = {
+export type CheckoutFormData = {
   billing_contact: BillingContactInfo;
   billing_address: BillingAddress;
   cardInformation: CardInfo;
@@ -75,6 +75,53 @@ export class CheckoutService {
       return data;
     } catch (error) {
       console.error("Error fetching products:", error);
+      throw error;
+    }
+  }
+
+  async checkout(formdata: CheckoutFormData) {
+    const payload = {
+      billing_contact: {
+        firstname: formdata.billing_contact.firstname,
+        lastname: formdata.billing_contact.lastname,
+        email: formdata.billing_contact.email,
+        phone_number: formdata.billing_contact.phone_number,
+      },
+      billing_address: {
+        street: formdata.billing_address.street,
+        apartment: formdata.billing_address.apartment,
+        city: formdata.billing_address.city,
+        country: formdata.billing_address.country,
+        postal_code: formdata.billing_address.postal_code,
+        state: formdata.billing_address.state,
+      },
+      card_information: {
+        card_number: formdata.cardInformation.card_number,
+        expiry_month: formdata.cardInformation.expiry_month,
+        expiry_year: formdata.cardInformation.expiry_year,
+        cvv: formdata.cardInformation.cvv,
+      },
+      pickuptime: formdata.PickUpTime,
+      items: formdata.items,
+    };
+
+    try {
+      const response = await fetch(`${this.baseurl}/api/v1/checkout/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error processing checkout:", error);
       throw error;
     }
   }
