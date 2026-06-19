@@ -445,7 +445,7 @@ function OrderRow({ order }: { order: Order }) {
             className="inline-flex items-center gap-1.5"
           >
             <Eye className="w-3.5 h-3.5" />
-            Edit
+            Info
           </a>
         </Button>
       </TableCell>
