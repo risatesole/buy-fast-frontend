@@ -30,7 +30,7 @@ export class CheckoutService {
 
   async getProducts(): Promise<CheckoutResponse> {
     try {
-      const response = await fetch(`${this.baseurl}/api/v1/checkout/initiate`);
+      const response = await fetch(`${this.baseurl}/api/v1/checkout/`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -44,7 +44,9 @@ export class CheckoutService {
 
   async getAvailableSlots(): Promise<AvailableDatesResponse> {
     try {
-      const response = await fetch(`${this.baseurl}/api/v1/checkout/timeslots`);
+      const response = await fetch(
+        `${this.baseurl}/api/v1/checkout/timeslots/`,
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
