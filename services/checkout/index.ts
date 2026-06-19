@@ -28,7 +28,7 @@ type AvailableDatesResponse = {
 export class CheckoutService {
   private baseurl = `${process.env.NEXT_PUBLIC_API_URL}`;
 
-  async getProducts(): Promise<CheckoutResponse> {
+  async getCheckoutInfo(): Promise<CheckoutResponse> {
     try {
       const response = await fetch(`${this.baseurl}/api/v1/checkout/`);
       if (!response.ok) {
