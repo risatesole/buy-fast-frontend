@@ -6,14 +6,9 @@ import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   Users,
-  BookOpen,
-  Settings,
-  BarChart,
-  ShoppingBag,
   Package,
   ChevronDown,
   Menu,
-  X,
   Truck
 } from "lucide-react";
 
