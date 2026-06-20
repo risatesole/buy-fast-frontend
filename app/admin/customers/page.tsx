@@ -53,6 +53,7 @@ async function getCustomers(
   try {
     const res = await fetch(url, {
       cache: "no-store",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
     });
 
