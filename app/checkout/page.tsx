@@ -247,7 +247,7 @@ export default function CheckoutPage() {
       const result: CheckoutPostResponse = await checkoutService.checkout(payload);
 
       if (result.status === "ok" && result.data?.order.id) {
-        router.push(`/order/${result.data.order.id}`);
+        router.push(`/orders/${result.data.order.id}`);
       } else {
         // Server responded 200 but flagged an error (e.g. card declined)
         setErrorMessage(
