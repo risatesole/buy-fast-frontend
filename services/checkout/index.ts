@@ -9,10 +9,10 @@ type BillingContactInfo = {
 };
 
 type BillingAddress = {
-  street: string; // e.g., "123 Main Street"
-  apartment?: string; // e.g., "Apt 4B", "Suite 200"
-  city: string; // ciudad o municipio
-  state: string; // PROVINCIA
+  street: string;
+  apartment?: string;
+  city: string;
+  state: string;
   postal_code: string;
   country: "DO";
 };
@@ -50,6 +50,32 @@ type CheckoutInfoResponse = {
   status: "ok" | "error";
   data: CheckoutResponseData;
 };
+
+export type CheckoutPostResponse = {
+  status: "ok" | "error";
+  data?: {
+    order: {
+      id: number;
+      reference: string;
+      status: string;
+      created_at: string;
+      pickuptime: string;
+      total: number;
+    };
+    cart: {
+      id: number;
+      status: boolean;
+      items: [];
+    };
+    user: User;
+  };
+  error?: {
+    code: string;
+    message: string;
+    field: string | null;
+  };
+};
+
 type TimeSlot = string;
 
 type AvailableDate = {
@@ -78,7 +104,7 @@ export class CheckoutService {
     }
   }
 
-  async checkout(formdata: CheckoutFormData) {
+  async checkout(formdata: CheckoutFormData): Promise<CheckoutPostResponse> {
     const payload = {
       billing_contact: {
         firstname: formdata.billing_contact.firstname,
@@ -117,7 +143,7 @@ export class CheckoutService {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data: CheckoutPostResponse = await response.json();
       return data;
     } catch (error) {
       console.error("Error processing checkout:", error);
