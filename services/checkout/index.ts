@@ -92,7 +92,10 @@ export class CheckoutService {
 
   async getCheckoutInfo(): Promise<CheckoutInfoResponse> {
     try {
-      const response = await fetch(`${this.baseurl}/api/v1/checkout/`);
+      const response = await fetch(`${this.baseurl}/api/v1/checkout/`, {
+        credentials: "include",
+      });
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -133,9 +136,8 @@ export class CheckoutService {
     try {
       const response = await fetch(`${this.baseurl}/api/v1/checkout/`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
@@ -155,6 +157,9 @@ export class CheckoutService {
     try {
       const response = await fetch(
         `${this.baseurl}/api/v1/checkout/timeslots/`,
+        {
+          credentials: "include",
+        },
       );
 
       if (!response.ok) {
