@@ -14,6 +14,7 @@ import {
   ChevronDown,
   Menu,
   X,
+  Truck
 } from "lucide-react";
 
 const platformItems = [
@@ -30,10 +31,17 @@ const platformItems = [
   {
     title: "Customer",
     url: "/admin/customer",
-    icon: ShoppingBag,
+    icon: Users,
     sub: [
       { title: "Customers", url: "/admin/customers" },
       { title: "Orders", url: "/admin/customers/orders" },
+    ],
+  },
+  {
+    title: "Employee",
+    icon: Users,
+    sub: [
+      { title: "Employee", url: "/admin/employee" }
     ],
   },
   {
@@ -42,6 +50,14 @@ const platformItems = [
     sub: [
       { title: "products", url: "/admin/products" },
       { title: "Categories", url: "/admin/products/categories" },
+    ],
+  },
+  {
+    title: "Inentory",
+    icon: Truck,
+    sub: [
+      { title: "Inventory", url: "/admin/inventory" },
+      { title: "Management", url: "/admin/inventory/manage" },
     ],
   },
 ];
