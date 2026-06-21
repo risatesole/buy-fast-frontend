@@ -48,7 +48,7 @@ async function getCustomers(
     return [];
   }
 
-  const url = `${BACKEND_URL}/api/v1/customers?${buildQueryParams(params)}`;
+  const url = `${BACKEND_URL}/api/v1/users?${buildQueryParams(params)}`;
 
   try {
     const res = await fetch(url, {
