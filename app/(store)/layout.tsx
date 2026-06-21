@@ -80,6 +80,7 @@ async function getCartItems(): Promise<NavbarCartItem[]> {
     return json.data.items.map((item) => ({
       id: item.id,
       name: item.product.name,
+      productId: item.product.id,
       price: item.product.selling_price,
       quantity: item.quantity,
       image: item.product.images.find((img) => img.type === "HERO")?.url,

@@ -25,6 +25,7 @@ type User = {
 
 export type NavbarCartItem = {
   id: number | string;
+  productId: number; 
   name: string;
   price: number;
   quantity: number;

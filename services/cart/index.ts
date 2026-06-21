@@ -2,7 +2,7 @@ import type { AddProductToCartResponse } from "@/types/cart/AddProductToCartResp
 import type { GetCartResponse } from "@/types/cart/GetCartResponse";
 import { addProductToCart } from "./helpers/AddProductToCart";
 import { getCart } from "./helpers/GetProductsInCart";
-
+import { RemoveProductFromCart } from "./helpers/RemoveProductFromCart";
 export default class CartService {
   async getCart(cookieHeader?: string): Promise<GetCartResponse> {
     return getCart(cookieHeader);
@@ -13,5 +13,9 @@ export default class CartService {
     quantity: number = 1,
   ): Promise<AddProductToCartResponse> {
     return addProductToCart(productId, quantity);
+  }
+
+  async removeProduct(productId: number | string) {
+    RemoveProductFromCart(productId);
   }
 }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Navbar, type NavbarCartItem } from "@/components/navbar";
-
+import CartService from "@/services/cart";
 type NavbarWithCartProps = {
   user: {
     name: string;
@@ -12,17 +12,27 @@ type NavbarWithCartProps = {
   initialCartItems?: NavbarCartItem[];
 };
 
-export function NavbarWithCart({ user, initialCartItems = [] }: NavbarWithCartProps) {
-  const [cartItems, setCartItems] = useState<NavbarCartItem[]>(initialCartItems);
+export function NavbarWithCart({
+  user,
+  initialCartItems = [],
+}: NavbarWithCartProps) {
+  const cartservice = new CartService();
+
+  const [cartItems, setCartItems] =
+    useState<NavbarCartItem[]>(initialCartItems);
 
   function handleRemove(id: NavbarCartItem["id"]) {
-    setCartItems((prev) => prev.filter((item) => item.id !== id));
+    const item = cartItems.find((i) => i.id === id);
+    if (!item) return;
+    setCartItems((prev) => prev.filter((i) => i.id !== id));
+    cartservice.removeProduct(item.productId);
   }
 
   function handleUpdateQuantity(id: NavbarCartItem["id"], quantity: number) {
     setCartItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, quantity } : item))
+      prev.map((item) => (item.id === id ? { ...item, quantity } : item)),
     );
+    alert("updated item!!!");
   }
 
   return (

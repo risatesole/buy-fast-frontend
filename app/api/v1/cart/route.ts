@@ -32,3 +32,20 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json(data, { status: response.status });
 }
+
+export async function DELETE(req: NextRequest) {
+  const body = await req.json();
+
+  const response = await fetch(`http://localhost:8000/api/v1/cart/`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      cookie: req.headers.get("cookie") ?? "",
+    },
+    body: JSON.stringify(body),
+  });
+
+  const data = await response.json();
+
+  return NextResponse.json(data, { status: response.status });
+}
