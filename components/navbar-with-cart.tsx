@@ -29,10 +29,13 @@ export function NavbarWithCart({
   }
 
   function handleUpdateQuantity(id: NavbarCartItem["id"], quantity: number) {
+    const item = cartItems.find((i) => i.id === id);
+    if (!item) return;
+
     setCartItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, quantity } : item)),
+      prev.map((i) => (i.id === id ? { ...i, quantity } : i)),
     );
-    cartservice.editProductQuantity(id, quantity);
+    cartservice.editProductQuantity(item.productId, quantity);
   }
 
   return (
