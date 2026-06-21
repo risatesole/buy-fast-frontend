@@ -32,7 +32,7 @@ export function NavbarWithCart({
     setCartItems((prev) =>
       prev.map((item) => (item.id === id ? { ...item, quantity } : item)),
     );
-    alert("updated item!!!");
+    cartservice.editProductQuantity(id, quantity);
   }
 
   return (
