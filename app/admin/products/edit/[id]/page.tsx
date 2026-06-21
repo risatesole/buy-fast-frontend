@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import ProductService from "@/services/products/ProductService";
 import type { Product, ProductImageType } from "@/types/products";
+import { patchProductAction } from "./actions";
 
 const productService = new ProductService();
 
@@ -76,54 +77,6 @@ async function fetchCategories(): Promise<Category[]> {
   } catch (err) {
     console.error(`[fetchCategories] Network error fetching ${url}:`, err);
     return [];
-  }
-}
-
-async function patchProduct(
-  id: string,
-  formState: FormState,
-): Promise<{ success: boolean; error?: string }> {
-  const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
-  if (!BACKEND_URL) return { success: false, error: "API URL not configured" };
-
-  const body = new FormData();
-
-  body.append("name", formState.name.trim());
-  body.append("description", formState.description.trim());
-  body.append("brand", formState.brand.trim());
-  body.append("selling_price", formState.selling_price);
-  body.append("category_id", formState.category_id);
-  body.append("status", String(formState.status));
-
-  const tags = formState.tags
-    .split(",")
-    .map((t) => t.trim())
-    .filter(Boolean);
-  tags.forEach((tag) => body.append("tags", tag));
-
-  for (const type of IMAGE_TYPES) {
-    const file = formState.images[type];
-    if (file) body.append(`images_${type}`, file);
-  }
-
-  try {
-    const res = await fetch(`${BACKEND_URL}/api/v1/products/${id}/`, {
-      method: "PATCH",
-      credentials: "include",
-      body,
-    });
-
-    if (!res.ok) {
-      const json = await res.json().catch(() => ({}));
-      return {
-        success: false,
-        error: json?.message ?? `Server error ${res.status}`,
-      };
-    }
-
-    return { success: true };
-  } catch (err) {
-    return { success: false, error: "Network error. Please try again." };
   }
 }
 
@@ -233,7 +186,30 @@ function useEditProduct(id: string) {
     setSaveError(null);
     setSaveSuccess(false);
 
-    const result = await patchProduct(id, form);
+    // Build the multipart body here, then hand it to the server action.
+    // The server action runs on the Next.js server and forwards the
+    // session cookie to Django itself, sidestepping cross-site cookie
+    // rules entirely (the browser only ever talks to our own origin).
+    const body = new FormData();
+    body.append("name", form.name.trim());
+    body.append("description", form.description.trim());
+    body.append("brand", form.brand.trim());
+    body.append("selling_price", form.selling_price);
+    body.append("category_id", form.category_id);
+    body.append("status", String(form.status));
+
+    const tags = form.tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+    tags.forEach((tag) => body.append("tags", tag));
+
+    for (const type of IMAGE_TYPES) {
+      const file = form.images[type];
+      if (file) body.append(`images_${type}`, file);
+    }
+
+    const result = await patchProductAction(id, body);
 
     setSaving(false);
 
