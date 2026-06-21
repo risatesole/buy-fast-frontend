@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 
 // ========== SERVICE ==========
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 const LIMIT = 100;
 
 type CustomerQueryParameters = {
@@ -43,12 +42,7 @@ function buildQueryParams(overrides: CustomerQueryParameters): string {
 async function getCustomers(
   params: CustomerQueryParameters = {},
 ): Promise<User[]> {
-  if (!BACKEND_URL) {
-    console.error("NEXT_PUBLIC_API_URL is not set");
-    return [];
-  }
-
-  const url = `${BACKEND_URL}/api/v1/users?${buildQueryParams(params)}`;
+  const url = `/api/v1/users?${buildQueryParams(params)}`;
 
   try {
     const res = await fetch(url, {

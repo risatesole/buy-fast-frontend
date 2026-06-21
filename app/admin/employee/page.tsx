@@ -43,12 +43,7 @@ function buildQueryParams(overrides: EmployeeQueryParameters): string {
 async function getEmployees(
   params: EmployeeQueryParameters = {},
 ): Promise<User[]> {
-  if (!BACKEND_URL) {
-    console.error("NEXT_PUBLIC_API_URL is not set");
-    return [];
-  }
-
-  const url = `${BACKEND_URL}/api/v1/users?${buildQueryParams(params)}`;
+  const url = `/api/v1/users?${buildQueryParams(params)}`;
 
   try {
     const res = await fetch(url, {
