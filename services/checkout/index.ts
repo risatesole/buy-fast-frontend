@@ -92,7 +92,7 @@ export class CheckoutService {
 
   async getCheckoutInfo(): Promise<CheckoutInfoResponse> {
     try {
-      const response = await fetch(`${this.baseurl}/api/v1/checkout/`, {
+      const response = await fetch(`/api/v1/checkout/`, {
         credentials: "include",
       });
 
@@ -134,7 +134,7 @@ export class CheckoutService {
     };
 
     try {
-      const response = await fetch(`${this.baseurl}/api/v1/checkout/`, {
+      const response = await fetch(`/api/v1/checkout/`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -156,7 +156,7 @@ export class CheckoutService {
   async getAvailableSlots(): Promise<AvailableDatesResponse> {
     try {
       const response = await fetch(
-        `${this.baseurl}/api/v1/checkout/timeslots/`,
+        `/api/v1/checkout/timeslots/`,
         {
           credentials: "include",
         },
