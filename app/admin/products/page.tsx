@@ -161,7 +161,7 @@ function useProductNavigation() {
   const router = useRouter();
 
   const goToCreateProduct = useCallback(() => {
-    router.push("/admin/product/create");
+    router.push("/admin/products/create");
   }, [router]);
 
   const goToEditProduct = useCallback(
