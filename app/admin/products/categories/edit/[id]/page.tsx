@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
-import { updateCategoryAction } from "./actions";
+import { updateCategoryAction, deleteCategoryAction } from "./actions";
 import type { Category } from "@/services/products/ProductService";
 
 // ========== TYPES ==========
@@ -25,21 +25,20 @@ async function fetchCategoryById(id: string): Promise<Category | null> {
     console.error("[fetchCategoryById] NEXT_PUBLIC_API_URL is not set");
     return null;
   }
-  
-  // FIX: Use "categories" (plural) not "category" (singular)
+
   const url = `${BACKEND_URL}/api/v1/products/categories/${id}/`;
   console.log("[fetchCategoryById] Fetching from URL:", url);
 
   try {
     const res = await fetch(url, {
       credentials: "include",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
       },
     });
-    
+
     console.log("[fetchCategoryById] Response status:", res.status);
-    
+
     if (!res.ok) {
       console.error(
         `[fetchCategoryById] ${res.status} ${res.statusText} — ${url}`,
@@ -79,9 +78,12 @@ function useEditCategory(id: string) {
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrorMap>({});
 
   const [form, setForm] = useState<FormState>({
@@ -182,18 +184,45 @@ function useEditCategory(id: string) {
     }
   }, [form, id, router]);
 
+  const handleDelete = useCallback(async () => {
+    setDeleting(true);
+    setDeleteError(null);
+
+    try {
+      const result = await deleteCategoryAction(id);
+
+      if (!result.success) {
+        setDeleteError(result.error ?? "Failed to delete category.");
+        setShowDeleteModal(false);
+      } else {
+        router.push("/admin/products/categories");
+      }
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      setDeleteError("An unexpected error occurred.");
+      setShowDeleteModal(false);
+    } finally {
+      setDeleting(false);
+    }
+  }, [id, router]);
+
   return {
     category,
     form,
     loading,
     saving,
+    deleting,
     fetchError,
     saveError,
+    deleteError,
     saveSuccess,
+    showDeleteModal,
     fieldErrors,
     setField,
     handleNameChange,
     handleSave,
+    handleDelete,
+    setShowDeleteModal,
   };
 }
 
@@ -392,6 +421,96 @@ function ImageUrlInput({
   );
 }
 
+function DeleteConfirmationModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  isDeleting,
+  categoryName,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  isDeleting: boolean;
+  categoryName: string;
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
+            <svg
+              className="w-6 h-6 text-red-600 dark:text-red-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Delete Category
+          </h3>
+        </div>
+
+        <p className="text-gray-600 dark:text-gray-300 mb-2">
+          Are you sure you want to delete the category{" "}
+          <strong>"{categoryName}"</strong>?
+        </p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+          This action cannot be undone. Products associated with this category
+          will not be deleted.
+        </p>
+
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            disabled={isDeleting}
+            className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isDeleting}
+            className="px-4 py-2 text-sm bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-medium rounded-lg transition flex items-center gap-2"
+          >
+            {isDeleting && (
+              <svg
+                className="animate-spin h-4 w-4 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8H4z"
+                />
+              </svg>
+            )}
+            {isDeleting ? "Deleting…" : "Delete Category"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ========== MAIN PAGE ==========
 
 export default function EditCategoryPage({
@@ -405,13 +524,18 @@ export default function EditCategoryPage({
     form,
     loading,
     saving,
+    deleting,
     fetchError,
     saveError,
+    deleteError,
     saveSuccess,
+    showDeleteModal,
     fieldErrors,
     setField,
     handleNameChange,
     handleSave,
+    handleDelete,
+    setShowDeleteModal,
   } = useEditCategory(id);
 
   const router = useRouter();
@@ -489,14 +613,14 @@ export default function EditCategoryPage({
           )}
           <button
             onClick={() => router.push("/admin/products/categories")}
-            disabled={saving}
+            disabled={saving || deleting}
             className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || deleting}
             className="px-5 py-2 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition flex items-center gap-2"
           >
             {saving && (
@@ -528,6 +652,12 @@ export default function EditCategoryPage({
       {saveError && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-4 py-3 mb-6 text-sm text-red-700 dark:text-red-400">
           {saveError}
+        </div>
+      )}
+
+      {deleteError && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-4 py-3 mb-6 text-sm text-red-700 dark:text-red-400">
+          {deleteError}
         </div>
       )}
 
@@ -579,18 +709,39 @@ export default function EditCategoryPage({
           </div>
         </SectionCard>
 
+        {/* Danger Zone */}
+        <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-xl p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-red-700 dark:text-red-400">
+                Danger Zone
+              </h3>
+              <p className="text-sm text-red-600 dark:text-red-300 mt-1">
+                Once you delete this category, it cannot be recovered.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              disabled={saving || deleting}
+              className="px-4 py-2 text-sm bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-medium rounded-lg transition"
+            >
+              Delete Category
+            </button>
+          </div>
+        </div>
+
         {/* Save footer */}
         <div className="flex justify-end gap-3 pb-4">
           <button
             onClick={() => router.push("/admin/products/categories")}
-            disabled={saving}
+            disabled={saving || deleting}
             className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || deleting}
             className="px-5 py-2 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition flex items-center gap-2"
           >
             {saving && (
@@ -618,6 +769,15 @@ export default function EditCategoryPage({
           </button>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        isDeleting={deleting}
+        categoryName={category?.name || "this category"}
+      />
     </div>
   );
 }

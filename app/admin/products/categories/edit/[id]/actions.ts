@@ -129,3 +129,44 @@ export async function updateCategoryAction(
     return { success: false, error: "Network error. Please try again." };
   }
 }
+
+export async function deleteCategoryAction(id: string): Promise<{ success: boolean; error?: string }> {
+  const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
+  if (!BACKEND_URL) {
+    return { success: false, error: "API URL not configured" };
+  }
+
+  const cookieStore = await cookies();
+  const allCookies = cookieStore.getAll();
+  const cookieHeader = allCookies.map((c) => `${c.name}=${c.value}`).join("; ");
+
+  const url = `${BACKEND_URL}/api/v1/products/categories/${id}/`;
+  console.log("[deleteCategoryAction] Deleting category at URL:", url);
+
+  try {
+    const res = await fetch(url, {
+      method: "DELETE",
+      headers: {
+        Cookie: cookieHeader,
+      },
+      cache: "no-store",
+    });
+
+    console.log("[deleteCategoryAction] Response status:", res.status);
+
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      console.error("[deleteCategoryAction] Error response:", json);
+      return {
+        success: false,
+        error: json?.message || json?.error || `Server error ${res.status}`,
+      };
+    }
+
+    revalidatePath("/admin/products/categories");
+    return { success: true };
+  } catch (err) {
+    console.error("[deleteCategoryAction] error:", err);
+    return { success: false, error: "Network error. Please try again." };
+  }
+}
