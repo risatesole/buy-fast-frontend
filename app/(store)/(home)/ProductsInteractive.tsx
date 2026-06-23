@@ -10,7 +10,7 @@ import type { Product } from "@/types/products";
 type DjangoPaginatedResponse = {
   next: string | null;
   previous: string | null;
-  results: RawDjangoProduct[];
+  data: RawDjangoProduct[];
 };
 
 // Raw product shape coming from Django (images use `image` key, not `url`)
@@ -88,8 +88,8 @@ export function ProductsInteractive({
 
       const data: DjangoPaginatedResponse = await response.json();
 
-      if (data.results.length > 0) {
-        setProducts((prev) => [...prev, ...data.results.map(mapProduct)]);
+      if (data.data.length > 0) {
+        setProducts((prev) => [...prev, ...data.data.map(mapProduct)]);
       }
       setNextCursor(data.next);
     } catch (error) {

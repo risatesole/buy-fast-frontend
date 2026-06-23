@@ -81,7 +81,7 @@ async function fetchOrdersFromApi(
   }
 
   const queryString = buildQueryString(params);
-  const url = `${BACKEND_URL}/api/v1/admin/users/orders?${queryString}`;
+  const url = `/api/v1/admin/orders?${queryString}`;
 
   try {
     const response = await fetch(url, {
