@@ -141,11 +141,12 @@ export class CheckoutService {
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
+      const data: CheckoutPostResponse = await response.json();
+
+      if (!response.ok && !data.error) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data: CheckoutPostResponse = await response.json();
       return data;
     } catch (error) {
       console.error("Error processing checkout:", error);
@@ -155,12 +156,9 @@ export class CheckoutService {
 
   async getAvailableSlots(): Promise<AvailableDatesResponse> {
     try {
-      const response = await fetch(
-        `/api/v1/checkout/timeslots/`,
-        {
-          credentials: "include",
-        },
-      );
+      const response = await fetch(`/api/v1/checkout/timeslots/`, {
+        credentials: "include",
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

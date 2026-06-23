@@ -259,22 +259,22 @@ export default function CheckoutPage() {
     setErrorMessage(null);
 
     const payload = buildCheckoutPayload();
+    let result: CheckoutPostResponse | null = null; // ← declare outside
 
     try {
-      const result: CheckoutPostResponse =
-        await checkoutService.checkout(payload);
+      result = await checkoutService.checkout(payload);
 
       if (result.status === "ok" && result.data?.order.id) {
         router.push(`/orders/${result.data.order.id}`);
       } else {
-        // Server responded 200 but flagged an error (e.g. card declined)
         setErrorMessage(
           result.error?.message ?? "Something went wrong. Please try again.",
         );
       }
     } catch {
       setErrorMessage(
-        "Something went wrong placing your order. Please try again.",
+        result?.error?.message ??
+          "Something went wrong placing your order. Please try again.",
       );
     } finally {
       setIsSubmitting(false);
