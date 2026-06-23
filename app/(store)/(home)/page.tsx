@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 type DjangoFirstPage = {
   next: string | null;
   previous: string | null;
-  results: RawDjangoProduct[];
+  data: RawDjangoProduct[];
 };
 
 type RawDjangoProduct = {
@@ -74,7 +74,7 @@ async function getFeaturedProductsFirstPage(): Promise<{
   const data: DjangoFirstPage = await res.json();
 
   return {
-    products: data.results.map(mapProduct),
+    products: data.data.map(mapProduct),
     nextCursor: data.next,
   };
 }
