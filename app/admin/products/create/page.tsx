@@ -42,6 +42,7 @@ type FormState = {
   status: boolean;
   tags: string;
   images: Partial<Record<ProductImageType, File | null>>;
+  initialinventory: number | null;
 };
 
 type FieldErrorMap = Partial<
@@ -90,6 +91,15 @@ function validate(form: FormState): FieldErrorMap {
   if (!form.selling_price || isNaN(price) || price < 0)
     errors.selling_price = "Enter a valid price.";
 
+  if (form.initialinventory !== null) {
+    if (
+      !Number.isInteger(form.initialinventory) ||
+      form.initialinventory < 0
+    ) {
+      errors.initialinventory = "Inventory must be a whole number ≥ 0.";
+    }
+  }
+
   return errors;
 }
 
@@ -127,6 +137,7 @@ function useCreateProduct() {
     status: true,
     tags: "",
     images: {},
+    initialinventory: null,
   });
 
   const setField = useCallback(
@@ -175,6 +186,10 @@ function useCreateProduct() {
       .map((t) => t.trim())
       .filter(Boolean);
     tags.forEach((tag) => body.append("tags", tag));
+
+    if (form.initialinventory !== null) {
+      body.append("initialinventory", String(form.initialinventory));
+    }
 
     for (const type of IMAGE_TYPES) {
       const file = form.images[type];
@@ -647,6 +662,38 @@ export default function CreateProductPage() {
                 ))}
             </div>
           )}
+        </SectionCard>
+
+        {/* Inventory */}
+        <SectionCard title="Inventory">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Initial stock quantity
+            </label>
+            <input
+              type="number"
+              min={0}
+              step={1}
+              value={form.initialinventory ?? ""}
+              onChange={(e) => {
+                const raw = e.target.value;
+                setField(
+                  "initialinventory",
+                  raw === "" ? null : Math.floor(Number(raw)),
+                );
+              }}
+              placeholder="e.g. 100"
+              className={`w-full sm:w-48 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition ${
+                fieldErrors.initialinventory
+                  ? "border-red-400"
+                  : "border-gray-300"
+              }`}
+            />
+            <FieldError message={fieldErrors.initialinventory} />
+            <p className="mt-1.5 text-xs text-gray-400">
+              Leave blank to skip setting stock on creation.
+            </p>
+          </div>
         </SectionCard>
 
         {/* Images */}
