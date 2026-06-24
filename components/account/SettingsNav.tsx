@@ -4,10 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const SECTIONS = [
-  { id: "profile", label: "Profile", href: "/account/profile" },
   { id: "account", label: "Account", href: "/account/account" },
-  { id: "notifications", label: "Notifications", href: "/account/notifications" },
-  { id: "appearance", label: "Appearance", href: "/account/appearance" },
+  {id: "orders", label: "Orders", href: "/account/orders"}
 ];
 
 export function SettingsNav() {
