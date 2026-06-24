@@ -265,7 +265,7 @@ export default function CheckoutPage() {
       result = await checkoutService.checkout(payload);
 
       if (result.status === "ok" && result.data?.order.id) {
-        router.push(`/orders/${result.data.order.id}`);
+        router.push(`account/orders/${result.data.order.id}`);
       } else {
         setErrorMessage(
           result.error?.message ?? "Something went wrong. Please try again.",
