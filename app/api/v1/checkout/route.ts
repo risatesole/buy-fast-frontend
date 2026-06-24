@@ -7,7 +7,6 @@ export async function GET(req: NextRequest) {
     method: req.method,
     headers: req.headers,
   });
-
   return new Response(response.body, {
     status: response.status,
     headers: response.headers,
@@ -20,8 +19,7 @@ export async function POST(req: NextRequest) {
     headers: req.headers,
     body: req.body,
     duplex: "half",
-  });
-
+  } as RequestInit);
   return new Response(response.body, {
     status: response.status,
     headers: response.headers,
