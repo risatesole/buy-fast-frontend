@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Navbar, type NavbarCartItem } from "@/components/navbar";
-import CartService from "@/services/cart";
+import CartService from "@/features/cart/service";
 type NavbarWithCartProps = {
   user: {
     name: string;

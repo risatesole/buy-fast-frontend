@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { ProductsSection } from "@/components/childcomponents/home/product/products-section";
-import CartService from "@/services/cart";
+import CartService from "@/features/cart/service";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import type { Product } from "@/types/products";
 
