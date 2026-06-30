@@ -7,7 +7,7 @@ import { cookies } from "next/headers";
 import { NavbarWithCart } from "@/components/navbar-with-cart";
 import { Footer } from "@/components/Footer";
 import type { NavbarCartItem } from "@/components/navbar";
-import type { GetCartResponse } from "@/types/cart/GetCartResponse";
+import type { GetCartResponse } from "@/features/cart/types/GetCartResponse";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -83,7 +83,9 @@ async function getCartItems(): Promise<NavbarCartItem[]> {
       productId: item.product.id,
       price: item.product.selling_price,
       quantity: item.quantity,
-      image: item.product.images.find((img) => img.type === "HERO")?.url,
+      image: item.product.images.find(
+  (img: { type: string; url: string }) => img.type === "HERO"
+)?.url,
     }));
   } catch {
     return [];

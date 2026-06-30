@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { AddProductToCartResponse } from "@/types/cart/AddProductToCartResponse";
-import type { GetCartResponse } from "@/types/cart/GetCartResponse";
+import type { AddProductToCartResponse } from "@/features/cart/types/AddProductToCartResponse";
+import type { GetCartResponse } from "@/features/cart/types/GetCartResponse";
 
 const DJANGO_BASE = process.env.BACKEND_URL ?? "http://localhost:8000";
 

@@ -1,4 +1,4 @@
-import type { GetCartResponse } from "@/types/cart/GetCartResponse";
+import type { GetCartResponse } from "@/features/cart/types/GetCartResponse";
 
 export async function getCart(cookieHeader?: string): Promise<GetCartResponse> {
   const isServer = typeof window === "undefined";

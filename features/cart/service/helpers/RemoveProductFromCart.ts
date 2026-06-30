@@ -1,4 +1,4 @@
-import type { RemoveProductFromCartResponse } from "@/types/cart/RemoveProductFromCartResponse";
+import type { RemoveProductFromCartResponse } from "@/features/cart/types/RemoveProductFromCartResponse";
 
 export async function RemoveProductFromCart(productId: number | string) {
   const response = await fetch("/api/v1/cart", {

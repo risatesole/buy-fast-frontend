@@ -1,5 +1,5 @@
-import type { AddProductToCartResponse } from "@/types/cart/AddProductToCartResponse";
-import type { GetCartResponse } from "@/types/cart/GetCartResponse";
+import type { AddProductToCartResponse } from "@/features/cart/types/AddProductToCartResponse";
+import type { GetCartResponse } from "@/features/cart/types/GetCartResponse";
 import { addProductToCart } from "./helpers/AddProductToCart";
 import { getCart } from "./helpers/GetProductsInCart";
 import { RemoveProductFromCart } from "./helpers/RemoveProductFromCart";

@@ -1,4 +1,4 @@
-import type { AddProductToCartResponse } from "@/types/cart/AddProductToCartResponse";
+import type { AddProductToCartResponse } from "@/features/cart/types/AddProductToCartResponse";
 
 export async function addProductToCart(
   productId: number,
