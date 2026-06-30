@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import CartService from "@/services/cart";
+import CartService from "@/features/cart/service";
 import type { Product } from "@/types/products";
 
 export function AddToCartButton({ product }: { product: Product }) {

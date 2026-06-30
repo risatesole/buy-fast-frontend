@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { Product } from "@/types/products";
-import CartService from "@/services/cart";
+import CartService from "@/features/cart/service";
 
 // ─── Types ────────────────────────────────────────────────────
 

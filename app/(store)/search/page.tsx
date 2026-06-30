@@ -11,7 +11,7 @@ import { ProductCard } from "@/components/ProductCard";
 import type { Product } from "@/types/products";
 
 // services
-import CartService from "@/services/cart";
+import CartService from "@/features/cart/service";
 
 // ─── Types ────────────────────────────────────────────────────
 
