@@ -5,7 +5,7 @@ type StockMovementType =
   | "purchase_entry"
   | "customer_sell";
 
-type StockMovement = {
+export type StockMovement = {
   id: number;
   date_time: string;
   product: Product;

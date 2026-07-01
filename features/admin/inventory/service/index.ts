@@ -1,4 +1,4 @@
-import { type StockMomentResponse } from "../types/stockMovement";
+import { type StockMovement } from "../types/stockMovement";
 
 class InventoryService {
   async getStockMovements(params: {
@@ -6,7 +6,7 @@ class InventoryService {
     offset: number;
     search?: string;
     sort?: string;
-  }): Promise<StockMomentResponse[]> {
+  }): Promise<StockMovement[]> {
     const queryParams = new URLSearchParams({
       limit: params.limit.toString(),
       offset: params.offset.toString(),
