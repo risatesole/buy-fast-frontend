@@ -1,13 +1,36 @@
-import { StockMomentResponse } from "../types/stockMovement";
+import { type StockMomentResponse } from "../types/stockMovement";
 
 class InventoryService {
-  async getStockMovement(pagenumber: number): Promise<StockMomentResponse> {
+  async getStockMovements(params: {
+    limit: number;
+    offset: number;
+    search?: string;
+    sort?: string;
+  }): Promise<any[]> {
+    const queryParams = new URLSearchParams({
+      limit: params.limit.toString(),
+      offset: params.offset.toString(),
+      ...(params.search && { search: params.search }),
+      ...(params.sort && { sort: params.sort }),
+    });
+
     const response = await fetch(
-      `/api/v1/inventory/stockmovement?page=${pagenumber}`,
+      `/api/v1/admin/inventory/stockmovement?${queryParams.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // Forward cookies
+      },
     );
 
-    const data: StockMomentResponse = await response.json();
-    return data;
+    if (!response.ok) {
+      throw new Error("Failed to fetch stock movements");
+    }
+
+    const data = await response.json();
+    return data.data || [];
   }
 }
 

@@ -1,43 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const page = searchParams.get("page") ?? "1";
+    const searchParams = request.nextUrl.searchParams;
+    const limit = parseInt(searchParams.get("limit") || "100");
+    const offset = parseInt(searchParams.get("offset") || "0");
+    const search = searchParams.get("search");
+    const sort = searchParams.get("sort") || "id";
 
-    const upstreamUrl = `${process.env.BACKEND_URL}/api/v1/inventory/stockmovement?page=${page}`;
+    const cookies = request.headers.get("cookie") || "";
 
-    const response = await fetch(upstreamUrl, {
+    const backendUrl = new URL(
+      `${process.env.BACKEND_URL}/api/v1/admin/inventory/stockmovement`,
+    );
+    backendUrl.searchParams.append("limit", limit.toString());
+    backendUrl.searchParams.append("offset", offset.toString());
+    if (search) backendUrl.searchParams.append("search", search);
+    if (sort) backendUrl.searchParams.append("sort", sort);
+
+    const response = await fetch(backendUrl.toString(), {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        // forward auth if needed
-        // Authorization: req.headers.get("authorization") ?? "",
+        Cookie: cookies,
       },
     });
 
     if (!response.ok) {
       return NextResponse.json(
-        {
-          status: "error",
-          message: "Unable to fetch stock movement",
-        },
-        { status: response.status }
+        { error: "Failed to fetch stock movements" },
+        { status: response.status },
       );
     }
 
     const data = await response.json();
-
-    return NextResponse.json(data, {
-      status: 200,
-    });
-  } catch {
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error("Error:", error);
     return NextResponse.json(
-      {
-        status: "error",
-        message: "Internal server error",
-      },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
 }
