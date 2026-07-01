@@ -52,6 +52,7 @@ const platformItems = [
     icon: Truck,
     sub: [
       { title: "Inventory", url: "/admin/inventory" },
+      {title: "Stock Movement", url: "/admin/inventory/stockmovement"},
       { title: "Management", url: "/admin/inventory/manage" },
     ],
   },
