@@ -15,14 +15,6 @@ import {
 const LIMIT = 100;
 
 // ========== UTILS ==========
-
-function formatPrice(price: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(price);
-}
-
 function formatDateTime(dateString: string): string {
   return new Date(dateString).toLocaleDateString("en-US", {
     month: "short",
@@ -367,9 +359,6 @@ function StockMovementRow({ movement }: StockMovementRowProps) {
       <TableCell className="font-mono text-sm">
         {movement.document_reference || "-"}
       </TableCell>
-      <TableCell className="font-medium">
-        {formatPrice(movement.product.selling_price)}
-      </TableCell>
     </TableRow>
   );
 }
@@ -388,7 +377,6 @@ function StockMovementsTable({ movements }: StockMovementsTableProps) {
             <TableHead className="text-center">Quantity</TableHead>
             <TableHead className="text-center">Balance</TableHead>
             <TableHead>Document Ref</TableHead>
-            <TableHead>Price</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
