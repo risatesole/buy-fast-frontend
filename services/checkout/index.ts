@@ -97,6 +97,12 @@ export class CheckoutService {
       });
 
       if (!response.ok) {
+        const errorBody = await response.json().catch(() => null);
+
+        if (errorBody?.error?.message === "Authentication required") {
+          throw new Error(`User must log in to checkout`);
+        }
+
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data: CheckoutInfoResponse = await response.json();

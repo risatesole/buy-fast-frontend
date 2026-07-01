@@ -161,10 +161,14 @@ export default function CheckoutPage() {
         }
 
         loadAvailableSlots(slotsResponse.availableDates);
-      } catch {
-        setErrorMessage(
-          "Failed to load checkout information. Please try again.",
-        );
+      } catch (error) {
+        let message = "Something went wrong";
+
+        if (error instanceof Error) {
+          message = error.message;
+        }
+
+        setErrorMessage(message);
       } finally {
         setIsLoading(false);
       }
