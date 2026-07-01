@@ -52,7 +52,6 @@ function useProductsList() {
           limit: LIMIT,
           offset: currentOffset,
           sort: "id",
-          status: "true",
         };
 
         if (search.trim()) {

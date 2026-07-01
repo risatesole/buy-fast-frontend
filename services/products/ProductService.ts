@@ -23,7 +23,6 @@ export type Category = {
 
 const DEFAULT_QUERY_PARAMS: Omit<ProductQueryParameters, "tags"> = {
   sort: "id",
-  status: "true",
   limit: 20,
   offset: 0,
   category: null,
