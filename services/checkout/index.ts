@@ -99,7 +99,7 @@ export class CheckoutService {
       if (!response.ok) {
         const errorBody = await response.json().catch(() => null);
 
-        if (errorBody?.error?.message === "Authentication required") {
+        if (errorBody?.error?.code === "CHECKOUT_LOGIN_REQUIRED") {
           throw new Error(`User must log in to checkout`);
         }
 
