@@ -6,7 +6,7 @@ class InventoryService {
     offset: number;
     search?: string;
     sort?: string;
-  }): Promise<any[]> {
+  }): Promise<StockMomentResponse[]> {
     const queryParams = new URLSearchParams({
       limit: params.limit.toString(),
       offset: params.offset.toString(),
