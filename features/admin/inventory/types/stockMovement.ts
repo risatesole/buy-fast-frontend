@@ -1,0 +1,23 @@
+import type {Product} from "@/types/products"
+
+type StockMovementType =
+  | "initial_inventory"
+  | "purchase_entry"
+  | "customer_sell";
+
+type StockMovement = {
+  id: number;
+  date_time: string;
+  product: Product;
+  movement: {
+    type: StockMovementType;
+  };
+  quantity: number;
+  balance: number;
+  document_reference: string | null;
+};
+
+export type StockMomentResponse = {
+    status: "ok"
+    data: StockMovement[]
+}
