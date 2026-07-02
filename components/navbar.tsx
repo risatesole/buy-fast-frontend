@@ -25,7 +25,7 @@ type User = {
 
 export type NavbarCartItem = {
   id: number | string;
-  productId: number; 
+  productId: number;
   name: string;
   price: number;
   quantity: number;
@@ -44,7 +44,7 @@ type NavbarProps = {
 // ── Helpers ────────────────────────────────────────────────────
 
 const navLinks = [
-  { href: "/new", label: "New Arrivals" },
+  { href: "/categories", label: "categories" },
   { href: "/books", label: "Books" },
   { href: "/notebooks", label: "Notebooks" },
   { href: "/pens", label: "Pens" },
