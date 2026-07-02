@@ -19,7 +19,7 @@ async function getActiveCategories(): Promise<RawCategory[]> {
     `${DJANGO_BASE}/api/v1/products/categories?status=true`,
     {
       headers: { Accept: "application/json" },
-      next: { revalidate: 60 },
+      cache: 'no-store',  
     }
   );
 
