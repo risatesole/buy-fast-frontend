@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
-import type { AddProductToCartResponse } from "@/features/cart/types/AddProductToCartResponse";
-import type { GetCartResponse } from "@/features/cart/types/GetCartResponse";
+import { NextRequest, NextResponse } from 'next/server';
+import type { AddProductToCartResponse } from '@/features/cart/types/AddProductToCartResponse';
+import type { GetCartResponse } from '@/features/cart/types/GetCartResponse';
 
-const DJANGO_BASE = process.env.BACKEND_URL ?? "http://localhost:8000";
+const DJANGO_BASE = process.env.BACKEND_URL ?? 'http://localhost:8000';
 
 export async function GET(req: NextRequest) {
   const response = await fetch(`${DJANGO_BASE}/api/v1/cart/`, {
     headers: {
-      cookie: req.headers.get("cookie") ?? "",
+      cookie: req.headers.get('cookie') ?? '',
     },
   });
 
@@ -20,10 +20,10 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
 
   const response = await fetch(`${DJANGO_BASE}/api/v1/cart/`, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
-      cookie: req.headers.get("cookie") ?? "",
+      'Content-Type': 'application/json',
+      cookie: req.headers.get('cookie') ?? '',
     },
     body: JSON.stringify(body),
   });
@@ -42,72 +42,72 @@ export async function PATCH(req: NextRequest) {
     if (!product_id) {
       return NextResponse.json(
         {
-          status: "error",
-          message: "product_id is required",
+          status: 'error',
+          message: 'product_id is required',
           data: null,
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     if (quantity === undefined || quantity === null) {
       return NextResponse.json(
         {
-          status: "error",
-          message: "quantity is required",
+          status: 'error',
+          message: 'quantity is required',
           data: null,
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
-    if (typeof quantity !== "number" || !Number.isInteger(quantity)) {
+    if (typeof quantity !== 'number' || !Number.isInteger(quantity)) {
       return NextResponse.json(
         {
-          status: "error",
-          message: "quantity must be a valid integer",
+          status: 'error',
+          message: 'quantity must be a valid integer',
           data: null,
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     if (quantity < 1) {
       return NextResponse.json(
         {
-          status: "error",
-          message: "quantity must be greater than 0",
+          status: 'error',
+          message: 'quantity must be greater than 0',
           data: null,
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     const url = `${DJANGO_BASE}/api/v1/cart/`;
-    console.log("PATCH request to:", url);
-    console.log("PATCH body:", { product_id, quantity });
+    console.log('PATCH request to:', url);
+    console.log('PATCH body:', { product_id, quantity });
 
     const response = await fetch(url, {
-      method: "PATCH",
+      method: 'PATCH',
       headers: {
-        "Content-Type": "application/json",
-        cookie: req.headers.get("cookie") ?? "",
+        'Content-Type': 'application/json',
+        cookie: req.headers.get('cookie') ?? '',
       },
       body: JSON.stringify({ product_id, quantity }),
     });
 
     // Log response status for debugging
-    console.log("PATCH response status:", response.status);
+    console.log('PATCH response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("PATCH error response:", errorText);
+      console.error('PATCH error response:', errorText);
       return NextResponse.json(
         {
-          status: "error",
+          status: 'error',
           message: `Django returned ${response.status}: ${errorText}`,
         },
-        { status: response.status },
+        { status: response.status }
       );
     }
 
@@ -115,10 +115,10 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
-    console.error("PATCH cart error:", error);
+    console.error('PATCH cart error:', error);
     return NextResponse.json(
-      { status: "error", message: "Failed to update cart item" },
-      { status: 500 },
+      { status: 'error', message: 'Failed to update cart item' },
+      { status: 500 }
     );
   }
 }
@@ -127,10 +127,10 @@ export async function DELETE(req: NextRequest) {
   const body = await req.json();
 
   const response = await fetch(`${DJANGO_BASE}/api/v1/cart/`, {
-    method: "DELETE",
+    method: 'DELETE',
     headers: {
-      "Content-Type": "application/json",
-      cookie: req.headers.get("cookie") ?? "",
+      'Content-Type': 'application/json',
+      cookie: req.headers.get('cookie') ?? '',
     },
     body: JSON.stringify(body),
   });

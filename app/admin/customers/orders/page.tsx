@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Table,
   TableBody,
@@ -8,18 +8,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Clock,
-  CheckCircle2,
-  Undo2,
-  Search,
-  X,
-  Eye,
-  FileText,
-} from "lucide-react";
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Clock, CheckCircle2, Undo2, Search, X, Eye, FileText } from 'lucide-react';
 
 // ========== TYPES ==========
 
@@ -31,7 +23,7 @@ type Order = {
   email: string;
   created_at: string;
   total: number;
-  status: "fullfilled" | "pending" | "returned";
+  status: 'fullfilled' | 'pending' | 'returned';
   pickup_time: string;
 };
 
@@ -51,7 +43,7 @@ type OrderQueryParams = {
 };
 
 const DEFAULT_QUERY_PARAMS: OrderQueryParams = {
-  sort: "pickup_time",
+  sort: 'pickup_time',
   limit: LIMIT,
   offset: 0,
 };
@@ -72,11 +64,9 @@ function buildQueryString(params: OrderQueryParams): string {
 /**
  * Fetches orders from the backend API
  */
-async function fetchOrdersFromApi(
-  params: OrderQueryParams = {},
-): Promise<Order[]> {
+async function fetchOrdersFromApi(params: OrderQueryParams = {}): Promise<Order[]> {
   if (!BACKEND_URL) {
-    console.error("NEXT_PUBLIC_API_URL is not set");
+    console.error('NEXT_PUBLIC_API_URL is not set');
     return [];
   }
 
@@ -85,19 +75,19 @@ async function fetchOrdersFromApi(
 
   try {
     const response = await fetch(url, {
-      cache: "no-store",
-      headers: { "Content-Type": "application/json" },
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
     });
 
     if (!response.ok) {
-      console.error("API Error:", response.status, response.statusText);
+      console.error('API Error:', response.status, response.statusText);
       return [];
     }
 
     const json = await response.json();
     return json.data ?? [];
   } catch (error) {
-    console.error("Error fetching orders:", error);
+    console.error('Error fetching orders:', error);
     return [];
   }
 }
@@ -115,7 +105,7 @@ function useOrdersList() {
   const [offset, setOffset] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [totalLoaded, setTotalLoaded] = useState(0);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -124,7 +114,7 @@ function useOrdersList() {
    * Fetches orders with current search and pagination state
    */
   const fetchOrders = useCallback(
-    async (search: string = "", shouldResetOffset: boolean = true) => {
+    async (search: string = '', shouldResetOffset: boolean = true) => {
       const currentOffset = shouldResetOffset ? 0 : offset;
 
       setIsLoading(shouldResetOffset);
@@ -135,7 +125,7 @@ function useOrdersList() {
         const params: OrderQueryParams = {
           limit: LIMIT,
           offset: currentOffset,
-          sort: "id",
+          sort: 'id',
         };
 
         if (search.trim()) {
@@ -153,22 +143,22 @@ function useOrdersList() {
             setOffset(LIMIT);
             setTotalLoaded(newOrders.length);
           } else {
-            setOrders((prevOrders) => [...prevOrders, ...newOrders]);
-            setOffset((prevOffset) => prevOffset + newOrders.length);
-            setTotalLoaded((prevTotal) => prevTotal + newOrders.length);
+            setOrders(prevOrders => [...prevOrders, ...newOrders]);
+            setOffset(prevOffset => prevOffset + newOrders.length);
+            setTotalLoaded(prevTotal => prevTotal + newOrders.length);
           }
           setHasMore(newOrders.length >= LIMIT);
         }
       } catch (err) {
-        console.error("Error fetching orders:", err);
-        setError("Failed to load orders");
+        console.error('Error fetching orders:', err);
+        setError('Failed to load orders');
       } finally {
         setIsLoading(false);
         setIsLoadingMore(false);
         setIsSearching(false);
       }
     },
-    [offset],
+    [offset]
   );
 
   /**
@@ -190,18 +180,18 @@ function useOrdersList() {
         fetchOrders(value, true);
       }, SEARCH_DEBOUNCE_DELAY);
     },
-    [fetchOrders],
+    [fetchOrders]
   );
 
   /**
    * Clears search and resets to initial state
    */
   const clearSearch = useCallback(() => {
-    setSearchTerm("");
+    setSearchTerm('');
     setOffset(0);
     setHasMore(true);
     setTotalLoaded(0);
-    fetchOrders("", true);
+    fetchOrders('', true);
   }, [fetchOrders]);
 
   /**
@@ -221,7 +211,7 @@ function useOrdersList() {
 
   // Initial load
   useEffect(() => {
-    fetchOrders("", true);
+    fetchOrders('', true);
     return () => {
       if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     };
@@ -277,7 +267,7 @@ function SearchBar({
           type="text"
           placeholder="Search orders by customer name..."
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={e => onChange(e.target.value)}
           className="w-full px-4 py-2 pl-10 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
 
@@ -301,13 +291,7 @@ function SearchBar({
 /**
  * Error message with retry button
  */
-function ErrorMessage({
-  message,
-  onRetry,
-}: {
-  message: string;
-  onRetry: () => void;
-}) {
+function ErrorMessage({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
     <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
       <p className="text-red-700">{message}</p>
@@ -329,9 +313,7 @@ function EmptyState({ searchTerm }: { searchTerm: string }) {
     <div className="text-center py-16 bg-white rounded-xl shadow-sm">
       <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />
       <p className="text-gray-500 text-lg">
-        {searchTerm
-          ? "No orders found matching your search"
-          : "No orders found"}
+        {searchTerm ? 'No orders found matching your search' : 'No orders found'}
       </p>
     </div>
   );
@@ -362,27 +344,25 @@ function OrdersTableHeader() {
 /**
  * Status badge component with shadcn/ui Badge and Lucide icons
  */
-function StatusBadge({ status }: { status: Order["status"] }) {
+function StatusBadge({ status }: { status: Order['status'] }) {
   const statusConfig = {
     pending: {
-      variant: "warning" as const,
-      label: "Pending",
+      variant: 'warning' as const,
+      label: 'Pending',
       icon: Clock,
-      className:
-        "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-200",
+      className: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-200',
     },
     fullfilled: {
-      variant: "success" as const,
-      label: "Fulfilled",
+      variant: 'success' as const,
+      label: 'Fulfilled',
       icon: CheckCircle2,
-      className:
-        "bg-green-100 text-green-800 hover:bg-green-100 border-green-200",
+      className: 'bg-green-100 text-green-800 hover:bg-green-100 border-green-200',
     },
     returned: {
-      variant: "destructive" as const,
-      label: "Returned",
+      variant: 'destructive' as const,
+      label: 'Returned',
       icon: Undo2,
-      className: "bg-red-100 text-red-800 hover:bg-red-100 border-red-200",
+      className: 'bg-red-100 text-red-800 hover:bg-red-100 border-red-200',
     },
   };
 
@@ -426,17 +406,13 @@ function OrderRow({ order }: { order: Order }) {
 
       <TableCell>{formatDate(order.created_at)}</TableCell>
 
-      <TableCell className="font-semibold">
-        {formatCurrency(order.total)}
-      </TableCell>
+      <TableCell className="font-semibold">{formatCurrency(order.total)}</TableCell>
 
       <TableCell>
         <StatusBadge status={order.status} />
       </TableCell>
 
-      <TableCell>
-        {order.pickup_time ? formatDate(order.pickup_time) : "—"}
-      </TableCell>
+      <TableCell>{order.pickup_time ? formatDate(order.pickup_time) : '—'}</TableCell>
 
       <TableCell>
         <Button variant="outline" size="sm" asChild>
@@ -502,20 +478,20 @@ function LoadMoreSection({
 // ========== UTILITY FUNCTIONS ==========
 
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
+  return new Date(dateString).toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
     hour12: true,
   });
 }
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
   }).format(amount);
 }
 
@@ -539,15 +515,9 @@ export default function OrdersPage() {
 
   return (
     <div className="container mx-auto px-4 py-10">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-        Orders
-      </h1>
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Orders</h1>
 
-      <SearchBar
-        value={searchTerm}
-        onChange={handleSearch}
-        onClear={clearSearch}
-      />
+      <SearchBar value={searchTerm} onChange={handleSearch} onClear={clearSearch} />
 
       {error && <ErrorMessage message={error} onRetry={retryFetch} />}
 
@@ -563,7 +533,7 @@ export default function OrdersPage() {
             <Table>
               <OrdersTableHeader />
               <TableBody>
-                {orders.map((order) => (
+                {orders.map(order => (
                   <OrderRow key={order.id} order={order} />
                 ))}
               </TableBody>

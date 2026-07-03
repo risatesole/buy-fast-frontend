@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState, useCallback } from "react";
-import { ProductsSection } from "@/components/childcomponents/home/product/products-section";
-import CartService from "@/features/cart/service";
-import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
-import type { Product } from "@/types/products";
+import { useState, useCallback } from 'react';
+import { ProductsSection } from '@/components/childcomponents/home/product/products-section';
+import CartService from '@/features/cart/service';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import type { Product } from '@/types/products';
 
 // Shape of the Django cursor-paginated response
 type DjangoPaginatedResponse = {
@@ -32,7 +32,7 @@ type RawDjangoProduct = {
   images: {
     id: number;
     image: string;
-    image_type: "HERO" | "SCALE" | "PACKING" | "FLATLAY" | "FREEZE_FRAME";
+    image_type: 'HERO' | 'SCALE' | 'PACKING' | 'FLATLAY' | 'FREEZE_FRAME';
   }[];
 };
 
@@ -53,7 +53,7 @@ function mapProduct(raw: RawDjangoProduct): Product {
       image: raw.category.image,
       status: true,
     },
-    images: raw.images.map((img) => ({
+    images: raw.images.map(img => ({
       url: img.image,
       type: img.image_type,
     })),
@@ -67,14 +67,9 @@ type Props = {
   initialNextCursor: string | null;
 };
 
-export function ProductsInteractive({
-  products: initialProducts,
-  initialNextCursor,
-}: Props) {
+export function ProductsInteractive({ products: initialProducts, initialNextCursor }: Props) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [nextCursor, setNextCursor] = useState<string | null>(
-    initialNextCursor,
-  );
+  const [nextCursor, setNextCursor] = useState<string | null>(initialNextCursor);
 
   const handleLoadMore = useCallback(async () => {
     if (!nextCursor) return;
@@ -84,16 +79,16 @@ export function ProductsInteractive({
       const response = await fetch(proxyUrl);
 
       if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
-      console.log(response)
+      console.log(response);
 
       const data: DjangoPaginatedResponse = await response.json();
 
       if (data.data.length > 0) {
-        setProducts((prev) => [...prev, ...data.data.map(mapProduct)]);
+        setProducts(prev => [...prev, ...data.data.map(mapProduct)]);
       }
       setNextCursor(data.next);
     } catch (error) {
-      console.error("Error loading more products:", error);
+      console.error('Error loading more products:', error);
     }
   }, [nextCursor]);
 
@@ -104,8 +99,8 @@ export function ProductsInteractive({
 
   function handleAddToCart(product: Product, quantity: number) {
     const service = new CartService();
-    service.addProduct(product.id, quantity).catch((err) => {
-      console.error("Failed to add product to cart:", err);
+    service.addProduct(product.id, quantity).catch(err => {
+      console.error('Failed to add product to cart:', err);
     });
   }
 
@@ -115,17 +110,17 @@ export function ProductsInteractive({
 
       <div
         ref={observerTarget}
-        style={{ height: "1px", visibility: "hidden" }}
+        style={{ height: '1px', visibility: 'hidden' }}
         aria-hidden="true"
       />
 
       {isLoading && (
         <div
           style={{
-            textAlign: "center",
-            padding: "2rem",
-            color: "#888",
-            fontSize: "0.9rem",
+            textAlign: 'center',
+            padding: '2rem',
+            color: '#888',
+            fontSize: '0.9rem',
           }}
         >
           Cargando más productos…
@@ -135,10 +130,10 @@ export function ProductsInteractive({
       {!isLoading && nextCursor === null && products.length > 0 && (
         <div
           style={{
-            textAlign: "center",
-            padding: "2rem",
-            color: "#bbb",
-            fontSize: "0.85rem",
+            textAlign: 'center',
+            padding: '2rem',
+            color: '#bbb',
+            fontSize: '0.85rem',
           }}
         >
           — Fin del catálogo —

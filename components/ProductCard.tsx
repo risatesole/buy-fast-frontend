@@ -1,23 +1,23 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import type { Product } from "@/types/products";
+import { useState } from 'react';
+import Link from 'next/link';
+import type { Product } from '@/types/products';
 
 // ─── Helpers ──────────────────────────────────────────────────
 
 function ProductGlyph({ category }: { category: string }) {
-  const stroke = "oklch(0.708 0 0)";
+  const stroke = 'oklch(0.708 0 0)';
   const props = {
     width: 48,
     height: 48,
-    viewBox: "0 0 24 24",
-    fill: "none",
+    viewBox: '0 0 24 24',
+    fill: 'none',
     stroke,
     strokeWidth: 1,
   } as const;
 
-  if (category === "Books")
+  if (category === 'Books')
     return (
       <svg {...props}>
         <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
@@ -25,7 +25,7 @@ function ProductGlyph({ category }: { category: string }) {
       </svg>
     );
 
-  if (category === "Notebooks")
+  if (category === 'Notebooks')
     return (
       <svg {...props}>
         <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
@@ -35,7 +35,7 @@ function ProductGlyph({ category }: { category: string }) {
       </svg>
     );
 
-  if (category === "Pens")
+  if (category === 'Pens')
     return (
       <svg {...props}>
         <line x1="12" y1="19" x2="12" y2="23" />
@@ -53,9 +53,7 @@ function ProductGlyph({ category }: { category: string }) {
 }
 
 const formatPrice = (n: number) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
-    n,
-  );
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
 
 // ─── Component ────────────────────────────────────────────────
 
@@ -75,37 +73,37 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
   };
 
   const categoryName = product.category.name;
-  const heroImage = product.images?.find((img) => img.type === "HERO")?.url;
+  const heroImage = product.images?.find(img => img.type === 'HERO')?.url;
 
   return (
     <article
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        display: "flex",
-        flexDirection: "column",
-        borderBottom: "1px solid oklch(0.922 0 0)",
-        paddingBottom: "2rem",
+        display: 'flex',
+        flexDirection: 'column',
+        borderBottom: '1px solid oklch(0.922 0 0)',
+        paddingBottom: '2rem',
       }}
     >
       <Link href={`/products/${product.id}`}>
         <div
           style={{
-            aspectRatio: "4/3",
-            background: hovered ? "oklch(0.97 0 0)" : "oklch(0.985 0 0)",
+            aspectRatio: '4/3',
+            background: hovered ? 'oklch(0.97 0 0)' : 'oklch(0.985 0 0)',
             borderRadius: 4,
-            marginBottom: "1.25rem",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            overflow: "hidden",
+            marginBottom: '1.25rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
           }}
         >
           {heroImage ? (
             <img
               src={heroImage}
               alt={product.name}
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           ) : (
             <ProductGlyph category={categoryName} />
@@ -115,26 +113,23 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
 
       <p
         style={{
-          fontSize: "0.68rem",
-          letterSpacing: "0.12em",
-          textTransform: "uppercase",
-          color: "oklch(0.708 0 0)",
-          marginBottom: "0.4rem",
+          fontSize: '0.68rem',
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+          color: 'oklch(0.708 0 0)',
+          marginBottom: '0.4rem',
         }}
       >
         {categoryName}
       </p>
 
-      <Link
-        href={`/products/${product.id}`}
-        style={{ textDecoration: "none", color: "inherit" }}
-      >
+      <Link href={`/products/${product.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
         <h3
           style={{
             fontFamily: "'Georgia', serif",
-            fontSize: "1rem",
+            fontSize: '1rem',
             fontWeight: 400,
-            marginBottom: "0.75rem",
+            marginBottom: '0.75rem',
           }}
         >
           {product.name}
@@ -143,15 +138,13 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
 
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
         }}
       >
-        <span style={{ fontFamily: "monospace" }}>
-          {formatPrice(product.selling_price)}
-        </span>
-        <button onClick={handleAdd}>{added ? "Added ✓" : "Add to cart"}</button>
+        <span style={{ fontFamily: 'monospace' }}>{formatPrice(product.selling_price)}</span>
+        <button onClick={handleAdd}>{added ? 'Added ✓' : 'Add to cart'}</button>
       </div>
     </article>
   );

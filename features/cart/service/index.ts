@@ -1,17 +1,14 @@
-import type { AddProductToCartResponse } from "@/features/cart/types/AddProductToCartResponse";
-import type { GetCartResponse } from "@/features/cart/types/GetCartResponse";
-import { addProductToCart } from "./helpers/AddProductToCart";
-import { getCart } from "./helpers/GetProductsInCart";
-import { RemoveProductFromCart } from "./helpers/RemoveProductFromCart";
+import type { AddProductToCartResponse } from '@/features/cart/types/AddProductToCartResponse';
+import type { GetCartResponse } from '@/features/cart/types/GetCartResponse';
+import { addProductToCart } from './helpers/AddProductToCart';
+import { getCart } from './helpers/GetProductsInCart';
+import { RemoveProductFromCart } from './helpers/RemoveProductFromCart';
 export default class CartService {
   async getCart(cookieHeader?: string): Promise<GetCartResponse> {
     return getCart(cookieHeader);
   }
 
-  async addProduct(
-    productId: number,
-    quantity: number = 1,
-  ): Promise<AddProductToCartResponse> {
+  async addProduct(productId: number, quantity: number = 1): Promise<AddProductToCartResponse> {
     return addProductToCart(productId, quantity);
   }
 
@@ -20,10 +17,10 @@ export default class CartService {
   }
 
   async editProductQuantity(productId: number | string, quantity: number) {
-    const response = await fetch("/api/v1/cart", {
-      method: "PATCH",
+    const response = await fetch('/api/v1/cart', {
+      method: 'PATCH',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         product_id: productId,
@@ -38,6 +35,6 @@ export default class CartService {
     }
 
     return response.json();
-    alert("updatingCartItem");
+    alert('updatingCartItem');
   }
 }

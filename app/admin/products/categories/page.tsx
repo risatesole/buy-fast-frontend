@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
-import ProductService from "@/services/products/ProductService";
-import type { Category } from "@/services/products/ProductService";
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import ProductService from '@/services/products/ProductService';
+import type { Category } from '@/services/products/ProductService';
 import {
   Table,
   TableBody,
@@ -11,7 +11,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 
 const productService = new ProductService();
 
@@ -21,11 +21,11 @@ function useCategoriesList() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const fetchCategories = useCallback(async (search: string = "") => {
+  const fetchCategories = useCallback(async (search: string = '') => {
     setLoading(true);
     setError(null);
 
@@ -37,18 +37,17 @@ function useCategoriesList() {
       if (search.trim()) {
         const searchLower = search.toLowerCase().trim();
         filteredCategories = allCategories.filter(
-          (category) =>
+          category =>
             category.name.toLowerCase().includes(searchLower) ||
             category.slug.toLowerCase().includes(searchLower) ||
-            (category.description &&
-              category.description.toLowerCase().includes(searchLower)),
+            (category.description && category.description.toLowerCase().includes(searchLower))
         );
       }
 
       setCategories(filteredCategories);
     } catch (err) {
-      console.error("Error fetching categories:", err);
-      setError("Failed to load categories");
+      console.error('Error fetching categories:', err);
+      setError('Failed to load categories');
     } finally {
       setLoading(false);
       setIsSearching(false);
@@ -68,12 +67,12 @@ function useCategoriesList() {
         fetchCategories(value);
       }, 500);
     },
-    [fetchCategories],
+    [fetchCategories]
   );
 
   const clearSearch = useCallback(() => {
-    setSearchTerm("");
-    fetchCategories("");
+    setSearchTerm('');
+    fetchCategories('');
   }, [fetchCategories]);
 
   const retry = useCallback(() => {
@@ -81,7 +80,7 @@ function useCategoriesList() {
   }, [fetchCategories, searchTerm]);
 
   useEffect(() => {
-    fetchCategories("");
+    fetchCategories('');
 
     return () => {
       if (searchTimeoutRef.current) {
@@ -106,14 +105,14 @@ function useCategoryNavigation() {
   const router = useRouter();
 
   const goToCreateCategory = useCallback(() => {
-    router.push("/admin/products/categories/create");
+    router.push('/admin/products/categories/create');
   }, [router]);
 
   const goToEditCategory = useCallback(
     (categoryId: number) => {
       router.push(`/admin/products/categories/edit/${categoryId}`);
     },
-    [router],
+    [router]
   );
 
   return { goToCreateCategory, goToEditCategory };
@@ -170,29 +169,15 @@ function PageHeader({ onAddCategory }: PageHeaderProps) {
   return (
     <div className="flex justify-between items-center mb-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Categories
-        </h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">
-          Manage your product categories
-        </p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Categories</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your product categories</p>
       </div>
       <button
         onClick={onAddCategory}
         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
       >
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 4v16m8-8H4"
-          />
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
         </svg>
         Add Category
       </button>
@@ -208,7 +193,7 @@ function SearchBar({ value, onChange, onClear }: SearchBarProps) {
           type="text"
           placeholder="Search categories by name, slug, or description..."
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={e => onChange(e.target.value)}
           className="w-full px-4 py-2 pl-10 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-700 dark:text-white"
         />
         <svg
@@ -229,12 +214,7 @@ function SearchBar({ value, onChange, onClear }: SearchBarProps) {
             onClick={onClear}
             className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
           >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -268,18 +248,12 @@ function EmptyState({ searchTerm }: EmptyStateProps) {
     <div className="text-center py-16 bg-white rounded-xl shadow-sm dark:bg-gray-800">
       <div className="text-6xl mb-4">🏷️</div>
       <p className="text-gray-500 dark:text-gray-400 text-lg">
-        {searchTerm
-          ? "No categories found matching your search"
-          : "No categories found"}
+        {searchTerm ? 'No categories found matching your search' : 'No categories found'}
       </p>
       {searchTerm ? (
-        <p className="text-gray-400 text-sm mt-2">
-          Try adjusting your search terms
-        </p>
+        <p className="text-gray-400 text-sm mt-2">Try adjusting your search terms</p>
       ) : (
-        <p className="text-gray-400 text-sm mt-2">
-          Start by adding your first category
-        </p>
+        <p className="text-gray-400 text-sm mt-2">Start by adding your first category</p>
       )}
     </div>
   );
@@ -309,20 +283,16 @@ function CategoryRow({ category, onEdit }: CategoryRowProps) {
                 className="h-10 w-10 rounded-lg object-cover"
                 src={category.image}
                 alt={category.name}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
+                onError={e => {
+                  (e.target as HTMLImageElement).style.display = 'none';
                 }}
               />
             </div>
           )}
           <div>
-            <div className="text-sm font-medium text-gray-900 dark:text-white">
-              {category.name}
-            </div>
+            <div className="text-sm font-medium text-gray-900 dark:text-white">{category.name}</div>
             {category.slug && (
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                /{category.slug}
-              </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">/{category.slug}</div>
             )}
           </div>
         </div>
@@ -373,12 +343,8 @@ function CategoriesTable({ categories, onEdit }: CategoriesTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {categories.map((category) => (
-            <CategoryRow
-              key={category.id}
-              category={category}
-              onEdit={onEdit}
-            />
+          {categories.map(category => (
+            <CategoryRow key={category.id} category={category} onEdit={onEdit} />
           ))}
         </TableBody>
       </Table>
@@ -389,16 +355,8 @@ function CategoriesTable({ categories, onEdit }: CategoriesTableProps) {
 // ========== MAIN PAGE ==========
 
 export default function CategoriesPage() {
-  const {
-    categories,
-    loading,
-    error,
-    searchTerm,
-    isSearching,
-    search,
-    clearSearch,
-    retry,
-  } = useCategoriesList();
+  const { categories, loading, error, searchTerm, isSearching, search, clearSearch, retry } =
+    useCategoriesList();
 
   const { goToCreateCategory, goToEditCategory } = useCategoryNavigation();
 

@@ -3,9 +3,9 @@ export async function POST(request: Request) {
     const backendUrl = process.env.BACKEND_URL;
 
     const response = await fetch(`${backendUrl}/api/v1/signout/`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        Cookie: request.headers.get("cookie") || "",
+        Cookie: request.headers.get('cookie') || '',
       },
     });
 
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     return Response.json(
       {
         success: false,
-        message: "Internal server error",
+        message: 'Internal server error',
       },
       { status: 500 }
     );

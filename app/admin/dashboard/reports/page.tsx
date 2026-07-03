@@ -1,3 +1,3 @@
-export default function ReportsPage(){
-    return <p>Welcome to reports page</p>
+export default function ReportsPage() {
+  return <p>Welcome to reports page</p>;
 }

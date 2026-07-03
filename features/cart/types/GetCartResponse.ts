@@ -1,4 +1,4 @@
-import type { CartItem } from "./CartItem";
+import type { CartItem } from './CartItem';
 
 export type GetCartResponse = {
   status: string;

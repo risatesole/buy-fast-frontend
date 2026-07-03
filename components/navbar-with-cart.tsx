@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Navbar, type NavbarCartItem } from "@/components/navbar";
-import CartService from "@/features/cart/service";
+import { useState } from 'react';
+import { Navbar, type NavbarCartItem } from '@/components/navbar';
+import CartService from '@/features/cart/service';
 type NavbarWithCartProps = {
   user: {
     name: string;
@@ -12,29 +12,23 @@ type NavbarWithCartProps = {
   initialCartItems?: NavbarCartItem[];
 };
 
-export function NavbarWithCart({
-  user,
-  initialCartItems = [],
-}: NavbarWithCartProps) {
+export function NavbarWithCart({ user, initialCartItems = [] }: NavbarWithCartProps) {
   const cartservice = new CartService();
 
-  const [cartItems, setCartItems] =
-    useState<NavbarCartItem[]>(initialCartItems);
+  const [cartItems, setCartItems] = useState<NavbarCartItem[]>(initialCartItems);
 
-  function handleRemove(id: NavbarCartItem["id"]) {
-    const item = cartItems.find((i) => i.id === id);
+  function handleRemove(id: NavbarCartItem['id']) {
+    const item = cartItems.find(i => i.id === id);
     if (!item) return;
-    setCartItems((prev) => prev.filter((i) => i.id !== id));
+    setCartItems(prev => prev.filter(i => i.id !== id));
     cartservice.removeProduct(item.productId);
   }
 
-  function handleUpdateQuantity(id: NavbarCartItem["id"], quantity: number) {
-    const item = cartItems.find((i) => i.id === id);
+  function handleUpdateQuantity(id: NavbarCartItem['id'], quantity: number) {
+    const item = cartItems.find(i => i.id === id);
     if (!item) return;
 
-    setCartItems((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, quantity } : i)),
-    );
+    setCartItems(prev => prev.map(i => (i.id === id ? { ...i, quantity } : i)));
     cartservice.editProductQuantity(item.productId, quantity);
   }
 

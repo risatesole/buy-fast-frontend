@@ -1,28 +1,22 @@
-export function SaveButton({
-  onClick,
-  saved,
-}: {
-  onClick: () => void;
-  saved: boolean;
-}) {
+export function SaveButton({ onClick, saved }: { onClick: () => void; saved: boolean }) {
   return (
     <button
       onClick={onClick}
       style={{
-        padding: "0.5rem 1.5rem",
-        fontSize: "0.8rem",
-        letterSpacing: "0.06em",
-        textTransform: "uppercase",
-        background: saved ? "oklch(0.922 0 0)" : "oklch(0.145 0 0)",
-        color: saved ? "oklch(0.556 0 0)" : "white",
-        border: "none",
+        padding: '0.5rem 1.5rem',
+        fontSize: '0.8rem',
+        letterSpacing: '0.06em',
+        textTransform: 'uppercase',
+        background: saved ? 'oklch(0.922 0 0)' : 'oklch(0.145 0 0)',
+        color: saved ? 'oklch(0.556 0 0)' : 'white',
+        border: 'none',
         borderRadius: 4,
-        cursor: "pointer",
-        transition: "all 0.2s",
-        fontFamily: "var(--font-geist-sans), sans-serif",
+        cursor: 'pointer',
+        transition: 'all 0.2s',
+        fontFamily: 'var(--font-geist-sans), sans-serif',
       }}
     >
-      {saved ? "Saved ✓" : "Save changes"}
+      {saved ? 'Saved ✓' : 'Save changes'}
     </button>
   );
 }

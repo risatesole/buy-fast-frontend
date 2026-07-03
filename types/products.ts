@@ -6,12 +6,7 @@ type Category = {
   status: boolean;
 };
 
-export type ProductImageType =
-  | "HERO"
-  | "SCALE"
-  | "PACKING"
-  | "FLATLAY"
-  | "FREEZE_FRAME";
+export type ProductImageType = 'HERO' | 'SCALE' | 'PACKING' | 'FLATLAY' | 'FREEZE_FRAME';
 
 export type ProductImage = {
   url: string;

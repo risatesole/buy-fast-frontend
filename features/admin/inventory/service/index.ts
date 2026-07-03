@@ -1,4 +1,4 @@
-import { type StockMovement } from "../types/stockMovement";
+import { type StockMovement } from '../types/stockMovement';
 
 class InventoryService {
   async getStockMovements(params: {
@@ -17,16 +17,16 @@ class InventoryService {
     const response = await fetch(
       `/api/v1/admin/inventory/stockmovement?${queryParams.toString()}`,
       {
-        method: "GET",
+        method: 'GET',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
-        credentials: "include", // Forward cookies
-      },
+        credentials: 'include', // Forward cookies
+      }
     );
 
     if (!response.ok) {
-      throw new Error("Failed to fetch stock movements");
+      throw new Error('Failed to fetch stock movements');
     }
 
     const data = await response.json();

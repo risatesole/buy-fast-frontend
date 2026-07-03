@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { createCategoryAction } from "./actions";
+import { useState, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { createCategoryAction } from './actions';
 
 // ========== TYPES ==========
 
@@ -21,17 +21,16 @@ type FieldErrorMap = Partial<Record<keyof FormState, string>>;
 function validate(form: FormState): FieldErrorMap {
   const errors: FieldErrorMap = {};
 
-  if (!form.name.trim()) errors.name = "Category name is required.";
-  if (!form.slug.trim()) errors.slug = "Slug is required.";
+  if (!form.name.trim()) errors.name = 'Category name is required.';
+  if (!form.slug.trim()) errors.slug = 'Slug is required.';
 
   // Validate slug format (only lowercase letters, numbers, and hyphens)
   if (form.slug.trim() && !/^[a-z0-9-]+$/.test(form.slug.trim())) {
-    errors.slug =
-      "Slug can only contain lowercase letters, numbers, and hyphens.";
+    errors.slug = 'Slug can only contain lowercase letters, numbers, and hyphens.';
   }
 
   if (form.image && !form.image.trim()) {
-    errors.image = "Image URL is required.";
+    errors.image = 'Image URL is required.';
   }
 
   return errors;
@@ -54,18 +53,10 @@ function FieldError({ message }: { message?: string }) {
   return <p className="mt-1 text-xs text-red-600">{message}</p>;
 }
 
-function SectionCard({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="bg-white rounded-xl shadow-sm p-6 dark:bg-gray-800">
-      <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">
-        {title}
-      </h2>
+      <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">{title}</h2>
       {children}
     </div>
   );
@@ -77,7 +68,7 @@ function TextInput({
   onChange,
   error,
   placeholder,
-  type = "text",
+  type = 'text',
   required = false,
 }: {
   label: string;
@@ -97,10 +88,10 @@ function TextInput({
       <input
         type={type}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
-          error ? "border-red-400" : "border-gray-300 dark:border-gray-600"
+          error ? 'border-red-400' : 'border-gray-300 dark:border-gray-600'
         }`}
       />
       <FieldError message={error} />
@@ -133,11 +124,11 @@ function TextareaInput({
       </label>
       <textarea
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         rows={rows}
         className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition resize-none dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
-          error ? "border-red-400" : "border-gray-300 dark:border-gray-600"
+          error ? 'border-red-400' : 'border-gray-300 dark:border-gray-600'
         }`}
       />
       <FieldError message={error} />
@@ -145,35 +136,25 @@ function TextareaInput({
   );
 }
 
-function StatusToggle({
-  value,
-  onChange,
-}: {
-  value: boolean;
-  onChange: (v: boolean) => void;
-}) {
+function StatusToggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
   return (
     <div className="flex items-center justify-between">
       <div>
-        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          Category status
-        </p>
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Category status</p>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-          {value
-            ? "Active — visible to customers"
-            : "Inactive — hidden from store"}
+          {value ? 'Active — visible to customers' : 'Inactive — hidden from store'}
         </p>
       </div>
       <button
         type="button"
         onClick={() => onChange(!value)}
         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-          value ? "bg-blue-600" : "bg-gray-200 dark:bg-gray-600"
+          value ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-600'
         }`}
       >
         <span
           className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-            value ? "translate-x-6" : "translate-x-1"
+            value ? 'translate-x-6' : 'translate-x-1'
           }`}
         />
       </button>
@@ -198,26 +179,24 @@ function ImageUrlInput({
       <input
         type="url"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={e => onChange(e.target.value)}
         placeholder="https://example.com/image.jpg"
         className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
-          error ? "border-red-400" : "border-gray-300 dark:border-gray-600"
+          error ? 'border-red-400' : 'border-gray-300 dark:border-gray-600'
         }`}
       />
       <FieldError message={error} />
       {value && (
         <div className="mt-2">
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-            Preview:
-          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Preview:</p>
           <div className="relative h-32 w-32 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
             <img
               src={value}
               alt="Category preview"
               className="w-full h-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = "";
-                (e.target as HTMLImageElement).alt = "Invalid image URL";
+              onError={e => {
+                (e.target as HTMLImageElement).src = '';
+                (e.target as HTMLImageElement).alt = 'Invalid image URL';
               }}
             />
           </div>
@@ -232,10 +211,10 @@ function ImageUrlInput({
 export default function CreateCategoryPage() {
   const router = useRouter();
   const [form, setForm] = useState<FormState>({
-    name: "",
-    slug: "",
-    description: "",
-    image: "",
+    name: '',
+    slug: '',
+    description: '',
+    image: '',
     status: true,
   });
   const [saving, setSaving] = useState(false);
@@ -243,31 +222,28 @@ export default function CreateCategoryPage() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrorMap>({});
 
-  const setField = useCallback(
-    <K extends keyof FormState>(key: K, value: FormState[K]) => {
-      setForm((prev) => ({ ...prev, [key]: value }));
-      setFieldErrors((prev) => ({ ...prev, [key]: undefined }));
-    },
-    [],
-  );
+  const setField = useCallback(<K extends keyof FormState>(key: K, value: FormState[K]) => {
+    setForm(prev => ({ ...prev, [key]: value }));
+    setFieldErrors(prev => ({ ...prev, [key]: undefined }));
+  }, []);
 
   // Auto-generate slug from name
   const generateSlug = useCallback((name: string) => {
     return name
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
   }, []);
 
   const handleNameChange = useCallback(
     (name: string) => {
-      setField("name", name);
+      setField('name', name);
       // Auto-generate slug if slug is empty or was auto-generated
       if (!form.slug || form.slug === generateSlug(form.name)) {
-        setField("slug", generateSlug(name));
+        setField('slug', generateSlug(name));
       }
     },
-    [form.name, form.slug, generateSlug, setField],
+    [form.name, form.slug, generateSlug, setField]
   );
 
   const handleSave = useCallback(async () => {
@@ -295,10 +271,10 @@ export default function CreateCategoryPage() {
     setSaving(false);
 
     if (!result.success) {
-      setSaveError(result.error ?? "Something went wrong.");
+      setSaveError(result.error ?? 'Something went wrong.');
     } else {
       setSaveSuccess(true);
-      setTimeout(() => router.push("/admin/products/categories"), 1200);
+      setTimeout(() => router.push('/admin/products/categories'), 1200);
     }
   }, [form, router]);
 
@@ -308,15 +284,10 @@ export default function CreateCategoryPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <button
-            onClick={() => router.push("/admin/products/categories")}
+            onClick={() => router.push('/admin/products/categories')}
             className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 mb-2 transition"
           >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -326,9 +297,7 @@ export default function CreateCategoryPage() {
             </svg>
             Categories
           </button>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Create Category
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Create Category</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             Add a new product category
           </p>
@@ -348,7 +317,7 @@ export default function CreateCategoryPage() {
             </span>
           )}
           <button
-            onClick={() => router.push("/admin/products/categories")}
+            onClick={() => router.push('/admin/products/categories')}
             disabled={saving}
             className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition disabled:opacity-50"
           >
@@ -360,11 +329,7 @@ export default function CreateCategoryPage() {
             className="px-5 py-2 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition flex items-center gap-2"
           >
             {saving && (
-              <svg
-                className="animate-spin h-4 w-4 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
+              <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                 <circle
                   className="opacity-25"
                   cx="12"
@@ -373,14 +338,10 @@ export default function CreateCategoryPage() {
                   stroke="currentColor"
                   strokeWidth="4"
                 />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8H4z"
-                />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
               </svg>
             )}
-            {saving ? "Creating…" : "Create Category"}
+            {saving ? 'Creating…' : 'Create Category'}
           </button>
         </div>
       </div>
@@ -406,7 +367,7 @@ export default function CreateCategoryPage() {
             <TextInput
               label="Slug"
               value={form.slug}
-              onChange={(v) => setField("slug", v)}
+              onChange={v => setField('slug', v)}
               error={fieldErrors.slug}
               placeholder="e.g. electronics"
               required
@@ -414,7 +375,7 @@ export default function CreateCategoryPage() {
             <TextareaInput
               label="Description"
               value={form.description}
-              onChange={(v) => setField("description", v)}
+              onChange={v => setField('description', v)}
               error={fieldErrors.description}
               placeholder="Describe the category…"
               rows={4}
@@ -427,14 +388,11 @@ export default function CreateCategoryPage() {
           <div className="flex flex-col gap-4">
             <ImageUrlInput
               value={form.image}
-              onChange={(v) => setField("image", v)}
+              onChange={v => setField('image', v)}
               error={fieldErrors.image}
             />
             <div className="border-t dark:border-gray-700 pt-4">
-              <StatusToggle
-                value={form.status}
-                onChange={(v) => setField("status", v)}
-              />
+              <StatusToggle value={form.status} onChange={v => setField('status', v)} />
             </div>
           </div>
         </SectionCard>
@@ -442,7 +400,7 @@ export default function CreateCategoryPage() {
         {/* Save footer */}
         <div className="flex justify-end gap-3 pb-4">
           <button
-            onClick={() => router.push("/admin/products/categories")}
+            onClick={() => router.push('/admin/products/categories')}
             disabled={saving}
             className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition disabled:opacity-50"
           >
@@ -454,11 +412,7 @@ export default function CreateCategoryPage() {
             className="px-5 py-2 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition flex items-center gap-2"
           >
             {saving && (
-              <svg
-                className="animate-spin h-4 w-4 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
+              <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                 <circle
                   className="opacity-25"
                   cx="12"
@@ -467,14 +421,10 @@ export default function CreateCategoryPage() {
                   stroke="currentColor"
                   strokeWidth="4"
                 />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8H4z"
-                />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
               </svg>
             )}
-            {saving ? "Creating…" : "Create Category"}
+            {saving ? 'Creating…' : 'Create Category'}
           </button>
         </div>
       </div>

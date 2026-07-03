@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback, use } from "react";
-import { useRouter } from "next/navigation";
-import { updateCategoryAction, deleteCategoryAction } from "./actions";
-import type { Category } from "@/services/products/ProductService";
+import { useState, useEffect, useCallback, use } from 'react';
+import { useRouter } from 'next/navigation';
+import { updateCategoryAction, deleteCategoryAction } from './actions';
+import type { Category } from '@/services/products/ProductService';
 
 // ========== TYPES ==========
 
@@ -22,31 +22,29 @@ type FieldErrorMap = Partial<Record<keyof FormState, string>>;
 async function fetchCategoryById(id: string): Promise<Category | null> {
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
   if (!BACKEND_URL) {
-    console.error("[fetchCategoryById] NEXT_PUBLIC_API_URL is not set");
+    console.error('[fetchCategoryById] NEXT_PUBLIC_API_URL is not set');
     return null;
   }
 
   const url = `${BACKEND_URL}/api/v1/products/categories/${id}/`;
-  console.log("[fetchCategoryById] Fetching from URL:", url);
+  console.log('[fetchCategoryById] Fetching from URL:', url);
 
   try {
     const res = await fetch(url, {
-      credentials: "include",
+      credentials: 'include',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     });
 
-    console.log("[fetchCategoryById] Response status:", res.status);
+    console.log('[fetchCategoryById] Response status:', res.status);
 
     if (!res.ok) {
-      console.error(
-        `[fetchCategoryById] ${res.status} ${res.statusText} — ${url}`,
-      );
+      console.error(`[fetchCategoryById] ${res.status} ${res.statusText} — ${url}`);
       return null;
     }
     const json = await res.json();
-    console.log("[fetchCategoryById] Response:", json);
+    console.log('[fetchCategoryById] Response:', json);
     return json.data ?? null;
   } catch (err) {
     console.error(`[fetchCategoryById] Network error fetching ${url}:`, err);
@@ -59,13 +57,12 @@ async function fetchCategoryById(id: string): Promise<Category | null> {
 function validate(form: FormState): FieldErrorMap {
   const errors: FieldErrorMap = {};
 
-  if (!form.name.trim()) errors.name = "Category name is required.";
-  if (!form.slug.trim()) errors.slug = "Slug is required.";
+  if (!form.name.trim()) errors.name = 'Category name is required.';
+  if (!form.slug.trim()) errors.slug = 'Slug is required.';
 
   // Validate slug format (only lowercase letters, numbers, and hyphens)
   if (form.slug.trim() && !/^[a-z0-9-]+$/.test(form.slug.trim())) {
-    errors.slug =
-      "Slug can only contain lowercase letters, numbers, and hyphens.";
+    errors.slug = 'Slug can only contain lowercase letters, numbers, and hyphens.';
   }
 
   return errors;
@@ -87,10 +84,10 @@ function useEditCategory(id: string) {
   const [fieldErrors, setFieldErrors] = useState<FieldErrorMap>({});
 
   const [form, setForm] = useState<FormState>({
-    name: "",
-    slug: "",
-    description: "",
-    image: "",
+    name: '',
+    slug: '',
+    description: '',
+    image: '',
     status: true,
   });
 
@@ -105,14 +102,14 @@ function useEditCategory(id: string) {
           setForm({
             name: c.name,
             slug: c.slug,
-            description: c.description || "",
-            image: c.image || "",
+            description: c.description || '',
+            image: c.image || '',
             status: c.status ?? true,
           });
         }
       } catch (error) {
-        console.error("Error loading category:", error);
-        setFetchError("Failed to load category.");
+        console.error('Error loading category:', error);
+        setFetchError('Failed to load category.');
       } finally {
         setLoading(false);
       }
@@ -121,31 +118,28 @@ function useEditCategory(id: string) {
     loadCategory();
   }, [id]);
 
-  const setField = useCallback(
-    <K extends keyof FormState>(key: K, value: FormState[K]) => {
-      setForm((prev) => ({ ...prev, [key]: value }));
-      setFieldErrors((prev) => ({ ...prev, [key]: undefined }));
-    },
-    [],
-  );
+  const setField = useCallback(<K extends keyof FormState>(key: K, value: FormState[K]) => {
+    setForm(prev => ({ ...prev, [key]: value }));
+    setFieldErrors(prev => ({ ...prev, [key]: undefined }));
+  }, []);
 
   // Auto-generate slug from name
   const generateSlug = useCallback((name: string) => {
     return name
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
   }, []);
 
   const handleNameChange = useCallback(
     (name: string) => {
-      setField("name", name);
+      setField('name', name);
       // Auto-generate slug if slug is empty or was auto-generated from the original name
-      if (!form.slug || form.slug === generateSlug(category?.name || "")) {
-        setField("slug", generateSlug(name));
+      if (!form.slug || form.slug === generateSlug(category?.name || '')) {
+        setField('slug', generateSlug(name));
       }
     },
-    [form.slug, category?.name, generateSlug, setField],
+    [form.slug, category?.name, generateSlug, setField]
   );
 
   const handleSave = useCallback(async () => {
@@ -171,14 +165,14 @@ function useEditCategory(id: string) {
       const result = await updateCategoryAction(id, categoryData);
 
       if (!result.success) {
-        setSaveError(result.error ?? "Something went wrong.");
+        setSaveError(result.error ?? 'Something went wrong.');
       } else {
         setSaveSuccess(true);
-        setTimeout(() => router.push("/admin/products/categories"), 1200);
+        setTimeout(() => router.push('/admin/products/categories'), 1200);
       }
     } catch (error) {
-      console.error("Error saving category:", error);
-      setSaveError("An unexpected error occurred.");
+      console.error('Error saving category:', error);
+      setSaveError('An unexpected error occurred.');
     } finally {
       setSaving(false);
     }
@@ -192,14 +186,14 @@ function useEditCategory(id: string) {
       const result = await deleteCategoryAction(id);
 
       if (!result.success) {
-        setDeleteError(result.error ?? "Failed to delete category.");
+        setDeleteError(result.error ?? 'Failed to delete category.');
         setShowDeleteModal(false);
       } else {
-        router.push("/admin/products/categories");
+        router.push('/admin/products/categories');
       }
     } catch (error) {
-      console.error("Error deleting category:", error);
-      setDeleteError("An unexpected error occurred.");
+      console.error('Error deleting category:', error);
+      setDeleteError('An unexpected error occurred.');
       setShowDeleteModal(false);
     } finally {
       setDeleting(false);
@@ -243,18 +237,10 @@ function FieldError({ message }: { message?: string }) {
   return <p className="mt-1 text-xs text-red-600">{message}</p>;
 }
 
-function SectionCard({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="bg-white rounded-xl shadow-sm p-6 dark:bg-gray-800">
-      <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">
-        {title}
-      </h2>
+      <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">{title}</h2>
       {children}
     </div>
   );
@@ -266,7 +252,7 @@ function TextInput({
   onChange,
   error,
   placeholder,
-  type = "text",
+  type = 'text',
   required = false,
   disabled = false,
 }: {
@@ -288,14 +274,12 @@ function TextInput({
       <input
         type={type}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         disabled={disabled}
         className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
-          disabled
-            ? "bg-gray-100 dark:bg-gray-800 cursor-not-allowed opacity-60"
-            : ""
-        } ${error ? "border-red-400" : "border-gray-300 dark:border-gray-600"}`}
+          disabled ? 'bg-gray-100 dark:bg-gray-800 cursor-not-allowed opacity-60' : ''
+        } ${error ? 'border-red-400' : 'border-gray-300 dark:border-gray-600'}`}
       />
       <FieldError message={error} />
     </div>
@@ -327,11 +311,11 @@ function TextareaInput({
       </label>
       <textarea
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         rows={rows}
         className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition resize-none dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
-          error ? "border-red-400" : "border-gray-300 dark:border-gray-600"
+          error ? 'border-red-400' : 'border-gray-300 dark:border-gray-600'
         }`}
       />
       <FieldError message={error} />
@@ -339,35 +323,25 @@ function TextareaInput({
   );
 }
 
-function StatusToggle({
-  value,
-  onChange,
-}: {
-  value: boolean;
-  onChange: (v: boolean) => void;
-}) {
+function StatusToggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
   return (
     <div className="flex items-center justify-between">
       <div>
-        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          Category status
-        </p>
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Category status</p>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-          {value
-            ? "Active — visible to customers"
-            : "Inactive — hidden from store"}
+          {value ? 'Active — visible to customers' : 'Inactive — hidden from store'}
         </p>
       </div>
       <button
         type="button"
         onClick={() => onChange(!value)}
         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-          value ? "bg-blue-600" : "bg-gray-200 dark:bg-gray-600"
+          value ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-600'
         }`}
       >
         <span
           className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-            value ? "translate-x-6" : "translate-x-1"
+            value ? 'translate-x-6' : 'translate-x-1'
           }`}
         />
       </button>
@@ -392,26 +366,24 @@ function ImageUrlInput({
       <input
         type="url"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={e => onChange(e.target.value)}
         placeholder="https://example.com/image.jpg"
         className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
-          error ? "border-red-400" : "border-gray-300 dark:border-gray-600"
+          error ? 'border-red-400' : 'border-gray-300 dark:border-gray-600'
         }`}
       />
       <FieldError message={error} />
       {value && (
         <div className="mt-2">
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-            Preview:
-          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Preview:</p>
           <div className="relative h-32 w-32 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
             <img
               src={value}
               alt="Category preview"
               className="w-full h-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = "";
-                (e.target as HTMLImageElement).alt = "Invalid image URL";
+              onError={e => {
+                (e.target as HTMLImageElement).src = '';
+                (e.target as HTMLImageElement).alt = 'Invalid image URL';
               }}
             />
           </div>
@@ -455,18 +427,14 @@ function DeleteConfirmationModal({
               />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Delete Category
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Delete Category</h3>
         </div>
 
         <p className="text-gray-600 dark:text-gray-300 mb-2">
-          Are you sure you want to delete the category{" "}
-          <strong>"{categoryName}"</strong>?
+          Are you sure you want to delete the category <strong>"{categoryName}"</strong>?
         </p>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-          This action cannot be undone. Products associated with this category
-          will not be deleted.
+          This action cannot be undone. Products associated with this category will not be deleted.
         </p>
 
         <div className="flex justify-end gap-3">
@@ -483,11 +451,7 @@ function DeleteConfirmationModal({
             className="px-4 py-2 text-sm bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-medium rounded-lg transition flex items-center gap-2"
           >
             {isDeleting && (
-              <svg
-                className="animate-spin h-4 w-4 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
+              <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                 <circle
                   className="opacity-25"
                   cx="12"
@@ -496,14 +460,10 @@ function DeleteConfirmationModal({
                   stroke="currentColor"
                   strokeWidth="4"
                 />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8H4z"
-                />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
               </svg>
             )}
-            {isDeleting ? "Deleting…" : "Delete Category"}
+            {isDeleting ? 'Deleting…' : 'Delete Category'}
           </button>
         </div>
       </div>
@@ -513,11 +473,7 @@ function DeleteConfirmationModal({
 
 // ========== MAIN PAGE ==========
 
-export default function EditCategoryPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function EditCategoryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const {
     category,
@@ -552,11 +508,9 @@ export default function EditCategoryPage({
     return (
       <div className="container mx-auto px-4 py-10">
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center">
-          <p className="text-red-700 dark:text-red-400 font-medium">
-            {fetchError}
-          </p>
+          <p className="text-red-700 dark:text-red-400 font-medium">{fetchError}</p>
           <button
-            onClick={() => router.push("/admin/products/categories")}
+            onClick={() => router.push('/admin/products/categories')}
             className="mt-4 text-sm text-red-600 dark:text-red-400 underline hover:no-underline"
           >
             Back to categories
@@ -572,15 +526,10 @@ export default function EditCategoryPage({
       <div className="flex items-center justify-between mb-8">
         <div>
           <button
-            onClick={() => router.push("/admin/products/categories")}
+            onClick={() => router.push('/admin/products/categories')}
             className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 mb-2 transition"
           >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -590,12 +539,8 @@ export default function EditCategoryPage({
             </svg>
             Categories
           </button>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Edit Category
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-            ID #{id}
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Edit Category</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">ID #{id}</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -612,7 +557,7 @@ export default function EditCategoryPage({
             </span>
           )}
           <button
-            onClick={() => router.push("/admin/products/categories")}
+            onClick={() => router.push('/admin/products/categories')}
             disabled={saving || deleting}
             className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition disabled:opacity-50"
           >
@@ -624,11 +569,7 @@ export default function EditCategoryPage({
             className="px-5 py-2 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition flex items-center gap-2"
           >
             {saving && (
-              <svg
-                className="animate-spin h-4 w-4 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
+              <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                 <circle
                   className="opacity-25"
                   cx="12"
@@ -637,14 +578,10 @@ export default function EditCategoryPage({
                   stroke="currentColor"
                   strokeWidth="4"
                 />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8H4z"
-                />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
               </svg>
             )}
-            {saving ? "Saving…" : "Save Changes"}
+            {saving ? 'Saving…' : 'Save Changes'}
           </button>
         </div>
       </div>
@@ -676,7 +613,7 @@ export default function EditCategoryPage({
             <TextInput
               label="Slug"
               value={form.slug}
-              onChange={(v) => setField("slug", v)}
+              onChange={v => setField('slug', v)}
               error={fieldErrors.slug}
               placeholder="e.g. electronics"
               required
@@ -684,7 +621,7 @@ export default function EditCategoryPage({
             <TextareaInput
               label="Description"
               value={form.description}
-              onChange={(v) => setField("description", v)}
+              onChange={v => setField('description', v)}
               error={fieldErrors.description}
               placeholder="Describe the category…"
               rows={4}
@@ -697,14 +634,11 @@ export default function EditCategoryPage({
           <div className="flex flex-col gap-4">
             <ImageUrlInput
               value={form.image}
-              onChange={(v) => setField("image", v)}
+              onChange={v => setField('image', v)}
               error={fieldErrors.image}
             />
             <div className="border-t dark:border-gray-700 pt-4">
-              <StatusToggle
-                value={form.status}
-                onChange={(v) => setField("status", v)}
-              />
+              <StatusToggle value={form.status} onChange={v => setField('status', v)} />
             </div>
           </div>
         </SectionCard>
@@ -713,9 +647,7 @@ export default function EditCategoryPage({
         <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-xl p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-semibold text-red-700 dark:text-red-400">
-                Danger Zone
-              </h3>
+              <h3 className="text-sm font-semibold text-red-700 dark:text-red-400">Danger Zone</h3>
               <p className="text-sm text-red-600 dark:text-red-300 mt-1">
                 Once you delete this category, it cannot be recovered.
               </p>
@@ -733,7 +665,7 @@ export default function EditCategoryPage({
         {/* Save footer */}
         <div className="flex justify-end gap-3 pb-4">
           <button
-            onClick={() => router.push("/admin/products/categories")}
+            onClick={() => router.push('/admin/products/categories')}
             disabled={saving || deleting}
             className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition disabled:opacity-50"
           >
@@ -745,11 +677,7 @@ export default function EditCategoryPage({
             className="px-5 py-2 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition flex items-center gap-2"
           >
             {saving && (
-              <svg
-                className="animate-spin h-4 w-4 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
+              <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                 <circle
                   className="opacity-25"
                   cx="12"
@@ -758,14 +686,10 @@ export default function EditCategoryPage({
                   stroke="currentColor"
                   strokeWidth="4"
                 />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8H4z"
-                />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
               </svg>
             )}
-            {saving ? "Saving…" : "Save Changes"}
+            {saving ? 'Saving…' : 'Save Changes'}
           </button>
         </div>
       </div>
@@ -776,7 +700,7 @@ export default function EditCategoryPage({
         onClose={() => setShowDeleteModal(false)}
         onConfirm={handleDelete}
         isDeleting={deleting}
-        categoryName={category?.name || "this category"}
+        categoryName={category?.name || 'this category'}
       />
     </div>
   );

@@ -1,22 +1,22 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import type { ProductImage } from "@/types/products";
+import { useState } from 'react';
+import type { ProductImage } from '@/types/products';
 
 // ─── Glyph ────────────────────────────────────────────────────
 
 function ProductGlyph({ category }: { category: string }) {
-  const stroke = "oklch(0.708 0 0)";
+  const stroke = 'oklch(0.708 0 0)';
   const props = {
     width: 80,
     height: 80,
-    viewBox: "0 0 24 24",
-    fill: "none",
+    viewBox: '0 0 24 24',
+    fill: 'none',
     stroke,
     strokeWidth: 0.75,
   } as const;
 
-  if (category === "Books")
+  if (category === 'Books')
     return (
       <svg {...props}>
         <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
@@ -24,7 +24,7 @@ function ProductGlyph({ category }: { category: string }) {
       </svg>
     );
 
-  if (category === "Notebooks")
+  if (category === 'Notebooks')
     return (
       <svg {...props}>
         <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
@@ -34,7 +34,7 @@ function ProductGlyph({ category }: { category: string }) {
       </svg>
     );
 
-  if (category === "Pens")
+  if (category === 'Pens')
     return (
       <svg {...props}>
         <line x1="12" y1="19" x2="12" y2="23" />
@@ -62,29 +62,29 @@ export function ImageGallery({
   productName: string;
   category: string;
 }) {
-  const hero = images.find((img) => img.type === "HERO");
+  const hero = images.find(img => img.type === 'HERO');
   const [selected, setSelected] = useState<ProductImage>(hero ?? images[0]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       {/* Main image */}
       <div
         style={{
-          aspectRatio: "1/1",
-          background: "oklch(0.985 0 0)",
+          aspectRatio: '1/1',
+          background: 'oklch(0.985 0 0)',
           borderRadius: 4,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          overflow: "hidden",
-          border: "1px solid oklch(0.922 0 0)",
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
+          border: '1px solid oklch(0.922 0 0)',
         }}
       >
         {selected ? (
           <img
             src={selected.url}
             alt={productName}
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         ) : (
           <ProductGlyph category={category} />
@@ -93,8 +93,8 @@ export function ImageGallery({
 
       {/* Thumbnails — only show if more than one image */}
       {images.length > 1 && (
-        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-          {images.map((img) => (
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          {images.map(img => (
             <button
               key={img.type}
               onClick={() => setSelected(img)}
@@ -104,20 +104,20 @@ export function ImageGallery({
                 padding: 0,
                 border:
                   selected.type === img.type
-                    ? "2px solid oklch(0.145 0 0)"
-                    : "2px solid oklch(0.922 0 0)",
+                    ? '2px solid oklch(0.145 0 0)'
+                    : '2px solid oklch(0.922 0 0)',
                 borderRadius: 4,
-                overflow: "hidden",
-                cursor: "pointer",
-                background: "oklch(0.985 0 0)",
+                overflow: 'hidden',
+                cursor: 'pointer',
+                background: 'oklch(0.985 0 0)',
                 flexShrink: 0,
-                transition: "border-color 0.15s ease",
+                transition: 'border-color 0.15s ease',
               }}
             >
               <img
                 src={img.url}
                 alt={img.type}
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             </button>
           ))}

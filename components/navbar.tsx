@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import Link from "next/link";
+import Link from 'next/link';
 import {
   Search,
   User,
@@ -11,9 +11,9 @@ import {
   Settings,
   LogOut,
   ShieldCheck,
-} from "lucide-react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+} from 'lucide-react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -36,36 +36,29 @@ export type NavbarCartItem = {
 type NavbarProps = {
   user: User | null;
   cartItems?: NavbarCartItem[];
-  onRemoveCartItem?: (id: NavbarCartItem["id"]) => void;
-  onUpdateCartItemQuantity?: (id: NavbarCartItem["id"], quantity: number) => void;
+  onRemoveCartItem?: (id: NavbarCartItem['id']) => void;
+  onUpdateCartItemQuantity?: (id: NavbarCartItem['id'], quantity: number) => void;
   onCheckout?: () => void;
 };
 
 // ── Helpers ────────────────────────────────────────────────────
 
 const navLinks = [
-  { href: "/categories", label: "categories" },
-  { href: "/books", label: "Books" },
-  { href: "/notebooks", label: "Notebooks" },
-  { href: "/pens", label: "Pens" },
-  { href: "/bundles", label: "Bundles" },
+  { href: '/categories', label: 'categories' },
+  { href: '/books', label: 'Books' },
+  { href: '/notebooks', label: 'Notebooks' },
+  { href: '/pens', label: 'Pens' },
+  { href: '/bundles', label: 'Bundles' },
 ];
 
-type DrawerType = "cart" | "account" | null;
+type DrawerType = 'cart' | 'account' | null;
 
 const fmt = (n: number) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
-    n,
-  );
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
 
 function NavbarLogo() {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 40 41"
-      width="32"
-      height="32"
-    >
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 41" width="32" height="32">
       <g transform="translate(0, 0.5)">
         <path
           d="M40 13.4683C40.0001 10.7823 39.1891 8.1589 37.673 5.9417C36.1569 3.72451 34.0065 2.01688 31.5035 1.04252C29.0005 0.0681476 26.2615 -0.127534 23.6455 0.48109C21.0293 1.08971 18.658 2.47428 16.8421 4.45341H0V40H35.5601V23.3873C36.9557 22.139 38.0726 20.6104 38.8377 18.9012C39.6027 17.192 39.9988 15.3409 40 13.4683ZM33.1579 13.4683C33.1606 14.7553 32.7814 16.0143 32.0683 17.0858C31.3551 18.1572 30.3402 18.9931 29.1518 19.4874C27.9634 19.9819 26.6552 20.1127 25.3924 19.8631C24.1298 19.6137 22.9695 18.9953 22.0584 18.0861C21.1474 17.1769 20.5266 16.0179 20.2745 14.7557C20.0224 13.4936 20.1505 12.185 20.6424 10.9957C21.1343 9.80626 21.968 8.78957 23.0379 8.07423C24.108 7.35888 25.3661 6.97705 26.6532 6.97703C28.376 6.97703 30.0285 7.6605 31.2479 8.87745C32.4675 10.0944 33.1544 11.7455 33.1579 13.4683ZM28.7179 33.1579H6.84211V11.2955H13.5088C13.38 12.0128 13.3123 12.7397 13.3063 13.4683C13.31 17.007 14.7173 20.3997 17.2196 22.902C19.7217 25.4042 23.1144 26.8116 26.6532 26.8151C27.3451 26.8115 28.0355 26.7528 28.7179 26.6397V33.1579Z"
@@ -87,14 +80,11 @@ export function Navbar({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [activeDrawer, setActiveDrawer] = useState<DrawerType>(null);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
   const router = useRouter();
 
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0,
-  );
+  const totalPrice = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const hasItems = totalItems > 0;
 
   function openDrawer(drawer: DrawerType) {
@@ -107,7 +97,7 @@ export function Navbar({
   }
 
   function handleSearch(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key !== "Enter") return;
+    if (e.key !== 'Enter') return;
     const trimmed = query.trim();
     if (!trimmed) return;
     setSearchOpen(false);
@@ -117,28 +107,26 @@ export function Navbar({
 
   async function handleLogout() {
     try {
-      await fetch("/api/v1/signout/", {
-        method: "POST",
-        credentials: "include",
+      await fetch('/api/v1/signout/', {
+        method: 'POST',
+        credentials: 'include',
       });
     } finally {
       closeDrawer();
       setMobileOpen(false);
-      router.push("/signin");
+      router.push('/signin');
     }
   }
 
   return (
     <>
       {/* ── Overlay ── */}
-      {activeDrawer && (
-        <div className="fixed inset-0 z-40 bg-black/30" onClick={closeDrawer} />
-      )}
+      {activeDrawer && <div className="fixed inset-0 z-40 bg-black/30" onClick={closeDrawer} />}
 
       {/* ── Cart drawer ── */}
       <div
         className={`fixed top-0 right-0 z-50 h-full w-96 bg-background flex flex-col transition-transform duration-300 ease-in-out border-l ${
-          activeDrawer === "cart" ? "translate-x-0" : "translate-x-full"
+          activeDrawer === 'cart' ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Header */}
@@ -149,11 +137,7 @@ export function Navbar({
               {totalItems}
             </span>
           )}
-          <button
-            onClick={closeDrawer}
-            aria-label="Close cart"
-            className="ml-auto"
-          >
+          <button onClick={closeDrawer} aria-label="Close cart" className="ml-auto">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -162,7 +146,7 @@ export function Navbar({
           <>
             {/* Items */}
             <div className="flex-1 overflow-y-auto px-6 divide-y">
-              {cartItems.map((item) => (
+              {cartItems.map(item => (
                 <div key={item.id} className="flex gap-4 py-5">
                   {/* Thumbnail */}
                   <div className="h-20 w-20 flex-shrink-0 bg-accent overflow-hidden">
@@ -181,16 +165,10 @@ export function Navbar({
 
                   {/* Info */}
                   <div className="flex flex-1 flex-col gap-0.5 min-w-0">
-                    <p className="text-sm font-semibold leading-snug">
-                      {item.name}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {fmt(item.price)} USD
-                    </p>
+                    <p className="text-sm font-semibold leading-snug">{item.name}</p>
+                    <p className="text-sm text-muted-foreground">{fmt(item.price)} USD</p>
                     {item.variant && (
-                      <p className="text-xs text-muted-foreground">
-                        {item.variant}
-                      </p>
+                      <p className="text-xs text-muted-foreground">{item.variant}</p>
                     )}
                   </div>
 
@@ -200,7 +178,7 @@ export function Navbar({
                       type="number"
                       min={1}
                       value={item.quantity}
-                      onChange={(e) => {
+                      onChange={e => {
                         const val = parseInt(e.target.value);
                         if (!isNaN(val) && val > 0) {
                           onUpdateCartItemQuantity?.(item.id, val);
@@ -232,14 +210,11 @@ export function Navbar({
               <div>
                 <div className="flex justify-between items-baseline">
                   <span className="text-base font-semibold">Total</span>
-                  <span className="text-base font-semibold">
-                    {fmt(totalPrice)} USD
-                  </span>
+                  <span className="text-base font-semibold">{fmt(totalPrice)} USD</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Taxes and{" "}
-                  <span className="underline cursor-pointer">shipping</span>{" "}
-                  calculated at checkout
+                  Taxes and <span className="underline cursor-pointer">shipping</span> calculated at
+                  checkout
                 </p>
               </div>
 
@@ -248,7 +223,7 @@ export function Navbar({
                 <button
                   onClick={() => {
                     closeDrawer();
-                    router.push("/cart");
+                    router.push('/cart');
                   }}
                   className="bg-foreground text-background text-sm font-medium py-3 hover:opacity-90 transition-opacity"
                 >
@@ -257,7 +232,7 @@ export function Navbar({
                 <button
                   onClick={() => {
                     onCheckout?.();
-                    router.push("/checkout");
+                    router.push('/checkout');
                   }}
                   className="bg-foreground text-background text-sm font-medium py-3 hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
                 >
@@ -285,7 +260,7 @@ export function Navbar({
             <button
               onClick={() => {
                 closeDrawer();
-                router.push("/products");
+                router.push('/products');
               }}
               className="w-full bg-foreground text-background text-sm font-medium py-3 hover:opacity-90 transition-opacity"
             >
@@ -297,12 +272,12 @@ export function Navbar({
       {/* ── Account drawer ── */}
       <div
         className={`fixed top-0 right-0 z-50 h-full w-80 bg-background shadow-xl flex flex-col transition-transform duration-300 ease-in-out ${
-          activeDrawer === "account" ? "translate-x-0" : "translate-x-full"
+          activeDrawer === 'account' ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         <div className="flex items-center justify-between border-b px-5 py-4">
           <span className="text-sm font-medium">
-            {user ? `Hi, ${user.name.split(" ")[0]}` : "My account"}
+            {user ? `Hi, ${user.name.split(' ')[0]}` : 'My account'}
           </span>
           <button onClick={closeDrawer} aria-label="Close account menu">
             <X className="h-5 w-5" />
@@ -320,7 +295,7 @@ export function Navbar({
                 <User className="h-4 w-4 text-muted-foreground" />
                 My account
               </Link>
-              {user.role === "employee" && (
+              {user.role === 'employee' && (
                 <Link
                   href="/admin"
                   onClick={closeDrawer}
@@ -371,7 +346,7 @@ export function Navbar({
               placeholder="Search products..."
               className="flex-1 bg-transparent text-sm outline-none"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={e => setQuery(e.target.value)}
               onKeyDown={handleSearch}
             />
             <button onClick={() => setSearchOpen(false)}>
@@ -381,15 +356,12 @@ export function Navbar({
         )}
 
         <div className="container mx-auto flex h-14 items-center px-4">
-          <Link
-            href="/"
-            className="text-xl font-bold tracking-tight mr-6 flex-shrink-0"
-          >
+          <Link href="/" className="text-xl font-bold tracking-tight mr-6 flex-shrink-0">
             <NavbarLogo />
           </Link>
 
           <div className="hidden md:flex items-center flex-1">
-            {navLinks.map((link) => (
+            {navLinks.map(link => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -403,7 +375,7 @@ export function Navbar({
           <div className="flex items-center gap-1 ml-auto">
             <button
               aria-label="Search"
-              onClick={() => setSearchOpen((o) => !o)}
+              onClick={() => setSearchOpen(o => !o)}
               className="h-9 w-9 flex items-center justify-center rounded-md hover:bg-accent transition-colors"
             >
               <Search className="h-5 w-5" />
@@ -411,7 +383,7 @@ export function Navbar({
 
             <button
               aria-label="Account"
-              onClick={() => openDrawer("account")}
+              onClick={() => openDrawer('account')}
               className="h-9 w-9 flex items-center justify-center rounded-md hover:bg-accent transition-colors"
             >
               <User className="h-5 w-5" />
@@ -419,7 +391,7 @@ export function Navbar({
 
             <button
               aria-label="Wishlist"
-              onClick={() => router.push("/wishlist")}
+              onClick={() => router.push('/wishlist')}
               className="h-9 w-9 flex items-center justify-center rounded-md hover:bg-accent transition-colors"
             >
               <Heart className="h-5 w-5" />
@@ -428,7 +400,7 @@ export function Navbar({
             {/* Cart icon — red dot when items present, count badge when empty */}
             <button
               aria-label="Cart"
-              onClick={() => openDrawer("cart")}
+              onClick={() => openDrawer('cart')}
               className="h-9 w-9 flex items-center justify-center rounded-md hover:bg-accent transition-colors relative"
             >
               <ShoppingCart className="h-5 w-5" />
@@ -443,14 +415,10 @@ export function Navbar({
 
             <button
               aria-label="Toggle menu"
-              onClick={() => setMobileOpen((o) => !o)}
+              onClick={() => setMobileOpen(o => !o)}
               className="md:hidden h-9 w-9 flex items-center justify-center rounded-md hover:bg-accent transition-colors"
             >
-              {mobileOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
+              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
@@ -458,7 +426,7 @@ export function Navbar({
         {mobileOpen && (
           <div className="border-t md:hidden">
             <div className="container mx-auto flex flex-col py-2 px-4">
-              {navLinks.map((link) => (
+              {navLinks.map(link => (
                 <Link
                   key={link.href}
                   href={link.href}

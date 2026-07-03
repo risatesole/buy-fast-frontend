@@ -1,17 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
     const backendUrl = process.env.BACKEND_URL;
 
     if (!backendUrl) {
-      throw new Error("BACKEND_URL is not defined");
+      throw new Error('BACKEND_URL is not defined');
     }
 
-    const cookieHeader = request.headers.get("cookie") ?? "";
+    const cookieHeader = request.headers.get('cookie') ?? '';
 
     const response = await fetch(`${backendUrl}/api/v1/me`, {
-      method: "GET",
+      method: 'GET',
       headers: {
         Cookie: cookieHeader,
       },
@@ -27,8 +27,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(
       {
-        status: "error",
-        message: "Internal server error",
+        status: 'error',
+        message: 'Internal server error',
       },
       { status: 500 }
     );

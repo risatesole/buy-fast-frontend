@@ -1,19 +1,15 @@
-import type { ReactNode } from "react";
-import { notFound } from "next/navigation";
+import type { ReactNode } from 'react';
+import { notFound } from 'next/navigation';
 
-import { AppSidebar } from "@/components/app-sidebar";
-import { AdminTopbar } from "@/components/admin-topbar";
-import UserService from "@/services/user";
+import { AppSidebar } from '@/components/app-sidebar';
+import { AdminTopbar } from '@/components/admin-topbar';
+import UserService from '@/services/user';
 
-export default async function AdminLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default async function AdminLayout({ children }: { children: ReactNode }) {
   const userService = new UserService();
   const user = await userService.getCurrentUser();
 
-  if (!user || user.role !== "employee") {
+  if (!user || user.role !== 'employee') {
     notFound();
   }
 

@@ -1,22 +1,22 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function SignInPage() {
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+    email: '',
+    password: '',
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [e.target.id]: e.target.value,
     }));
@@ -26,15 +26,15 @@ export default function SignInPage() {
     e.preventDefault();
 
     setLoading(true);
-    setError("");
+    setError('');
 
     try {
-      const response = await fetch("/api/v1/signin", {
-        method: "POST",
+      const response = await fetch('/api/v1/signin', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
-        credentials: "include",
+        credentials: 'include',
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
@@ -44,14 +44,14 @@ export default function SignInPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.message ?? "Signin failed");
+        setError(data.message ?? 'Signin failed');
         return;
       }
 
-      window.location.href = "/";
+      window.location.href = '/';
     } catch (error) {
       console.error(error);
-      setError("Failed to connect to server");
+      setError('Failed to connect to server');
     } finally {
       setLoading(false);
     }
@@ -63,8 +63,8 @@ export default function SignInPage() {
         className="pointer-events-none fixed inset-0 opacity-[0.03]"
         style={{
           backgroundImage:
-            "linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)",
-          backgroundSize: "48px 48px",
+            'linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)',
+          backgroundSize: '48px 48px',
         }}
       />
 
@@ -80,7 +80,7 @@ export default function SignInPage() {
 
               <span
                 className="text-sm font-semibold tracking-tight text-foreground"
-                style={{ fontFamily: "var(--font-geist-mono)" }}
+                style={{ fontFamily: 'var(--font-geist-mono)' }}
               >
                 acme
               </span>
@@ -90,9 +90,7 @@ export default function SignInPage() {
               Sign In
             </h1>
 
-            <p className="mt-1.5 text-sm text-muted-foreground">
-              Sign in to your account
-            </p>
+            <p className="mt-1.5 text-sm text-muted-foreground">Sign in to your account</p>
           </CardHeader>
 
           <CardContent className="px-8 pt-7 pb-8 space-y-5">
@@ -143,7 +141,7 @@ export default function SignInPage() {
               disabled={loading}
               className="w-full h-10 text-sm font-medium mt-1 rounded-lg transition-all active:scale-[0.98]"
             >
-              {loading ? "Signing in..." : "Sign In"}
+              {loading ? 'Signing in...' : 'Sign In'}
             </Button>
 
             <div className="relative flex items-center gap-3 py-1">
@@ -160,7 +158,7 @@ export default function SignInPage() {
             </Button>
 
             <p className="text-center text-xs text-muted-foreground pt-1">
-              Don't have an account?{" "}
+              Don't have an account?{' '}
               <a
                 href="/signup"
                 className="text-foreground font-medium underline underline-offset-2 hover:text-foreground/80 transition-colors"
@@ -172,14 +170,14 @@ export default function SignInPage() {
         </Card>
 
         <p className="mt-5 text-center text-[11px] text-muted-foreground/60 leading-relaxed px-4">
-          By signing in, you agree to our{" "}
+          By signing in, you agree to our{' '}
           <a
             href="#"
             className="underline underline-offset-2 hover:text-muted-foreground transition-colors"
           >
             Terms
-          </a>{" "}
-          and{" "}
+          </a>{' '}
+          and{' '}
           <a
             href="#"
             className="underline underline-offset-2 hover:text-muted-foreground transition-colors"

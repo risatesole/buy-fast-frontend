@@ -1,88 +1,76 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
-import {
-  LayoutDashboard,
-  Users,
-  Package,
-  ChevronDown,
-  Menu,
-  Truck
-} from "lucide-react";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { LayoutDashboard, Users, Package, ChevronDown, Menu, Truck } from 'lucide-react';
 
 const platformItems = [
   {
-    title: "Dashboard",
-    url: "/admin",
+    title: 'Dashboard',
+    url: '/admin',
     icon: LayoutDashboard,
     sub: [
-      { title: "Admin", url: "/admin" },
-      { title: "Overview", url: "/admin/dashboard/overview" },
-      { title: "Reports", url: "/admin/dashboard/reports" },
+      { title: 'Admin', url: '/admin' },
+      { title: 'Overview', url: '/admin/dashboard/overview' },
+      { title: 'Reports', url: '/admin/dashboard/reports' },
     ],
   },
   {
-    title: "Customer",
-    url: "/admin/customer",
+    title: 'Customer',
+    url: '/admin/customer',
     icon: Users,
     sub: [
-      { title: "Customers", url: "/admin/customers" },
-      { title: "Orders", url: "/admin/customers/orders" },
+      { title: 'Customers', url: '/admin/customers' },
+      { title: 'Orders', url: '/admin/customers/orders' },
     ],
   },
   {
-    title: "Employee",
+    title: 'Employee',
     icon: Users,
-    sub: [
-      { title: "Employee", url: "/admin/employee" }
-    ],
+    sub: [{ title: 'Employee', url: '/admin/employee' }],
   },
   {
-    title: "Products",
+    title: 'Products',
     icon: Package,
     sub: [
-      { title: "products", url: "/admin/products" },
-      { title: "Categories", url: "/admin/products/categories" },
+      { title: 'products', url: '/admin/products' },
+      { title: 'Categories', url: '/admin/products/categories' },
     ],
   },
   {
-    title: "Inentory",
+    title: 'Inentory',
     icon: Truck,
     sub: [
-      { title: "Inventory", url: "/admin/inventory" },
-      {title: "Stock Movement", url: "/admin/inventory/stockmovement"},
-      { title: "Management", url: "/admin/inventory/manage" },
+      { title: 'Inventory', url: '/admin/inventory' },
+      { title: 'Stock Movement', url: '/admin/inventory/stockmovement' },
+      { title: 'Management', url: '/admin/inventory/manage' },
     ],
   },
 ];
 
 const SidebarSubItems = [
-  { title: "Getting started", url: "/admin/help/gettingstarted" },
-  { title: "Manual", url: "/admin/help/gettingstarted" },
+  { title: 'Getting started', url: '/admin/help/gettingstarted' },
+  { title: 'Manual', url: '/admin/help/gettingstarted' },
 ];
 
 export function AppSidebar() {
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>(
-    {},
-  );
+  const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     setIsMobileOpen(false);
   }, [pathname]);
 
   const toggleAccordion = (id: string) => {
-    setOpenAccordions((prev) => ({ ...prev, [id]: !prev[id] }));
+    setOpenAccordions(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const companyName = process.env.NEXT_PUBLIC_COMPANY_NAME || "My Company";
+  const companyName = process.env.NEXT_PUBLIC_COMPANY_NAME || 'My Company';
 
   const isActive = (url?: string) => !!url && pathname === url;
-  const isSubActive = (subItems?: { url: string }[]) =>
-    subItems?.some((sub) => pathname === sub.url);
+  const isSubActive = (subItems?: { url: string }[]) => subItems?.some(sub => pathname === sub.url);
 
   return (
     <>
@@ -99,7 +87,7 @@ export function AppSidebar() {
           border-r border-neutral-100 dark:border-neutral-800
           transition-transform duration-300 ease-out
           lg:translate-x-0
-          ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
+          ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
         {/* Header */}
@@ -122,26 +110,24 @@ export function AppSidebar() {
               Platform
             </p>
             <ul className="space-y-0.5">
-              {platformItems.map((item) => {
+              {platformItems.map(item => {
                 const Icon = item.icon;
                 const hasSub = !!item.sub;
-                const accordionId = `acc-${item.title.toLowerCase().replace(/\s+/g, "-")}`;
-                const isOpen =
-                  openAccordions[accordionId] || isSubActive(item.sub);
-                const isItemActive =
-                  isActive(item.url) || (hasSub && isSubActive(item.sub));
+                const accordionId = `acc-${item.title.toLowerCase().replace(/\s+/g, '-')}`;
+                const isOpen = openAccordions[accordionId] || isSubActive(item.sub);
+                const isItemActive = isActive(item.url) || (hasSub && isSubActive(item.sub));
 
                 if (!hasSub) {
                   return (
                     <li key={item.title}>
                       <Link
-                        href={item.url ?? "#"}
+                        href={item.url ?? '#'}
                         className={`
                           flex items-center gap-x-3 px-3 py-2 rounded-md text-sm transition-colors
                           ${
                             isItemActive
-                              ? "text-neutral-900 dark:text-neutral-100 bg-neutral-50 dark:bg-neutral-900"
-                              : "text-neutral-500 dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-900"
+                              ? 'text-neutral-900 dark:text-neutral-100 bg-neutral-50 dark:bg-neutral-900'
+                              : 'text-neutral-500 dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-900'
                           }
                         `}
                       >
@@ -160,8 +146,8 @@ export function AppSidebar() {
                         w-full flex items-center gap-x-3 px-3 py-2 rounded-md text-sm transition-colors
                         ${
                           isItemActive
-                            ? "text-neutral-900 dark:text-neutral-100 bg-neutral-50 dark:bg-neutral-900"
-                            : "text-neutral-500 dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-900"
+                            ? 'text-neutral-900 dark:text-neutral-100 bg-neutral-50 dark:bg-neutral-900'
+                            : 'text-neutral-500 dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-900'
                         }
                       `}
                     >
@@ -169,14 +155,14 @@ export function AppSidebar() {
                       <span className="flex-1 text-left">{item.title}</span>
                       <ChevronDown
                         className={`size-3.5 shrink-0 transition-transform duration-200 ${
-                          isOpen ? "-rotate-180" : ""
+                          isOpen ? '-rotate-180' : ''
                         }`}
                       />
                     </button>
 
                     {isOpen && (
                       <ul className="ml-9 mt-1 space-y-0.5">
-                        {item.sub.map((sub) => {
+                        {item.sub.map(sub => {
                           const isSubActiveItem = isActive(sub.url);
                           return (
                             <li key={sub.title}>
@@ -186,8 +172,8 @@ export function AppSidebar() {
                                   block px-3 py-1.5 rounded-md text-sm transition-colors
                                   ${
                                     isSubActiveItem
-                                      ? "text-neutral-900 dark:text-neutral-100 font-medium"
-                                      : "text-neutral-500 dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100"
+                                      ? 'text-neutral-900 dark:text-neutral-100 font-medium'
+                                      : 'text-neutral-500 dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100'
                                   }
                                 `}
                               >
@@ -210,7 +196,7 @@ export function AppSidebar() {
               Help
             </p>
             <ul className="space-y-0.5">
-              {SidebarSubItems.map((item) => (
+              {SidebarSubItems.map(item => (
                 <li key={item.title}>
                   <Link
                     href={item.url}
@@ -218,8 +204,8 @@ export function AppSidebar() {
                       block px-3 py-2 rounded-md text-sm transition-colors
                       ${
                         isActive(item.url)
-                          ? "text-neutral-900 dark:text-neutral-100 bg-neutral-50 dark:bg-neutral-900"
-                          : "text-neutral-500 dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-900"
+                          ? 'text-neutral-900 dark:text-neutral-100 bg-neutral-50 dark:bg-neutral-900'
+                          : 'text-neutral-500 dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-900'
                       }
                     `}
                   >

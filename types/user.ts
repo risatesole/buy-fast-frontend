@@ -1,13 +1,11 @@
 type Permission =
-  | "can_add_products"
-  | "can_edit_products"
-  | "can_delete_products"
-
-  | "can_add_category"
-  | "can_edit_category"
-  | "can_deactivate_category"
-
-  | "can_view_orders";
+  | 'can_add_products'
+  | 'can_edit_products'
+  | 'can_delete_products'
+  | 'can_add_category'
+  | 'can_edit_category'
+  | 'can_deactivate_category'
+  | 'can_view_orders';
 
 export type User = {
   id: number;

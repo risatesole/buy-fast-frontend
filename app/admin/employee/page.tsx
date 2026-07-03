@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import type { User } from "@/types/user";
+import { useState, useEffect, useCallback, useRef } from 'react';
+import type { User } from '@/types/user';
 import {
   Table,
   TableBody,
@@ -9,8 +9,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 
 // ========== SERVICE ==========
 
@@ -26,10 +26,10 @@ type EmployeeQueryParameters = {
 };
 
 const DEFAULT_QUERY_PARAMS: EmployeeQueryParameters = {
-  sort: "id",
+  sort: 'id',
   limit: LIMIT,
   offset: 0,
-  role: "employee",
+  role: 'employee',
 };
 
 function buildQueryParams(overrides: EmployeeQueryParameters): string {
@@ -40,27 +40,25 @@ function buildQueryParams(overrides: EmployeeQueryParameters): string {
   return new URLSearchParams(entries).toString();
 }
 
-async function getEmployees(
-  params: EmployeeQueryParameters = {},
-): Promise<User[]> {
+async function getEmployees(params: EmployeeQueryParameters = {}): Promise<User[]> {
   const url = `/api/v1/users?${buildQueryParams(params)}`;
 
   try {
     const res = await fetch(url, {
-      cache: "no-store",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
+      cache: 'no-store',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
     });
 
     if (!res.ok) {
-      console.error("Response not OK:", res.status, res.statusText);
+      console.error('Response not OK:', res.status, res.statusText);
       return [];
     }
 
     const json = await res.json();
     return json.data ?? [];
   } catch (error) {
-    console.error("Error fetching employees:", error);
+    console.error('Error fetching employees:', error);
     return [];
   }
 }
@@ -75,12 +73,12 @@ function useEmployeesList() {
   const [offset, setOffset] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [totalLoaded, setTotalLoaded] = useState(0);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchEmployees = useCallback(
-    async (search: string = "", resetOffset: boolean = true) => {
+    async (search: string = '', resetOffset: boolean = true) => {
       const currentOffset = resetOffset ? 0 : offset;
 
       setLoading(resetOffset);
@@ -91,8 +89,8 @@ function useEmployeesList() {
         const params = {
           limit: LIMIT,
           offset: currentOffset,
-          sort: "id",
-          role: "employee",
+          sort: 'id',
+          role: 'employee',
           ...(search.trim() && { search: search.trim() }),
         };
 
@@ -107,22 +105,22 @@ function useEmployeesList() {
             setOffset(LIMIT);
             setTotalLoaded(newEmployees.length);
           } else {
-            setEmployees((prev) => [...prev, ...newEmployees]);
-            setOffset((prev) => prev + newEmployees.length);
-            setTotalLoaded((prev) => prev + newEmployees.length);
+            setEmployees(prev => [...prev, ...newEmployees]);
+            setOffset(prev => prev + newEmployees.length);
+            setTotalLoaded(prev => prev + newEmployees.length);
           }
           setHasMore(newEmployees.length >= LIMIT);
         }
       } catch (err) {
-        console.error("Error fetching employees:", err);
-        setError("Failed to load employees");
+        console.error('Error fetching employees:', err);
+        setError('Failed to load employees');
       } finally {
         setLoading(false);
         setLoadingMore(false);
         setIsSearching(false);
       }
     },
-    [offset],
+    [offset]
   );
 
   const search = useCallback(
@@ -137,15 +135,15 @@ function useEmployeesList() {
         fetchEmployees(value, true);
       }, 500);
     },
-    [fetchEmployees],
+    [fetchEmployees]
   );
 
   const clearSearch = useCallback(() => {
-    setSearchTerm("");
+    setSearchTerm('');
     setOffset(0);
     setHasMore(true);
     setTotalLoaded(0);
-    fetchEmployees("", true);
+    fetchEmployees('', true);
   }, [fetchEmployees]);
 
   const loadMore = useCallback(async () => {
@@ -158,7 +156,7 @@ function useEmployeesList() {
   }, [fetchEmployees, searchTerm]);
 
   useEffect(() => {
-    fetchEmployees("", true);
+    fetchEmployees('', true);
     return () => {
       if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     };
@@ -208,7 +206,7 @@ function SearchBar({
           type="text"
           placeholder="Search employees by name or email..."
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={e => onChange(e.target.value)}
           className="w-full px-4 py-2 pl-10 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
         <svg
@@ -229,12 +227,7 @@ function SearchBar({
             onClick={onClear}
             className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
           >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -289,12 +282,7 @@ function EmployeeRow({ employee }: { employee: User }) {
             href={`/admin/employees/edit/${employee.id}`}
             className="inline-flex items-center gap-1.5"
           >
-            <svg
-              className="w-3.5 h-3.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -331,9 +319,7 @@ export default function EmployeesPage() {
   return (
     <div className="container mx-auto px-4 py-10">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Employees
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Employees</h1>
       </div>
 
       <SearchBar value={searchTerm} onChange={search} onClear={clearSearch} />
@@ -358,9 +344,7 @@ export default function EmployeesPage() {
         <div className="text-center py-16 bg-white rounded-xl shadow-sm">
           <div className="text-6xl mb-4">👤</div>
           <p className="text-gray-500 text-lg">
-            {searchTerm
-              ? "No employees found matching your search"
-              : "No employees found"}
+            {searchTerm ? 'No employees found matching your search' : 'No employees found'}
           </p>
         </div>
       ) : (
@@ -379,7 +363,7 @@ export default function EmployeesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {employees.map((employee) => (
+                {employees.map(employee => (
                   <EmployeeRow key={employee.id} employee={employee} />
                 ))}
               </TableBody>

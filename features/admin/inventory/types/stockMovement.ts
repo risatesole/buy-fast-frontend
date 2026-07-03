@@ -1,9 +1,6 @@
-import type {Product} from "@/types/products"
+import type { Product } from '@/types/products';
 
-type StockMovementType =
-  | "initial_inventory"
-  | "purchase_entry"
-  | "customer_sell";
+type StockMovementType = 'initial_inventory' | 'purchase_entry' | 'customer_sell';
 
 export type StockMovement = {
   id: number;
@@ -18,6 +15,6 @@ export type StockMovement = {
 };
 
 export type StockMomentResponse = {
-    status: "ok"
-    data: StockMovement[]
-}
+  status: 'ok';
+  data: StockMovement[];
+};

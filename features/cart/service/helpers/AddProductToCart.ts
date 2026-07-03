@@ -1,14 +1,11 @@
-import type { AddProductToCartResponse } from "@/features/cart/types/AddProductToCartResponse";
+import type { AddProductToCartResponse } from '@/features/cart/types/AddProductToCartResponse';
 
-export async function addProductToCart(
-  productId: number,
-  quantity: number = 1,
-) {
-  const response = await fetch("/api/v1/cart", {
-    method: "POST",
-    credentials: "include",
+export async function addProductToCart(productId: number, quantity: number = 1) {
+  const response = await fetch('/api/v1/cart', {
+    method: 'POST',
+    credentials: 'include',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       product_id: productId,

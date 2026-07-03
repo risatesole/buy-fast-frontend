@@ -1,5 +1,5 @@
-import type { User } from "@/types/user";
-import type { CartItem } from "@/features/cart/types/CartItem";
+import type { User } from '@/types/user';
+import type { CartItem } from '@/features/cart/types/CartItem';
 
 type BillingContactInfo = {
   firstname: string;
@@ -14,7 +14,7 @@ type BillingAddress = {
   city: string;
   state: string;
   postal_code: string;
-  country: "DO";
+  country: 'DO';
 };
 
 type CardInfo = {
@@ -47,12 +47,12 @@ type CheckoutResponseData = {
 };
 
 type CheckoutInfoResponse = {
-  status: "ok" | "error";
+  status: 'ok' | 'error';
   data: CheckoutResponseData;
 };
 
 export type CheckoutPostResponse = {
-  status: "ok" | "error";
+  status: 'ok' | 'error';
   data?: {
     order: {
       id: number;
@@ -93,13 +93,13 @@ export class CheckoutService {
   async getCheckoutInfo(): Promise<CheckoutInfoResponse> {
     try {
       const response = await fetch(`/api/v1/checkout/`, {
-        credentials: "include",
+        credentials: 'include',
       });
 
       if (!response.ok) {
         const errorBody = await response.json().catch(() => null);
 
-        if (errorBody?.error?.code === "CHECKOUT_LOGIN_REQUIRED") {
+        if (errorBody?.error?.code === 'CHECKOUT_LOGIN_REQUIRED') {
           throw new Error(`User must log in to checkout`);
         }
 
@@ -108,7 +108,7 @@ export class CheckoutService {
       const data: CheckoutInfoResponse = await response.json();
       return data;
     } catch (error) {
-      console.error("Error fetching products:", error);
+      console.error('Error fetching products:', error);
       throw error;
     }
   }
@@ -141,9 +141,9 @@ export class CheckoutService {
 
     try {
       const response = await fetch(`/api/v1/checkout/`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
@@ -155,7 +155,7 @@ export class CheckoutService {
 
       return data;
     } catch (error) {
-      console.error("Error processing checkout:", error);
+      console.error('Error processing checkout:', error);
       throw error;
     }
   }
@@ -163,7 +163,7 @@ export class CheckoutService {
   async getAvailableSlots(): Promise<AvailableDatesResponse> {
     try {
       const response = await fetch(`/api/v1/checkout/timeslots/`, {
-        credentials: "include",
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -173,7 +173,7 @@ export class CheckoutService {
       const data: AvailableDatesResponse = await response.json();
       return data;
     } catch (error) {
-      console.error("Error fetching available slots:", error);
+      console.error('Error fetching available slots:', error);
       throw error;
     }
   }

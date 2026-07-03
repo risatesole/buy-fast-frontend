@@ -1,18 +1,12 @@
 // app/admin/orders/[id]/page.tsx
 
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   ArrowLeft,
   Clock,
@@ -27,15 +21,15 @@ import {
   MapPin,
   Phone,
   AlertCircle,
-} from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
+} from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
 
 // ============================================================
 // TYPES
 // ============================================================
 
-type OrderStatus = "fullfilled" | "pending" | "returned";
+type OrderStatus = 'fullfilled' | 'pending' | 'returned';
 
 type OrderItem = {
   id: number;
@@ -80,19 +74,19 @@ type Order = {
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 const STATUS_CONFIG = {
   pending: {
-    label: "Pending",
+    label: 'Pending',
     icon: Clock,
-    className: "bg-yellow-100 text-yellow-800 border-yellow-200",
+    className: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   },
   fullfilled: {
-    label: "Fulfilled",
+    label: 'Fulfilled',
     icon: CheckCircle2,
-    className: "bg-green-100 text-green-800 border-green-200",
+    className: 'bg-green-100 text-green-800 border-green-200',
   },
   returned: {
-    label: "Returned",
+    label: 'Returned',
     icon: Undo2,
-    className: "bg-red-100 text-red-800 border-red-200",
+    className: 'bg-red-100 text-red-800 border-red-200',
   },
 } as const;
 
@@ -105,7 +99,7 @@ const STATUS_CONFIG = {
  */
 async function fetchOrderById(id: string | number): Promise<Order | null> {
   if (!BACKEND_URL) {
-    console.error("NEXT_PUBLIC_API_URL is not set");
+    console.error('NEXT_PUBLIC_API_URL is not set');
     return null;
   }
 
@@ -113,19 +107,19 @@ async function fetchOrderById(id: string | number): Promise<Order | null> {
 
   try {
     const response = await fetch(url, {
-      cache: "no-store",
-      headers: { "Content-Type": "application/json" },
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
     });
 
     if (!response.ok) {
-      console.error("API Error:", response.status, response.statusText);
+      console.error('API Error:', response.status, response.statusText);
       return null;
     }
 
     const json = await response.json();
     return json.data ?? null;
   } catch (error) {
-    console.error("Error fetching order:", error);
+    console.error('Error fetching order:', error);
     return null;
   }
 }
@@ -140,10 +134,10 @@ async function fetchOrderById(id: string | number): Promise<Order | null> {
 function useOrderDetails() {
   const params = useParams();
   const router = useRouter();
-  
+
   // Safely extract the ID from params
   const orderId = Array.isArray(params.id) ? params.id[0] : params.id;
-  
+
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -151,7 +145,7 @@ function useOrderDetails() {
   useEffect(() => {
     async function loadOrder() {
       if (!orderId) {
-        setError("Order not found");
+        setError('Order not found');
         setIsLoading(false);
         return;
       }
@@ -161,15 +155,15 @@ function useOrderDetails() {
 
       try {
         const data = await fetchOrderById(orderId);
-        
+
         if (data) {
           setOrder(data);
         } else {
-          setError("Order not found");
+          setError('Order not found');
         }
       } catch (err) {
-        console.error("Error loading order:", err);
-        setError("Order not found");
+        console.error('Error loading order:', err);
+        setError('Order not found');
       } finally {
         setIsLoading(false);
       }
@@ -225,7 +219,7 @@ function LoadingSkeleton() {
 
       {/* Stats cards skeleton */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[1, 2, 3].map((i) => (
+        {[1, 2, 3].map(i => (
           <Card key={i}>
             <CardHeader>
               <Skeleton className="h-6 w-32" />
@@ -250,7 +244,7 @@ function LoadingSkeleton() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
+                {[1, 2, 3].map(i => (
                   <div key={i} className="flex items-center gap-4">
                     <Skeleton className="h-16 w-16 rounded" />
                     <div className="flex-1 space-y-2">
@@ -265,7 +259,7 @@ function LoadingSkeleton() {
           </Card>
         </div>
         <div className="space-y-6">
-          {[1, 2, 3].map((i) => (
+          {[1, 2, 3].map(i => (
             <Card key={i}>
               <CardHeader>
                 <Skeleton className="h-6 w-32" />
@@ -321,22 +315,21 @@ function CustomerInfoCard({ order }: { order: Order }) {
             <Mail className="w-4 h-4 text-gray-400" />
             <span>{order.email}</span>
           </div>
-          
+
           {order.phone && (
             <div className="flex items-center gap-2 text-sm">
               <Phone className="w-4 h-4 text-gray-400" />
               <span>{order.phone}</span>
             </div>
           )}
-          
+
           {order.address && (
             <div className="flex items-start gap-2 text-sm">
               <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
               <div>
                 <p>{order.address.street}</p>
                 <p>
-                  {order.address.city}, {order.address.state}{" "}
-                  {order.address.zipCode}
+                  {order.address.city}, {order.address.state} {order.address.zipCode}
                 </p>
                 <p>{order.address.country}</p>
               </div>
@@ -365,46 +358,40 @@ function OrderSummaryCard({ order }: { order: Order }) {
           <span className="text-gray-500">Order ID</span>
           <span className="font-mono text-sm">#{order.id}</span>
         </div>
-        
+
         <div className="flex justify-between">
           <span className="text-gray-500">Status</span>
           <StatusBadge status={order.status} />
         </div>
-        
+
         <div className="flex justify-between">
           <span className="text-gray-500">Order Date</span>
           <span>{formatDate(order.created_at)}</span>
         </div>
-        
+
         <div className="flex justify-between">
           <span className="text-gray-500">Pickup Time</span>
-          <span>{order.pickup_time ? formatDate(order.pickup_time) : "—"}</span>
+          <span>{order.pickup_time ? formatDate(order.pickup_time) : '—'}</span>
         </div>
-        
+
         <Separator />
-        
+
         <div className="flex justify-between items-center">
           <span className="font-medium">Total Amount</span>
-          <span className="text-2xl font-bold">
-            {formatCurrency(order.total)}
-          </span>
+          <span className="text-2xl font-bold">{formatCurrency(order.total)}</span>
         </div>
-        
+
         {order.payment_method && (
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Payment Method</span>
-            <span className="capitalize">
-              {order.payment_method.replace(/_/g, " ")}
-            </span>
+            <span className="capitalize">{order.payment_method.replace(/_/g, ' ')}</span>
           </div>
         )}
-        
+
         {order.shipping_method && (
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Shipping Method</span>
-            <span className="capitalize">
-              {order.shipping_method.replace(/_/g, " ")}
-            </span>
+            <span className="capitalize">{order.shipping_method.replace(/_/g, ' ')}</span>
           </div>
         )}
       </CardContent>
@@ -418,51 +405,65 @@ function OrderSummaryCard({ order }: { order: Order }) {
 function OrderTimelineCard({ order }: { order: Order }) {
   const timelineSteps = [
     {
-      label: "Order Placed",
+      label: 'Order Placed',
       date: order.created_at,
-      status: "completed" as const,
+      status: 'completed' as const,
     },
     {
-      label: "Order Processing",
-      date: order.status === "pending" ? "In progress" : 
-             order.status === "fullfilled" ? "Completed" : "Not started",
-      status: order.status === "pending" ? "in-progress" as const :
-              order.status === "fullfilled" ? "completed" as const :
-              "pending" as const,
+      label: 'Order Processing',
+      date:
+        order.status === 'pending'
+          ? 'In progress'
+          : order.status === 'fullfilled'
+            ? 'Completed'
+            : 'Not started',
+      status:
+        order.status === 'pending'
+          ? ('in-progress' as const)
+          : order.status === 'fullfilled'
+            ? ('completed' as const)
+            : ('pending' as const),
     },
     {
-      label: order.status === "returned" ? "Order Returned" : "Order Fulfilled",
-      date: order.status === "fullfilled" ? "Ready for pickup" :
-            order.status === "returned" ? "Return processed" : "Pending",
-      status: order.status === "fullfilled" ? "completed" as const :
-              order.status === "returned" ? "error" as const :
-              "pending" as const,
+      label: order.status === 'returned' ? 'Order Returned' : 'Order Fulfilled',
+      date:
+        order.status === 'fullfilled'
+          ? 'Ready for pickup'
+          : order.status === 'returned'
+            ? 'Return processed'
+            : 'Pending',
+      status:
+        order.status === 'fullfilled'
+          ? ('completed' as const)
+          : order.status === 'returned'
+            ? ('error' as const)
+            : ('pending' as const),
     },
   ];
 
   const getStepColor = (status: string) => {
     switch (status) {
-      case "completed":
-        return "bg-green-500 ring-green-100";
-      case "in-progress":
-        return "bg-yellow-500 ring-yellow-100";
-      case "error":
-        return "bg-red-500 ring-red-100";
+      case 'completed':
+        return 'bg-green-500 ring-green-100';
+      case 'in-progress':
+        return 'bg-yellow-500 ring-yellow-100';
+      case 'error':
+        return 'bg-red-500 ring-red-100';
       default:
-        return "bg-gray-300 ring-gray-100";
+        return 'bg-gray-300 ring-gray-100';
     }
   };
 
   const getTextColor = (status: string) => {
     switch (status) {
-      case "completed":
-        return "text-green-700";
-      case "in-progress":
-        return "text-yellow-700";
-      case "error":
-        return "text-red-700";
+      case 'completed':
+        return 'text-green-700';
+      case 'in-progress':
+        return 'text-yellow-700';
+      case 'error':
+        return 'text-red-700';
       default:
-        return "text-gray-400";
+        return 'text-gray-400';
     }
   };
 
@@ -481,18 +482,14 @@ function OrderTimelineCard({ order }: { order: Order }) {
             <div key={index} className="flex items-start gap-3">
               <div className="relative">
                 <div
-                  className={`w-3 h-3 mt-1.5 rounded-full ring-4 ${getStepColor(
-                    step.status
-                  )}`}
+                  className={`w-3 h-3 mt-1.5 rounded-full ring-4 ${getStepColor(step.status)}`}
                 />
                 {index < timelineSteps.length - 1 && (
                   <div className="absolute top-5 left-1.5 w-0.5 h-12 bg-gray-200" />
                 )}
               </div>
               <div>
-                <p className={`font-medium ${getTextColor(step.status)}`}>
-                  {step.label}
-                </p>
+                <p className={`font-medium ${getTextColor(step.status)}`}>{step.label}</p>
                 <p className="text-sm text-gray-500">{step.date}</p>
               </div>
             </div>
@@ -509,17 +506,17 @@ function OrderTimelineCard({ order }: { order: Order }) {
 function OrderStatsCards({ order }: { order: Order }) {
   const stats = [
     {
-      label: "Total Items",
+      label: 'Total Items',
       value: order.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0,
       icon: Package,
     },
     {
-      label: "Order Total",
+      label: 'Order Total',
       value: formatCurrency(order.total),
       icon: DollarSign,
     },
     {
-      label: "Status",
+      label: 'Status',
       value: STATUS_CONFIG[order.status]?.label ?? order.status,
       icon: STATUS_CONFIG[order.status]?.icon ?? Clock,
     },
@@ -552,10 +549,7 @@ function OrderStatsCards({ order }: { order: Order }) {
  */
 function OrderItemsTable({ items = [] }: { items: OrderItem[] }) {
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  const totalAmount = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  const totalAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   if (!items.length) {
     return (
@@ -567,9 +561,7 @@ function OrderItemsTable({ items = [] }: { items: OrderItem[] }) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-500 text-center py-8">
-            No items found for this order
-          </p>
+          <p className="text-gray-500 text-center py-8">No items found for this order</p>
         </CardContent>
       </Card>
     );
@@ -586,7 +578,7 @@ function OrderItemsTable({ items = [] }: { items: OrderItem[] }) {
       <CardContent>
         {/* Items list */}
         <div className="space-y-4">
-          {items.map((item) => (
+          {items.map(item => (
             <div
               key={item.id}
               className="flex items-center gap-4 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
@@ -616,9 +608,7 @@ function OrderItemsTable({ items = [] }: { items: OrderItem[] }) {
 
               {/* Subtotal */}
               <div className="text-right">
-                <p className="font-semibold">
-                  {formatCurrency(item.price * item.quantity)}
-                </p>
+                <p className="font-semibold">{formatCurrency(item.price * item.quantity)}</p>
                 <p className="text-xs text-gray-500">Subtotal</p>
               </div>
             </div>
@@ -633,9 +623,7 @@ function OrderItemsTable({ items = [] }: { items: OrderItem[] }) {
           </div>
           <div className="flex justify-between items-center mt-2">
             <span className="text-gray-500">Total Amount</span>
-            <span className="text-xl font-bold">
-              {formatCurrency(totalAmount)}
-            </span>
+            <span className="text-xl font-bold">{formatCurrency(totalAmount)}</span>
           </div>
         </div>
       </CardContent>
@@ -663,12 +651,12 @@ function OrderNotFound({ onBack }: { onBack: () => void }) {
  */
 function formatDate(dateString: string): string {
   try {
-    return new Date(dateString).toLocaleString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
+    return new Date(dateString).toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
       hour12: true,
     });
   } catch {
@@ -680,9 +668,9 @@ function formatDate(dateString: string): string {
  * Formats a number to USD currency
  */
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
   }).format(amount);
 }
 
@@ -713,9 +701,7 @@ export default function OrderDetailsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Order #{order.id}
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900">Order #{order.id}</h1>
           <p className="text-gray-500 mt-1">View detailed order information</p>
         </div>
 

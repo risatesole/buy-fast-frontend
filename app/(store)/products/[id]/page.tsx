@@ -1,14 +1,10 @@
-import type { Product } from "@/types/products";
-import { ImageGallery } from "@/components/ImageGallery";
-import { ProductDetails } from "./components/ProductDetails";
-import ProductService from "@/services/products/ProductService";
-import { ProductPageBreadcrumb } from "@/components/breadcrums/productpage";
+import type { Product } from '@/types/products';
+import { ImageGallery } from '@/components/ImageGallery';
+import { ProductDetails } from './components/ProductDetails';
+import ProductService from '@/services/products/ProductService';
+import { ProductPageBreadcrumb } from '@/components/breadcrums/productpage';
 
-export default async function ProductPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function ProductPage({ params }: { params: { id: string } }) {
   let product: Product;
   const productService = new ProductService();
 
@@ -49,9 +45,7 @@ export default async function ProductPage({
         }
       `}</style>
 
-      <main
-        style={{ maxWidth: 1280, margin: "0 auto", padding: "4rem 2rem 6rem" }}
-      >
+      <main style={{ maxWidth: 1280, margin: '0 auto', padding: '4rem 2rem 6rem' }}>
         <ProductPageBreadcrumb product={product!} />
 
         <div className="product-layout">

@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
-import ProductService from "@/services/products/ProductService";
-import type { Product } from "@/types/products";
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import ProductService from '@/services/products/ProductService';
+import type { Product } from '@/types/products';
 import {
   Table,
   TableBody,
@@ -11,7 +11,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 
 const productService = new ProductService();
 const LIMIT = 100;
@@ -19,9 +19,9 @@ const LIMIT = 100;
 // ========== UTILS ==========
 
 function formatPrice(price: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
   }).format(price);
 }
 
@@ -35,12 +35,12 @@ function useProductsList() {
   const [offset, setOffset] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [totalLoaded, setTotalLoaded] = useState(0);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchProducts = useCallback(
-    async (search: string = "", resetOffset: boolean = true) => {
+    async (search: string = '', resetOffset: boolean = true) => {
       const currentOffset = resetOffset ? 0 : offset;
 
       setLoading(resetOffset);
@@ -51,7 +51,7 @@ function useProductsList() {
         const params: any = {
           limit: LIMIT,
           offset: currentOffset,
-          sort: "id",
+          sort: 'id',
         };
 
         if (search.trim()) {
@@ -71,9 +71,9 @@ function useProductsList() {
             setOffset(LIMIT);
             setTotalLoaded(newProducts.length);
           } else {
-            setProducts((prev) => [...prev, ...newProducts]);
-            setOffset((prev) => prev + newProducts.length);
-            setTotalLoaded((prev) => prev + newProducts.length);
+            setProducts(prev => [...prev, ...newProducts]);
+            setOffset(prev => prev + newProducts.length);
+            setTotalLoaded(prev => prev + newProducts.length);
           }
 
           if (newProducts.length < LIMIT) {
@@ -83,15 +83,15 @@ function useProductsList() {
           }
         }
       } catch (err) {
-        console.error("Error fetching products:", err);
-        setError("Failed to load products");
+        console.error('Error fetching products:', err);
+        setError('Failed to load products');
       } finally {
         setLoading(false);
         setLoadingMore(false);
         setIsSearching(false);
       }
     },
-    [offset],
+    [offset]
   );
 
   const search = useCallback(
@@ -110,15 +110,15 @@ function useProductsList() {
         fetchProducts(value, true);
       }, 500);
     },
-    [fetchProducts],
+    [fetchProducts]
   );
 
   const clearSearch = useCallback(() => {
-    setSearchTerm("");
+    setSearchTerm('');
     setOffset(0);
     setHasMore(true);
     setTotalLoaded(0);
-    fetchProducts("", true);
+    fetchProducts('', true);
   }, [fetchProducts]);
 
   const loadMore = useCallback(async () => {
@@ -131,7 +131,7 @@ function useProductsList() {
   }, [fetchProducts, searchTerm]);
 
   useEffect(() => {
-    fetchProducts("", true);
+    fetchProducts('', true);
 
     return () => {
       if (searchTimeoutRef.current) {
@@ -160,14 +160,14 @@ function useProductNavigation() {
   const router = useRouter();
 
   const goToCreateProduct = useCallback(() => {
-    router.push("/admin/products/create");
+    router.push('/admin/products/create');
   }, [router]);
 
   const goToEditProduct = useCallback(
     (productId: number) => {
       router.push(`/admin/products/edit/${productId}`);
     },
-    [router],
+    [router]
   );
 
   return { goToCreateProduct, goToEditProduct };
@@ -241,26 +241,14 @@ function PageHeader({ onAddProduct }: PageHeaderProps) {
   return (
     <div className="flex justify-between items-center mb-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Products
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Products</h1>
       </div>
       <button
         onClick={onAddProduct}
         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
       >
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 4v16m8-8H4"
-          />
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
         </svg>
         Add Product
       </button>
@@ -276,7 +264,7 @@ function SearchBar({ value, onChange, onClear }: SearchBarProps) {
           type="text"
           placeholder="Search products by name, brand, category, or tags..."
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={e => onChange(e.target.value)}
           className="w-full px-4 py-2 pl-10 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
         <svg
@@ -297,12 +285,7 @@ function SearchBar({ value, onChange, onClear }: SearchBarProps) {
             onClick={onClear}
             className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
           >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -336,18 +319,12 @@ function EmptyState({ searchTerm }: EmptyStateProps) {
     <div className="text-center py-16 bg-white rounded-xl shadow-sm">
       <div className="text-6xl mb-4">📦</div>
       <p className="text-gray-500 text-lg">
-        {searchTerm
-          ? "No products found matching your search"
-          : "No products found"}
+        {searchTerm ? 'No products found matching your search' : 'No products found'}
       </p>
       {searchTerm ? (
-        <p className="text-gray-400 text-sm mt-2">
-          Try adjusting your search terms
-        </p>
+        <p className="text-gray-400 text-sm mt-2">Try adjusting your search terms</p>
       ) : (
-        <p className="text-gray-400 text-sm mt-2">
-          Start by adding your first product
-        </p>
+        <p className="text-gray-400 text-sm mt-2">Start by adding your first product</p>
       )}
     </div>
   );
@@ -371,10 +348,7 @@ function TagsList({ tags }: TagsListProps) {
   return (
     <div className="flex flex-wrap gap-1">
       {tags.slice(0, 3).map((tag, index) => (
-        <span
-          key={index}
-          className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600"
-        >
+        <span key={index} className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">
           {tag}
         </span>
       ))}
@@ -394,25 +368,18 @@ function ProductImageCell({ product }: ProductImageCellProps) {
         <div className="flex-shrink-0 h-10 w-10">
           <img
             className="h-10 w-10 rounded-lg object-cover"
-            src={
-              product.images.find((img) => img.type === "HERO")?.url ||
-              product.images[0].url
-            }
+            src={product.images.find(img => img.type === 'HERO')?.url || product.images[0].url}
             alt={product.name}
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = "none";
+            onError={e => {
+              (e.target as HTMLImageElement).style.display = 'none';
             }}
           />
         </div>
       )}
       <div className="ml-4">
-        <div className="text-sm font-medium text-gray-900">
-          {product.name}
-        </div>
+        <div className="text-sm font-medium text-gray-900">{product.name}</div>
         {product.description && (
-          <div className="text-sm text-gray-500 truncate max-w-xs">
-            {product.description}
-          </div>
+          <div className="text-sm text-gray-500 truncate max-w-xs">{product.description}</div>
         )}
       </div>
     </div>
@@ -426,11 +393,9 @@ function ProductRow({ product, onEdit }: ProductRowProps) {
       <TableCell>
         <ProductImageCell product={product} />
       </TableCell>
-      <TableCell>{product.category?.name || "-"}</TableCell>
-      <TableCell>{product.brand || "-"}</TableCell>
-      <TableCell className="font-medium">
-        {formatPrice(product.selling_price)}
-      </TableCell>
+      <TableCell>{product.category?.name || '-'}</TableCell>
+      <TableCell>{product.brand || '-'}</TableCell>
+      <TableCell className="font-medium">{formatPrice(product.selling_price)}</TableCell>
       <TableCell>x avialable</TableCell>
       <TableCell>
         <StatusBadge status={product.status} />
@@ -468,7 +433,7 @@ function ProductsTable({ products, onEdit }: ProductsTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {products.map((product) => (
+          {products.map(product => (
             <ProductRow key={product.id} product={product} onEdit={onEdit} />
           ))}
         </TableBody>

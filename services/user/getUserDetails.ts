@@ -23,8 +23,8 @@ type MeResponse = {
 };
 
 export async function getUserDetails(): Promise<UserDetails | null> {
-  const response = await fetch("/api/v1/me", {
-    credentials: "include",
+  const response = await fetch('/api/v1/me', {
+    credentials: 'include',
   });
 
   if (!response.ok) {
@@ -33,13 +33,12 @@ export async function getUserDetails(): Promise<UserDetails | null> {
 
   const data: MeResponse = await response.json();
 
-  if (data.status !== "ok" || !data.data.user) {
+  if (data.status !== 'ok' || !data.data.user) {
     return null;
   }
 
   return {
     name: data.data.user.firstname,
-    profilePicture:
-      data.data.user.profilepicture ?? "https://i.pravatar.cc/150?img=12",
+    profilePicture: data.data.user.profilepicture ?? 'https://i.pravatar.cc/150?img=12',
   };
 }

@@ -1,27 +1,21 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback, useRef, use } from "react";
-import { useRouter } from "next/navigation";
-import ProductService from "@/services/products/ProductService";
-import type { Product, ProductImageType } from "@/types/products";
-import { patchProductAction } from "./actions";
+import { useState, useEffect, useCallback, useRef, use } from 'react';
+import { useRouter } from 'next/navigation';
+import ProductService from '@/services/products/ProductService';
+import type { Product, ProductImageType } from '@/types/products';
+import { patchProductAction } from './actions';
 
 const productService = new ProductService();
 
-const IMAGE_TYPES: ProductImageType[] = [
-  "HERO",
-  "SCALE",
-  "PACKING",
-  "FLATLAY",
-  "FREEZE_FRAME",
-];
+const IMAGE_TYPES: ProductImageType[] = ['HERO', 'SCALE', 'PACKING', 'FLATLAY', 'FREEZE_FRAME'];
 
 const IMAGE_TYPE_LABELS: Record<ProductImageType, string> = {
-  HERO: "Hero",
-  SCALE: "Scale",
-  PACKING: "Packing",
-  FLATLAY: "Flat Lay",
-  FREEZE_FRAME: "Freeze Frame",
+  HERO: 'Hero',
+  SCALE: 'Scale',
+  PACKING: 'Packing',
+  FLATLAY: 'Flat Lay',
+  FREEZE_FRAME: 'Freeze Frame',
 };
 
 // ========== TYPES ==========
@@ -59,14 +53,14 @@ async function fetchProductById(id: string): Promise<Product | null> {
 async function fetchCategories(): Promise<Category[]> {
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
   if (!BACKEND_URL) {
-    console.error("[fetchCategories] NEXT_PUBLIC_API_URL is not set");
+    console.error('[fetchCategories] NEXT_PUBLIC_API_URL is not set');
     return [];
   }
   const url = `${BACKEND_URL}/api/v1/products/categories`;
   try {
     const res = await fetch(url, {
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
     });
     if (!res.ok) {
       console.error(`[fetchCategories] ${res.status} ${res.statusText} — ${url}`);
@@ -85,14 +79,14 @@ async function fetchCategories(): Promise<Category[]> {
 function validate(form: FormState): FieldErrorMap {
   const errors: FieldErrorMap = {};
 
-  if (!form.name.trim()) errors.name = "Product name is required.";
-  if (!form.description.trim()) errors.description = "Description is required.";
-  if (!form.brand.trim()) errors.brand = "Brand is required.";
-  if (!form.category_id) errors.category_id = "Category is required.";
+  if (!form.name.trim()) errors.name = 'Product name is required.';
+  if (!form.description.trim()) errors.description = 'Description is required.';
+  if (!form.brand.trim()) errors.brand = 'Brand is required.';
+  if (!form.category_id) errors.category_id = 'Category is required.';
 
   const price = parseFloat(form.selling_price);
   if (!form.selling_price || isNaN(price) || price < 0)
-    errors.selling_price = "Enter a valid price.";
+    errors.selling_price = 'Enter a valid price.';
 
   return errors;
 }
@@ -105,7 +99,7 @@ function useCategories() {
   const [categoriesError, setCategoriesError] = useState(false);
 
   useEffect(() => {
-    fetchCategories().then((data) => {
+    fetchCategories().then(data => {
       if (data.length === 0) setCategoriesError(true);
       setCategories(data);
       setLoadingCategories(false);
@@ -126,20 +120,20 @@ function useEditProduct(id: string) {
   const [fieldErrors, setFieldErrors] = useState<FieldErrorMap>({});
 
   const [form, setForm] = useState<FormState>({
-    name: "",
-    description: "",
-    brand: "",
-    selling_price: "",
-    category_id: "",
+    name: '',
+    description: '',
+    brand: '',
+    selling_price: '',
+    category_id: '',
     status: true,
-    tags: "",
+    tags: '',
     images: {},
   });
 
   useEffect(() => {
-    fetchProductById(id).then((p) => {
+    fetchProductById(id).then(p => {
       if (!p) {
-        setFetchError("Product not found.");
+        setFetchError('Product not found.');
       } else {
         setProduct(p);
         setForm({
@@ -147,9 +141,9 @@ function useEditProduct(id: string) {
           description: p.description,
           brand: p.brand,
           selling_price: String(p.selling_price),
-          category_id: String(p.category?.id ?? ""),
+          category_id: String(p.category?.id ?? ''),
           status: p.status,
-          tags: (p.tags ?? []).join(", "),
+          tags: (p.tags ?? []).join(', '),
           images: {},
         });
       }
@@ -157,23 +151,17 @@ function useEditProduct(id: string) {
     });
   }, [id]);
 
-  const setField = useCallback(
-    <K extends keyof FormState>(key: K, value: FormState[K]) => {
-      setForm((prev) => ({ ...prev, [key]: value }));
-      setFieldErrors((prev) => ({ ...prev, [key]: undefined }));
-    },
-    [],
-  );
+  const setField = useCallback(<K extends keyof FormState>(key: K, value: FormState[K]) => {
+    setForm(prev => ({ ...prev, [key]: value }));
+    setFieldErrors(prev => ({ ...prev, [key]: undefined }));
+  }, []);
 
-  const setImageFile = useCallback(
-    (type: ProductImageType, file: File | null) => {
-      setForm((prev) => ({
-        ...prev,
-        images: { ...prev.images, [type]: file },
-      }));
-    },
-    [],
-  );
+  const setImageFile = useCallback((type: ProductImageType, file: File | null) => {
+    setForm(prev => ({
+      ...prev,
+      images: { ...prev.images, [type]: file },
+    }));
+  }, []);
 
   const handleSave = useCallback(async () => {
     const errors = validate(form);
@@ -191,18 +179,18 @@ function useEditProduct(id: string) {
     // session cookie to Django itself, sidestepping cross-site cookie
     // rules entirely (the browser only ever talks to our own origin).
     const body = new FormData();
-    body.append("name", form.name.trim());
-    body.append("description", form.description.trim());
-    body.append("brand", form.brand.trim());
-    body.append("selling_price", form.selling_price);
-    body.append("category_id", form.category_id);
-    body.append("status", String(form.status));
+    body.append('name', form.name.trim());
+    body.append('description', form.description.trim());
+    body.append('brand', form.brand.trim());
+    body.append('selling_price', form.selling_price);
+    body.append('category_id', form.category_id);
+    body.append('status', String(form.status));
 
     const tags = form.tags
-      .split(",")
-      .map((t) => t.trim())
+      .split(',')
+      .map(t => t.trim())
       .filter(Boolean);
-    tags.forEach((tag) => body.append("tags", tag));
+    tags.forEach(tag => body.append('tags', tag));
 
     for (const type of IMAGE_TYPES) {
       const file = form.images[type];
@@ -214,10 +202,10 @@ function useEditProduct(id: string) {
     setSaving(false);
 
     if (!result.success) {
-      setSaveError(result.error ?? "Something went wrong.");
+      setSaveError(result.error ?? 'Something went wrong.');
     } else {
       setSaveSuccess(true);
-      setTimeout(() => router.push("/admin/products"), 1200);
+      setTimeout(() => router.push('/admin/products'), 1200);
     }
   }, [form, id, router]);
 
@@ -253,13 +241,7 @@ function FieldError({ message }: { message?: string }) {
   return <p className="mt-1 text-xs text-red-600">{message}</p>;
 }
 
-function SectionCard({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="bg-white rounded-xl shadow-sm p-6">
       <h2 className="text-base font-semibold text-gray-900 mb-4">{title}</h2>
@@ -274,7 +256,7 @@ function TextInput({
   onChange,
   error,
   placeholder,
-  type = "text",
+  type = 'text',
 }: {
   label: string;
   value: string;
@@ -285,16 +267,14 @@ function TextInput({
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        {label}
-      </label>
+      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
       <input
         type={type}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition ${
-          error ? "border-red-400" : "border-gray-300"
+          error ? 'border-red-400' : 'border-gray-300'
         }`}
       />
       <FieldError message={error} />
@@ -319,16 +299,14 @@ function TextareaInput({
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        {label}
-      </label>
+      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
       <textarea
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         rows={rows}
         className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition resize-none ${
-          error ? "border-red-400" : "border-gray-300"
+          error ? 'border-red-400' : 'border-gray-300'
         }`}
       />
       <FieldError message={error} />
@@ -351,24 +329,20 @@ function CategorySelect({
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        Category
-      </label>
+      <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
       <select
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={e => onChange(e.target.value)}
         disabled={loadingCategories}
         className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white disabled:bg-gray-50 disabled:text-gray-400 ${
-          error ? "border-red-400" : "border-gray-300"
+          error ? 'border-red-400' : 'border-gray-300'
         }`}
       >
-        <option value="">
-          {loadingCategories ? "Loading categories…" : "Select a category"}
-        </option>
-        {categories.map((cat) => (
+        <option value="">{loadingCategories ? 'Loading categories…' : 'Select a category'}</option>
+        {categories.map(cat => (
           <option key={cat.id} value={String(cat.id)}>
             {cat.name}
-            {!cat.status ? " (inactive)" : ""}
+            {!cat.status ? ' (inactive)' : ''}
           </option>
         ))}
       </select>
@@ -377,31 +351,25 @@ function CategorySelect({
   );
 }
 
-function StatusToggle({
-  value,
-  onChange,
-}: {
-  value: boolean;
-  onChange: (v: boolean) => void;
-}) {
+function StatusToggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
   return (
     <div className="flex items-center justify-between">
       <div>
         <p className="text-sm font-medium text-gray-700">Product status</p>
         <p className="text-xs text-gray-500 mt-0.5">
-          {value ? "Active — visible to customers" : "Inactive — hidden from store"}
+          {value ? 'Active — visible to customers' : 'Inactive — hidden from store'}
         </p>
       </div>
       <button
         type="button"
         onClick={() => onChange(!value)}
         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-          value ? "bg-blue-600" : "bg-gray-200"
+          value ? 'bg-blue-600' : 'bg-gray-200'
         }`}
       >
         <span
           className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-            value ? "translate-x-6" : "translate-x-1"
+            value ? 'translate-x-6' : 'translate-x-1'
           }`}
         />
       </button>
@@ -434,11 +402,7 @@ function ImageUploadSlot({
       >
         {preview ? (
           <>
-            <img
-              src={preview}
-              alt={type}
-              className="w-full h-full object-cover"
-            />
+            <img src={preview} alt={type} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
               <span className="text-white text-xs font-medium">Replace</span>
             </div>
@@ -466,7 +430,7 @@ function ImageUploadSlot({
       {file && (
         <button
           type="button"
-          onClick={(e) => {
+          onClick={e => {
             e.stopPropagation();
             onFile(null);
           }}
@@ -481,7 +445,7 @@ function ImageUploadSlot({
         type="file"
         accept="image/*"
         className="hidden"
-        onChange={(e) => onFile(e.target.files?.[0] ?? null)}
+        onChange={e => onFile(e.target.files?.[0] ?? null)}
       />
     </div>
   );
@@ -489,11 +453,7 @@ function ImageUploadSlot({
 
 // ========== MAIN PAGE ==========
 
-export default function EditProductPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const {
     product,
@@ -526,7 +486,7 @@ export default function EditProductPage({
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
           <p className="text-red-700 font-medium">{fetchError}</p>
           <button
-            onClick={() => router.push("/admin/products")}
+            onClick={() => router.push('/admin/products')}
             className="mt-4 text-sm text-red-600 underline hover:no-underline"
           >
             Back to products
@@ -542,15 +502,10 @@ export default function EditProductPage({
       <div className="flex items-center justify-between mb-8">
         <div>
           <button
-            onClick={() => router.push("/admin/products")}
+            onClick={() => router.push('/admin/products')}
             className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-2 transition"
           >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -578,7 +533,7 @@ export default function EditProductPage({
             </span>
           )}
           <button
-            onClick={() => router.push("/admin/products")}
+            onClick={() => router.push('/admin/products')}
             disabled={saving}
             className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
           >
@@ -590,11 +545,7 @@ export default function EditProductPage({
             className="px-5 py-2 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition flex items-center gap-2"
           >
             {saving && (
-              <svg
-                className="animate-spin h-4 w-4 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
+              <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                 <circle
                   className="opacity-25"
                   cx="12"
@@ -603,14 +554,10 @@ export default function EditProductPage({
                   stroke="currentColor"
                   strokeWidth="4"
                 />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8H4z"
-                />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
               </svg>
             )}
-            {saving ? "Saving…" : "Save changes"}
+            {saving ? 'Saving…' : 'Save changes'}
           </button>
         </div>
       </div>
@@ -628,14 +575,14 @@ export default function EditProductPage({
             <TextInput
               label="Product name"
               value={form.name}
-              onChange={(v) => setField("name", v)}
+              onChange={v => setField('name', v)}
               error={fieldErrors.name}
               placeholder="e.g. Nike Air Max 90"
             />
             <TextareaInput
               label="Description"
               value={form.description}
-              onChange={(v) => setField("description", v)}
+              onChange={v => setField('description', v)}
               error={fieldErrors.description}
               placeholder="Describe the product…"
               rows={5}
@@ -649,14 +596,14 @@ export default function EditProductPage({
             <TextInput
               label="Brand"
               value={form.brand}
-              onChange={(v) => setField("brand", v)}
+              onChange={v => setField('brand', v)}
               error={fieldErrors.brand}
               placeholder="e.g. Nike"
             />
             <TextInput
               label="Selling price (USD)"
               value={form.selling_price}
-              onChange={(v) => setField("selling_price", v)}
+              onChange={v => setField('selling_price', v)}
               error={fieldErrors.selling_price}
               placeholder="0.00"
               type="number"
@@ -671,15 +618,12 @@ export default function EditProductPage({
               categories={categories}
               loadingCategories={loadingCategories}
               value={form.category_id}
-              onChange={(v) => setField("category_id", v)}
+              onChange={v => setField('category_id', v)}
               error={fieldErrors.category_id}
             />
 
             <div className="border-t pt-4">
-              <StatusToggle
-                value={form.status}
-                onChange={(v) => setField("status", v)}
-              />
+              <StatusToggle value={form.status} onChange={v => setField('status', v)} />
             </div>
           </div>
         </SectionCard>
@@ -689,14 +633,14 @@ export default function EditProductPage({
           <TextInput
             label="Tags (comma-separated)"
             value={form.tags}
-            onChange={(v) => setField("tags", v)}
+            onChange={v => setField('tags', v)}
             placeholder="e.g. running, sport, men"
           />
           {form.tags && (
             <div className="flex flex-wrap gap-1.5 mt-3">
               {form.tags
-                .split(",")
-                .map((t) => t.trim())
+                .split(',')
+                .map(t => t.trim())
                 .filter(Boolean)
                 .map((tag, i) => (
                   <span
@@ -713,19 +657,17 @@ export default function EditProductPage({
         {/* Images */}
         <SectionCard title="Images">
           <p className="text-xs text-gray-500 mb-4">
-            Upload a new file to replace an existing image. Slots left empty
-            will keep their current image.
+            Upload a new file to replace an existing image. Slots left empty will keep their current
+            image.
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-            {IMAGE_TYPES.map((type) => (
+            {IMAGE_TYPES.map(type => (
               <ImageUploadSlot
                 key={type}
                 type={type}
-                existingUrl={
-                  product?.images.find((img) => img.type === type)?.url
-                }
+                existingUrl={product?.images.find(img => img.type === type)?.url}
                 file={form.images[type]}
-                onFile={(f) => setImageFile(type, f)}
+                onFile={f => setImageFile(type, f)}
               />
             ))}
           </div>
@@ -734,7 +676,7 @@ export default function EditProductPage({
         {/* Save footer (repeated for long forms) */}
         <div className="flex justify-end gap-3 pb-4">
           <button
-            onClick={() => router.push("/admin/products")}
+            onClick={() => router.push('/admin/products')}
             disabled={saving}
             className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
           >
@@ -746,11 +688,7 @@ export default function EditProductPage({
             className="px-5 py-2 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition flex items-center gap-2"
           >
             {saving && (
-              <svg
-                className="animate-spin h-4 w-4 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
+              <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                 <circle
                   className="opacity-25"
                   cx="12"
@@ -759,14 +697,10 @@ export default function EditProductPage({
                   stroke="currentColor"
                   strokeWidth="4"
                 />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8H4z"
-                />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
               </svg>
             )}
-            {saving ? "Saving…" : "Save changes"}
+            {saving ? 'Saving…' : 'Save changes'}
           </button>
         </div>
       </div>

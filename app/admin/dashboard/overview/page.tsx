@@ -1,3 +1,3 @@
-export default function OverviewPage(){
-    return <p>Welcome to overview page</p>
+export default function OverviewPage() {
+  return <p>Welcome to overview page</p>;
 }

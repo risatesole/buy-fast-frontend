@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import InventoryService from "@/features/admin/inventory/service/index";
-import type { StockMovement } from "@/features/admin/inventory/types/stockMovement";
+import { useState, useEffect, useCallback, useRef } from 'react';
+import InventoryService from '@/features/admin/inventory/service/index';
+import type { StockMovement } from '@/features/admin/inventory/types/stockMovement';
 import {
   Table,
   TableBody,
@@ -10,37 +10,37 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 
 const LIMIT = 100;
 
 // ========== UTILS ==========
 function formatDateTime(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+  return new Date(dateString).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   });
 }
 
 function getMovementTypeLabel(type: string): string {
   const labels: Record<string, string> = {
-    initial_inventory: "Initial Stock",
-    purchase_entry: "Purchase Entry",
-    customer_sell: "Customer Sale",
+    initial_inventory: 'Initial Stock',
+    purchase_entry: 'Purchase Entry',
+    customer_sell: 'Customer Sale',
   };
   return labels[type] || type;
 }
 
 function getMovementTypeColor(type: string): string {
   const colors: Record<string, string> = {
-    initial_inventory: "bg-blue-100 text-blue-800",
-    purchase_entry: "bg-green-100 text-green-800",
-    customer_sell: "bg-orange-100 text-orange-800",
+    initial_inventory: 'bg-blue-100 text-blue-800',
+    purchase_entry: 'bg-green-100 text-green-800',
+    customer_sell: 'bg-orange-100 text-orange-800',
   };
-  return colors[type] || "bg-gray-100 text-gray-800";
+  return colors[type] || 'bg-gray-100 text-gray-800';
 }
 
 // ========== HOOKS ==========
@@ -53,12 +53,12 @@ function useStockMovementList() {
   const [offset, setOffset] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [totalLoaded, setTotalLoaded] = useState(0);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchMovements = useCallback(
-    async (search: string = "", resetOffset: boolean = true) => {
+    async (search: string = '', resetOffset: boolean = true) => {
       const currentOffset = resetOffset ? 0 : offset;
 
       setLoading(resetOffset);
@@ -69,7 +69,7 @@ function useStockMovementList() {
         const params: any = {
           limit: LIMIT,
           offset: currentOffset,
-          sort: "date_time",
+          sort: 'date_time',
         };
 
         if (search.trim()) {
@@ -89,9 +89,9 @@ function useStockMovementList() {
             setOffset(LIMIT);
             setTotalLoaded(newMovements.length);
           } else {
-            setMovements((prev) => [...prev, ...newMovements]);
-            setOffset((prev) => prev + newMovements.length);
-            setTotalLoaded((prev) => prev + newMovements.length);
+            setMovements(prev => [...prev, ...newMovements]);
+            setOffset(prev => prev + newMovements.length);
+            setTotalLoaded(prev => prev + newMovements.length);
           }
 
           if (newMovements.length < LIMIT) {
@@ -101,15 +101,15 @@ function useStockMovementList() {
           }
         }
       } catch (err) {
-        console.error("Error fetching stock movements:", err);
-        setError("Failed to load stock movements");
+        console.error('Error fetching stock movements:', err);
+        setError('Failed to load stock movements');
       } finally {
         setLoading(false);
         setLoadingMore(false);
         setIsSearching(false);
       }
     },
-    [offset],
+    [offset]
   );
 
   const search = useCallback(
@@ -128,15 +128,15 @@ function useStockMovementList() {
         fetchMovements(value, true);
       }, 500);
     },
-    [fetchMovements],
+    [fetchMovements]
   );
 
   const clearSearch = useCallback(() => {
-    setSearchTerm("");
+    setSearchTerm('');
     setOffset(0);
     setHasMore(true);
     setTotalLoaded(0);
-    fetchMovements("", true);
+    fetchMovements('', true);
   }, [fetchMovements]);
 
   const loadMore = useCallback(async () => {
@@ -149,7 +149,7 @@ function useStockMovementList() {
   }, [fetchMovements, searchTerm]);
 
   useEffect(() => {
-    fetchMovements("", true);
+    fetchMovements('', true);
 
     return () => {
       if (searchTimeoutRef.current) {
@@ -232,9 +232,7 @@ function PageHeader({ title }: PageHeaderProps) {
   return (
     <div className="flex justify-between items-center mb-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          {title}
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{title}</h1>
       </div>
     </div>
   );
@@ -248,7 +246,7 @@ function SearchBar({ value, onChange, onClear }: SearchBarProps) {
           type="text"
           placeholder="Search by product name, document reference, or brand..."
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={e => onChange(e.target.value)}
           className="w-full px-4 py-2 pl-10 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
         <svg
@@ -269,12 +267,7 @@ function SearchBar({ value, onChange, onClear }: SearchBarProps) {
             onClick={onClear}
             className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
           >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -308,26 +301,16 @@ function EmptyState({ searchTerm }: EmptyStateProps) {
     <div className="text-center py-16 bg-white rounded-xl shadow-sm">
       <div className="text-6xl mb-4">📊</div>
       <p className="text-gray-500 text-lg">
-        {searchTerm
-          ? "No stock movements found matching your search"
-          : "No stock movements found"}
+        {searchTerm ? 'No stock movements found matching your search' : 'No stock movements found'}
       </p>
-      {searchTerm && (
-        <p className="text-gray-400 text-sm mt-2">
-          Try adjusting your search terms
-        </p>
-      )}
+      {searchTerm && <p className="text-gray-400 text-sm mt-2">Try adjusting your search terms</p>}
     </div>
   );
 }
 
 function MovementTypeBadge({ type }: MovementTypeBadgeProps) {
   return (
-    <span
-      className={`px-3 py-1 text-xs font-medium rounded-full ${getMovementTypeColor(
-        type,
-      )}`}
-    >
+    <span className={`px-3 py-1 text-xs font-medium rounded-full ${getMovementTypeColor(type)}`}>
       {getMovementTypeLabel(type)}
     </span>
   );
@@ -340,25 +323,17 @@ function StockMovementRow({ movement }: StockMovementRowProps) {
       <TableCell>{formatDateTime(movement.date_time)}</TableCell>
       <TableCell>
         <div>
-          <div className="font-medium text-gray-900">
-            {movement.product.name}
-          </div>
+          <div className="font-medium text-gray-900">{movement.product.name}</div>
           <div className="text-sm text-gray-500">{movement.product.brand}</div>
         </div>
       </TableCell>
-      <TableCell>{movement.product.category?.name || "-"}</TableCell>
+      <TableCell>{movement.product.category?.name || '-'}</TableCell>
       <TableCell>
         <MovementTypeBadge type={movement.movement.type} />
       </TableCell>
-      <TableCell className="text-center font-semibold">
-        {movement.quantity}
-      </TableCell>
-      <TableCell className="text-center font-semibold">
-        {movement.balance}
-      </TableCell>
-      <TableCell className="font-mono text-sm">
-        {movement.document_reference || "-"}
-      </TableCell>
+      <TableCell className="text-center font-semibold">{movement.quantity}</TableCell>
+      <TableCell className="text-center font-semibold">{movement.balance}</TableCell>
+      <TableCell className="font-mono text-sm">{movement.document_reference || '-'}</TableCell>
     </TableRow>
   );
 }
@@ -380,7 +355,7 @@ function StockMovementsTable({ movements }: StockMovementsTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {movements.map((movement) => (
+          {movements.map(movement => (
             <StockMovementRow key={movement.id} movement={movement} />
           ))}
         </TableBody>

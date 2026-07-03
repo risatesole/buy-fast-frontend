@@ -1,18 +1,15 @@
-import { cookies } from "next/headers";
-import type { User } from "@/types/user";
+import { cookies } from 'next/headers';
+import type { User } from '@/types/user';
 
 export default class UserService {
   async getCurrentUser(): Promise<User | null> {
     const cookieStore = await cookies();
 
-    const response = await fetch(
-      `${process.env.BACKEND_URL}/api/v1/me`,
-      {
-        headers: {
-          Cookie: cookieStore.toString(),
-        },
-      }
-    );
+    const response = await fetch(`${process.env.BACKEND_URL}/api/v1/me`, {
+      headers: {
+        Cookie: cookieStore.toString(),
+      },
+    });
 
     if (!response.ok) {
       return null;

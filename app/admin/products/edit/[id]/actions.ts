@@ -1,17 +1,14 @@
-"use server";
+'use server';
 
-import { cookies } from "next/headers";
-import { revalidatePath } from "next/cache";
+import { cookies } from 'next/headers';
+import { revalidatePath } from 'next/cache';
 
 export type PatchResult = { success: boolean; error?: string };
 
-export async function patchProductAction(
-  id: string,
-  formData: FormData,
-): Promise<PatchResult> {
+export async function patchProductAction(id: string, formData: FormData): Promise<PatchResult> {
   const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
   if (!BACKEND_URL) {
-    return { success: false, error: "API URL not configured" };
+    return { success: false, error: 'API URL not configured' };
   }
 
   const cookieStore = await cookies();
@@ -19,25 +16,25 @@ export async function patchProductAction(
 
   // ---- TEMP DEBUG: remove after confirming ----
   console.log(
-    "[patchProductAction] cookies seen by server action:",
-    allCookies.map((c) => c.name),
+    '[patchProductAction] cookies seen by server action:',
+    allCookies.map(c => c.name)
   );
   // -----------------------------------------------
 
-  const cookieHeader = allCookies.map((c) => `${c.name}=${c.value}`).join("; ");
+  const cookieHeader = allCookies.map(c => `${c.name}=${c.value}`).join('; ');
 
   try {
     const res = await fetch(`${BACKEND_URL}/api/v1/products/${id}/`, {
-      method: "PATCH",
+      method: 'PATCH',
       headers: {
         Cookie: cookieHeader,
       },
       body: formData,
-      cache: "no-store",
+      cache: 'no-store',
     });
 
     // ---- TEMP DEBUG ----
-    console.log("[patchProductAction] Django response status:", res.status);
+    console.log('[patchProductAction] Django response status:', res.status);
     // ---------------------
 
     if (!res.ok) {
@@ -48,10 +45,10 @@ export async function patchProductAction(
       };
     }
 
-    revalidatePath("/admin/products");
+    revalidatePath('/admin/products');
     return { success: true };
   } catch (err) {
-    console.error("[patchProductAction] error:", err);
-    return { success: false, error: "Network error. Please try again." };
+    console.error('[patchProductAction] error:', err);
+    return { success: false, error: 'Network error. Please try again.' };
   }
 }

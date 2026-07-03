@@ -1,11 +1,11 @@
-import type { RemoveProductFromCartResponse } from "@/features/cart/types/RemoveProductFromCartResponse";
+import type { RemoveProductFromCartResponse } from '@/features/cart/types/RemoveProductFromCartResponse';
 
 export async function RemoveProductFromCart(productId: number | string) {
-  const response = await fetch("/api/v1/cart", {
-    method: "DELETE",
-    credentials: "include",
+  const response = await fetch('/api/v1/cart', {
+    method: 'DELETE',
+    credentials: 'include',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       product_id: productId,

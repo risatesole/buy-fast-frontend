@@ -1,27 +1,27 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "../globals.css";
+import type { Metadata } from 'next';
+import { Geist, Geist_Mono } from 'next/font/google';
+import '../globals.css';
 
-import { cookies } from "next/headers";
+import { cookies } from 'next/headers';
 
-import { NavbarWithCart } from "@/components/navbar-with-cart";
-import { Footer } from "@/components/Footer";
-import type { NavbarCartItem } from "@/components/navbar";
-import type { GetCartResponse } from "@/features/cart/types/GetCartResponse";
+import { NavbarWithCart } from '@/components/navbar-with-cart';
+import { Footer } from '@/components/Footer';
+import type { NavbarCartItem } from '@/components/navbar';
+import type { GetCartResponse } from '@/features/cart/types/GetCartResponse';
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
-  title: "UASD | Buyfast",
-  description: "The easy way to buy in the UASD",
+  title: 'UASD | Buyfast',
+  description: 'The easy way to buy in the UASD',
 };
 
 type MeResponse = {
@@ -50,7 +50,7 @@ async function getUserDetails(): Promise<MeResponse | null> {
 
     const res = await fetch(`${backendUrl}/api/v1/me`, {
       headers: { Cookie: cookieHeader },
-      cache: "no-store",
+      cache: 'no-store',
     });
 
     if (!res.ok) return null;
@@ -70,44 +70,36 @@ async function getCartItems(): Promise<NavbarCartItem[]> {
 
     const res = await fetch(`${backendUrl}/api/v1/cart/`, {
       headers: { Cookie: cookieHeader },
-      cache: "no-store",
+      cache: 'no-store',
     });
 
     if (!res.ok) return [];
 
     const json: GetCartResponse = await res.json();
 
-    return json.data.items.map((item) => ({
+    return json.data.items.map(item => ({
       id: item.id,
       name: item.product.name,
       productId: item.product.id,
       price: item.product.selling_price,
       quantity: item.quantity,
-      image: item.product.images.find(
-  (img: { type: string; url: string }) => img.type === "HERO"
-)?.url,
+      image: item.product.images.find((img: { type: string; url: string }) => img.type === 'HERO')
+        ?.url,
     }));
   } catch {
     return [];
   }
 }
 
-export default async function HomeLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [userData, cartItems] = await Promise.all([
-    getUserDetails(),
-    getCartItems(),
-  ]);
+export default async function HomeLayout({ children }: { children: React.ReactNode }) {
+  const [userData, cartItems] = await Promise.all([getUserDetails(), getCartItems()]);
 
   const rawUser = userData?.data?.user;
   const user = rawUser?.is_authenticated ? rawUser : null;
 
   return (
     <div
-      style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}
+      style={{ fontFamily: 'var(--font-geist-sans), sans-serif' }}
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
       <NavbarWithCart
@@ -115,8 +107,8 @@ export default async function HomeLayout({
           user
             ? {
                 name: `${user.firstname} ${user.lastname}`,
-                profilePicture: user.profilepicture ?? "",
-                role: user.role ?? "",
+                profilePicture: user.profilepicture ?? '',
+                role: user.role ?? '',
               }
             : null
         }

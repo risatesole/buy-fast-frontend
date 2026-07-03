@@ -46,27 +46,24 @@ export interface SignupResponse {
   };
 }
 
-export const SignupUser = async (
-  payload: SignupRequest,
-): Promise<SignupResponse> => {
+export const SignupUser = async (payload: SignupRequest): Promise<SignupResponse> => {
   let response: Response;
 
   try {
-    response = await fetch("/api/v1/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
+    response = await fetch('/api/v1/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(payload),
     });
   } catch {
-    throw new Error("Internal Server Error");
+    throw new Error('Internal Server Error');
   }
 
   if (!response.ok) {
     const body = await response.json().catch(() => null);
     throw new Error(
-      body?.message ??
-        "Failed to create account. If the problem persists, contact support.",
+      body?.message ?? 'Failed to create account. If the problem persists, contact support.'
     );
   }
 
