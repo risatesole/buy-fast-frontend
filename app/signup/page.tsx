@@ -20,6 +20,7 @@ export default function SignupPage() {
     email: '',
     password: '',
     phone: '',
+    matricula: '',
     terms: false,
   });
 
@@ -94,6 +95,17 @@ export default function SignupPage() {
                 placeholder="8095551234"
                 value={form.phone}
                 onChange={event => setForm({ ...form, phone: event.target.value })}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="matricula">matricula</Label>
+              <Input
+                id="matricula"
+                placeholder="123456789"
+                value={form.matricula}
+                onChange={event => setForm({ ...form, matricula: event.target.value })}
                 required
               />
             </div>

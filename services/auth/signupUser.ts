@@ -4,6 +4,7 @@ export interface SignupRequest {
   email: string;
   password: string;
   phone: string;
+  matricula: string;
   terms: boolean;
 }
 
@@ -12,6 +13,7 @@ interface User {
   firstname: string;
   lastname: string;
   email: string;
+  matricula?: string;
   created_at: string;
   updated_at: string;
 }
