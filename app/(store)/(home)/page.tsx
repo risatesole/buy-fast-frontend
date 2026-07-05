@@ -1,94 +1,73 @@
-// app/page.tsx
-import { HeroSection } from '@/components/childcomponents/home/sections/hero';
-import { ProductsInteractive } from './ProductsInteractive';
-export const dynamic = 'force-dynamic';
+'use client';
 
-type DjangoFirstPage = {
-  next: string | null;
-  previous: string | null;
-  data: RawDjangoProduct[];
-};
-
-type RawDjangoProduct = {
-  id: number;
-  name: string;
-  description: string;
-  brand: string;
-  metric_unit: string;
-  selling_price: string;
-  status: boolean;
-  category: {
-    id: number;
-    name: string;
-    slug: string;
-    image: string;
-  };
-  tags: string[];
-  images: {
-    id: number;
-    image: string;
-    image_type: 'HERO' | 'SCALE' | 'PACKING' | 'FLATLAY' | 'FREEZE_FRAME';
-  }[];
-};
-
-function mapProduct(raw: RawDjangoProduct) {
-  return {
-    id: raw.id,
-    name: raw.name,
-    description: raw.description,
-    brand: raw.brand,
-    selling_price: parseFloat(raw.selling_price),
-    status: raw.status,
-    tags: raw.tags,
-    category: {
-      id: raw.category.id,
-      name: raw.category.name,
-      slug: raw.category.slug,
-      image: raw.category.image,
-      status: true,
-    },
-    images: raw.images.map(img => ({
-      url: img.image,
-      type: img.image_type,
-    })),
-  };
-}
-
-const DJANGO_BASE = process.env.DJANGO_API_URL ?? 'http://localhost:8000';
-
-async function getFeaturedProductsFirstPage(): Promise<{
-  products: ReturnType<typeof mapProduct>[];
-  nextCursor: string | null;
-}> {
-  const res = await fetch(`${DJANGO_BASE}/api/v1/products/tag/featured/`, {
-    headers: { Accept: 'application/json' },
-    // ISR: revalidate every 60 s
-    next: { revalidate: 60 },
-  });
-
-  if (!res.ok) {
-    console.error('Failed to fetch featured products:', res.status);
-    return { products: [], nextCursor: null };
-  }
-
-  const data: DjangoFirstPage = await res.json();
-
-  return {
-    products: data.data.map(mapProduct),
-    nextCursor: data.next,
-  };
-}
+import { ProductCard } from '@/components/ProductCard';
+import type { ProductImage } from '@/types/products';
 
 const preheadline = 'Universidad Autonoma de Santo Domingo Semestre 2026-01';
 const headline = 'Todo lo que necesitas para tu vida *universitaria*';
 
-export default async function Page() {
-  const { products, nextCursor } = await getFeaturedProductsFirstPage();
+const mockImages = {
+  books: [
+    {
+      url:  "https://zdnhvnvrngxvxedrvuon.supabase.co/storage/v1/object/public/bucket1/uploads/1782667031_61HdqFs9wbL._AC_SX575_.jpg",
+      type: 'HERO' as const,
+    },
+  ] as ProductImage[],
+  notebooks: [
+    {
+      url:  "https://zdnhvnvrngxvxedrvuon.supabase.co/storage/v1/object/public/bucket1/uploads/1782667031_61HdqFs9wbL._AC_SX575_.jpg",
+      type: 'HERO' as const,
+    },
+  ] as ProductImage[],
+  pens: [
+    {
+      url:  "https://zdnhvnvrngxvxedrvuon.supabase.co/storage/v1/object/public/bucket1/uploads/1782667031_61HdqFs9wbL._AC_SX575_.jpg",
+      type: 'HERO' as const,
+    },
+  ] as ProductImage[],
+};
+
+export default function Page() {
+  function handleAddToCart(productId: number, quantity: number) {
+    alert(`Product ${productId} added to cart! Quantity: ${quantity}`);
+  }
 
   return (
     <main>
-      <HeroSection preheadline={preheadline} headline={headline} />
-      <ProductsInteractive products={products} initialNextCursor={nextCursor} />
+      <p>Welcome to the store</p>
+      <div
+        style={{
+          flex: 1,
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+          gap: '2.5rem 2rem',
+        }}
+      >
+        <ProductCard
+          id={1}
+          name="No name for this product sir"
+          selling_price={2000}
+          categoryName="Books"
+          images={mockImages.books}
+          onAdd={handleAddToCart}
+        />
+        <ProductCard
+          id={2}
+          name="Another product"
+          selling_price={2500}
+          categoryName="Notebooks"
+          images={mockImages.notebooks}
+          onAdd={handleAddToCart}
+        />
+        <ProductCard
+          id={3}
+          name="Yet another item"
+          selling_price={500}
+          categoryName="Pens"
+          images={mockImages.pens}
+          onAdd={handleAddToCart}
+        />
+      </div>
     </main>
   );
 }

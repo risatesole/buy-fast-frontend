@@ -8,7 +8,7 @@ import { Suspense } from 'react';
 import { ProductCard } from '@/components/ProductCard';
 
 // types
-import type { Product } from '@/types/products';
+import type { ProductImage } from '@/types/products';
 
 // services
 import CartService from '@/features/cart/service';
@@ -19,17 +19,38 @@ type ApiProduct = {
   id: number;
   name: string;
   description: string;
-  category: string;
-  image: string | null;
+  category: {
+    id: number;
+    name: string;
+    slug: string;
+    image: string;
+    status: boolean;
+  };
+  images: ProductImage[];
   brand: string;
   selling_price: number;
   status: boolean;
+  tags: string[];
+};
+
+type NormalizedProduct = {
+  id: number;
+  name: string;
+  selling_price: number;
+  categoryName: string;
+  images?: ProductImage[];
 };
 
 // ─── Helpers ──────────────────────────────────────────────────
 
-function normalizeProduct(p: ApiProduct): Product {
-  return { ...(p as any), price: p.selling_price };
+function normalizeProduct(p: ApiProduct): NormalizedProduct {
+  return {
+    id: p.id,
+    name: p.name,
+    selling_price: p.selling_price,
+    categoryName: p.category.name,
+    images: p.images,
+  };
 }
 
 async function searchProducts(query: string): Promise<ApiProduct[]> {
@@ -105,14 +126,14 @@ function SearchContent() {
       });
   }, [q]);
 
-  function handleAddToCart(product: Product, quantity: number) {
+  function handleAddToCart(productId: number, quantity: number) {
     const service = new CartService();
-    service.addProduct(product.id, quantity).catch(err => {
+    service.addProduct(productId, quantity).catch(err => {
       console.error('Failed to add product to cart:', err);
     });
   }
 
-  const products: Product[] = rawProducts.map(normalizeProduct);
+  const products: NormalizedProduct[] = rawProducts.map(normalizeProduct);
 
   return (
     <div style={{ fontFamily: 'var(--font-geist-sans), sans-serif' }}>
@@ -172,7 +193,15 @@ function SearchContent() {
                 }}
               >
                 {products.map(product => (
-                  <ProductCard key={product.id} product={product} onAdd={handleAddToCart} />
+                  <ProductCard
+                    key={product.id}
+                    id={product.id}
+                    name={product.name}
+                    selling_price={product.selling_price}
+                    categoryName={product.categoryName}
+                    images={product.images}
+                    onAdd={handleAddToCart}
+                  />
                 ))}
               </div>
             )}

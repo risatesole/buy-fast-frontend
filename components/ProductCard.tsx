@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import type { Product } from '@/types/products';
+import type { ProductImage } from '@/types/products';
 
 // ─── Helpers ──────────────────────────────────────────────────
 
@@ -58,22 +58,32 @@ const formatPrice = (n: number) =>
 // ─── Component ────────────────────────────────────────────────
 
 export type ProductCardProps = {
-  product: Product;
-  onAdd: (product: Product, quantity: number) => void;
+  id: number;
+  name: string;
+  selling_price: number;
+  categoryName: string;
+  images?: ProductImage[];
+  onAdd: (productId: number, quantity: number) => void;
 };
 
-export function ProductCard({ product, onAdd }: ProductCardProps) {
+export function ProductCard({
+  id,
+  name,
+  selling_price,
+  categoryName,
+  images,
+  onAdd
+}: ProductCardProps) {
   const [hovered, setHovered] = useState(false);
   const [added, setAdded] = useState(false);
 
   const handleAdd = () => {
-    onAdd(product, 1);
+    onAdd(id, 1);
     setAdded(true);
     setTimeout(() => setAdded(false), 900);
   };
 
-  const categoryName = product.category.name;
-  const heroImage = product.images?.find(img => img.type === 'HERO')?.url;
+  const heroImage = images?.find(img => img.type === 'HERO')?.url;
 
   return (
     <article
@@ -86,7 +96,7 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
         paddingBottom: '2rem',
       }}
     >
-      <Link href={`/products/${product.id}`}>
+      <Link href={`/products/${id}`}>
         <div
           style={{
             aspectRatio: '4/3',
@@ -102,7 +112,7 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
           {heroImage ? (
             <img
               src={heroImage}
-              alt={product.name}
+              alt={name}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           ) : (
@@ -123,7 +133,7 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
         {categoryName}
       </p>
 
-      <Link href={`/products/${product.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+      <Link href={`/products/${id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
         <h3
           style={{
             fontFamily: "'Georgia', serif",
@@ -132,7 +142,7 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
             marginBottom: '0.75rem',
           }}
         >
-          {product.name}
+          {name}
         </h3>
       </Link>
 
@@ -143,7 +153,7 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
           alignItems: 'center',
         }}
       >
-        <span style={{ fontFamily: 'monospace' }}>{formatPrice(product.selling_price)}</span>
+        <span style={{ fontFamily: 'monospace' }}>{formatPrice(selling_price)}</span>
         <button onClick={handleAdd}>{added ? 'Added ✓' : 'Add to cart'}</button>
       </div>
     </article>
