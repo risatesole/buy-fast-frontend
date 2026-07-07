@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import type { ProductImage } from '@/types/products';
+import Image from 'next/image';
 
 // ─── Helpers ──────────────────────────────────────────────────
 
@@ -107,13 +108,17 @@ export function ProductCard({
             alignItems: 'center',
             justifyContent: 'center',
             overflow: 'hidden',
+            position: 'relative',
           }}
         >
           {heroImage ? (
-            <img
+            <Image
               src={heroImage}
               alt={name}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              loading="eager"
+              style={{ objectFit: 'cover' }}
             />
           ) : (
             <ProductGlyph category={categoryName} />
