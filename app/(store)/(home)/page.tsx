@@ -9,19 +9,19 @@ const headline = 'Todo lo que necesitas para tu vida *universitaria*';
 const mockImages = {
   books: [
     {
-      url:  "https://zdnhvnvrngxvxedrvuon.supabase.co/storage/v1/object/public/bucket1/uploads/1782667031_61HdqFs9wbL._AC_SX575_.jpg",
+      url: 'https://zdnhvnvrngxvxedrvuon.supabase.co/storage/v1/object/public/bucket1/uploads/1782667031_61HdqFs9wbL._AC_SX575_.jpg',
       type: 'HERO' as const,
     },
   ] as ProductImage[],
   notebooks: [
     {
-      url:  "https://zdnhvnvrngxvxedrvuon.supabase.co/storage/v1/object/public/bucket1/uploads/1782667031_61HdqFs9wbL._AC_SX575_.jpg",
+      url: 'https://zdnhvnvrngxvxedrvuon.supabase.co/storage/v1/object/public/bucket1/uploads/1782667031_61HdqFs9wbL._AC_SX575_.jpg',
       type: 'HERO' as const,
     },
   ] as ProductImage[],
   pens: [
     {
-      url:  "https://zdnhvnvrngxvxedrvuon.supabase.co/storage/v1/object/public/bucket1/uploads/1782667031_61HdqFs9wbL._AC_SX575_.jpg",
+      url: 'https://zdnhvnvrngxvxedrvuon.supabase.co/storage/v1/object/public/bucket1/uploads/1782667031_61HdqFs9wbL._AC_SX575_.jpg',
       type: 'HERO' as const,
     },
   ] as ProductImage[],

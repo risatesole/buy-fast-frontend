@@ -72,7 +72,7 @@ export function ProductCard({
   selling_price,
   categoryName,
   images,
-  onAdd
+  onAdd,
 }: ProductCardProps) {
   const [hovered, setHovered] = useState(false);
   const [added, setAdded] = useState(false);
