@@ -2,7 +2,7 @@ import ProductList from './productList';
 import type { Product } from '@/entities/product';
 
 async function getProducts(): Promise<Product[]> {
-  const response = await fetch('http://localhost:8000/api/v1/products/');
+  const response = await fetch(`${process.env.BACKEND_URL}/api/v1/products/`);
 
   if (!response.ok) {
     throw new Error('Failed to fetch products');
