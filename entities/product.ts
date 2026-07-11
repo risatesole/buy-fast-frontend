@@ -14,8 +14,9 @@ type Product = {
   id: number;
   name: string;
   category: 'electronics' | 'clothing' | 'books' | 'home' | 'toys' | 'food' | 'other';
-  thumbnail: 'electronics' | 'clothing' | 'books' | 'home' | 'toys' | 'food' | 'other';
+  thumbnail: string;
   slug: string;
   tags: string[];
   variants: NormalProductVariant[];
+  product_type: 'normal';
 };
