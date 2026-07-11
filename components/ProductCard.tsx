@@ -139,7 +139,7 @@ export function ProductCard({
         {categoryName}
       </p>
 
-      <Link href={`/products/${id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+      <Link href={`/products/${slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
         <h3
           style={{
             fontFamily: "'Georgia', serif",

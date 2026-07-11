@@ -38,6 +38,7 @@ type NormalizedProduct = {
   selling_price: number;
   categoryName: string;
   image?: string;
+  slug: string;
 };
 
 function normalizeProduct(p: ApiProduct): NormalizedProduct {
@@ -50,6 +51,7 @@ function normalizeProduct(p: ApiProduct): NormalizedProduct {
     selling_price: firstVariant?.selling_price ?? 0,
     categoryName: p.category,
     image: image || undefined,
+    slug: p.slug,
   };
 }
 
@@ -196,6 +198,7 @@ function SearchContent() {
                     selling_price={product.selling_price}
                     categoryName={product.categoryName}
                     image={product.image}
+                    slug={product.slug}
                     onAdd={handleAddToCart}
                   />
                 ))}
