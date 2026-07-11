@@ -4,7 +4,14 @@ import { ProductCard } from '@/components/ProductCard';
 import type { Product } from '@/entities/product';
 
 interface ProductListProps {
-  products: { id: number; name: string; thumbnail: string; slug: string,selling_price: number, category:string}[];
+  products: {
+    id: number;
+    name: string;
+    thumbnail: string;
+    slug: string;
+    selling_price: number;
+    category: string;
+  }[];
 }
 
 export default function ProductList({ products }: ProductListProps) {

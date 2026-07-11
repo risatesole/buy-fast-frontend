@@ -19,11 +19,7 @@ interface CarouselProps {
   interval?: number;
 }
 
-export default function Carousel({
-  slides,
-  autoPlay = true,
-  interval = 5000,
-}: CarouselProps) {
+export default function Carousel({ slides, autoPlay = true, interval = 5000 }: CarouselProps) {
   const [current, setCurrent] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -35,7 +31,7 @@ export default function Carousel({
     if (!autoPlay || slides.length === 0) return;
 
     const timer = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % slides.length);
+      setCurrent(prev => (prev + 1) % slides.length);
     }, interval);
 
     return () => clearInterval(timer);
@@ -50,11 +46,11 @@ export default function Carousel({
   };
 
   const goToPrevious = () => {
-    setCurrent((prev) => (prev - 1 + slides.length) % slides.length);
+    setCurrent(prev => (prev - 1 + slides.length) % slides.length);
   };
 
   const goToNext = () => {
-    setCurrent((prev) => (prev + 1) % slides.length);
+    setCurrent(prev => (prev + 1) % slides.length);
   };
 
   const slide = slides[current];
@@ -84,15 +80,24 @@ export default function Carousel({
           {/* Slide info overlay - subtle and minimal */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent p-4 sm:p-6">
             <div className="max-w-lg">
-              <h3 className="text-lg sm:text-xl font-semibold text-white mb-1 leading-tight">{slide.title}</h3>
+              <h3 className="text-lg sm:text-xl font-semibold text-white mb-1 leading-tight">
+                {slide.title}
+              </h3>
               {slide.description && (
-                <p className="text-xs sm:text-sm text-gray-200 mb-3 line-clamp-2">{slide.description}</p>
+                <p className="text-xs sm:text-sm text-gray-200 mb-3 line-clamp-2">
+                  {slide.description}
+                </p>
               )}
               <Link href={slide.buttonLink}>
                 <button className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium text-sm py-2 px-5 rounded-md transition-colors duration-200 hover:shadow-md">
                   {slide.buttonText || 'Shop Now'}
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </button>
               </Link>
@@ -149,8 +154,8 @@ export default function Carousel({
               key={index}
               onClick={() => goToSlide(index)}
               className={`transition-all duration-300 ${
-                index === current 
-                  ? 'bg-gray-800 w-8 h-1.5 rounded-full' 
+                index === current
+                  ? 'bg-gray-800 w-8 h-1.5 rounded-full'
                   : 'bg-gray-300 hover:bg-gray-400 w-2 h-1.5 rounded-full'
               }`}
               aria-label={`Go to slide ${index + 1}`}
