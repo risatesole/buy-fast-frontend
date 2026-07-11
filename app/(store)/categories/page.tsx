@@ -98,11 +98,7 @@ export default async function CategoriesPage() {
   );
 }
 
-function CategoryCard({ 
-  category 
-}: { 
-  category: Category & { key: string } 
-}) {
+function CategoryCard({ category }: { category: Category & { key: string } }) {
   return (
     <Link
       href={`/categories/${category.label.toLowerCase().replace(/\s+/g, '-')}`}
