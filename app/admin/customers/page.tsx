@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { User } from '@/types/user';
+import type { User } from '@/entities/user';
 import {
   Table,
   TableBody,

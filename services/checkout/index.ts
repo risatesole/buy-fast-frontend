@@ -1,4 +1,4 @@
-import type { User } from '@/types/user';
+import type { User } from '@/entities/user';
 import type { CartItem } from '@/features/cart/types/CartItem';
 
 type BillingContactInfo = {

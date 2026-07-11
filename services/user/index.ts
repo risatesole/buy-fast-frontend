@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import type { User } from '@/types/user';
+import type { User } from '@/entities/user';
 
 export default class UserService {
   async getCurrentUser(): Promise<User | null> {
