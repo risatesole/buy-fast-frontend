@@ -3,34 +3,33 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
-
-// components
 import { ProductCard } from '@/components/ProductCard';
-
-// types
-import type { ProductImage } from '@/types/products';
-
-// services
 import CartService from '@/features/cart/service';
 
-// ─── Types ────────────────────────────────────────────────────
+type ApiVariant = {
+  name: string;
+  description: string;
+  variantnumber: number;
+  thumbnail: string | null;
+  selling_price: number;
+  tax_rate: number;
+  sku: string;
+  slug: string;
+  image_hero: string | null;
+  image_thumbnail: string | null;
+  image_gallery: string | null;
+  image_lifestyle: string | null;
+};
 
 type ApiProduct = {
   id: number;
   name: string;
-  description: string;
-  category: {
-    id: number;
-    name: string;
-    slug: string;
-    image: string;
-    status: boolean;
-  };
-  images: ProductImage[];
-  brand: string;
-  selling_price: number;
-  status: boolean;
-  tags: string[];
+  category: string;
+  product_type: string;
+  thumbnail: string | null;
+  slug: string;
+  type: string;
+  variants: ApiVariant[];
 };
 
 type NormalizedProduct = {
@@ -38,29 +37,28 @@ type NormalizedProduct = {
   name: string;
   selling_price: number;
   categoryName: string;
-  images?: ProductImage[];
+  image?: string;
 };
 
-// ─── Helpers ──────────────────────────────────────────────────
-
 function normalizeProduct(p: ApiProduct): NormalizedProduct {
+  const firstVariant = p.variants?.[0];
+  const image = firstVariant?.thumbnail || p.thumbnail || undefined;
+
   return {
     id: p.id,
     name: p.name,
-    selling_price: p.selling_price,
-    categoryName: p.category.name,
-    images: p.images,
+    selling_price: firstVariant?.selling_price ?? 0,
+    categoryName: p.category,
+    image: image || undefined,
   };
 }
 
 async function searchProducts(query: string): Promise<ApiProduct[]> {
-  const res = await fetch(`/api/v1/products?search=${encodeURIComponent(query)}`);
+  const res = await fetch(`/api/v1/products/?search=${encodeURIComponent(query)}`);
   if (!res.ok) throw new Error('Search failed');
   const json = await res.json();
   return json.data;
 }
-
-// ─── Empty state ──────────────────────────────────────────────
 
 function EmptyState({ query }: { query: string }) {
   return (
@@ -96,8 +94,6 @@ function EmptyState({ query }: { query: string }) {
     </div>
   );
 }
-
-// ─── Page ─────────────────────────────────────────────────────
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -199,7 +195,7 @@ function SearchContent() {
                     name={product.name}
                     selling_price={product.selling_price}
                     categoryName={product.categoryName}
-                    images={product.images}
+                    image={product.image}
                     onAdd={handleAddToCart}
                   />
                 ))}
