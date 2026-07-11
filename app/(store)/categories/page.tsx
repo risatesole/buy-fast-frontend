@@ -1,36 +1,48 @@
 // app/(store)/categories/page.tsx
 import Link from 'next/link';
+import Image from 'next/image';
 
 export const dynamic = 'force-dynamic';
 
-type RawCategory = {
-  id: number;
-  name: string;
-  slug: string;
+interface Category {
+  label: string;
   description: string;
-  image: string | null;
-  status: boolean;
-};
+  priority: number;
+  images: {
+    banner: string;
+    cart: string;
+    default: string;
+  };
+}
 
 const DJANGO_BASE = process.env.BACKEND_URL ?? 'http://localhost:8000';
 
-async function getActiveCategories(): Promise<RawCategory[]> {
-  const res = await fetch(`${DJANGO_BASE}/api/v1/products/categories?status=true`, {
-    headers: { Accept: 'application/json' },
-    cache: 'no-store',
-  });
+async function getCategories(): Promise<Record<string, Category>> {
+  try {
+    const res = await fetch(`${DJANGO_BASE}/api/v1/products/categories`, {
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+    });
 
-  if (!res.ok) {
-    console.error('Failed to fetch categories:', res.status);
-    return [];
+    if (!res.ok) {
+      console.error('Failed to fetch categories:', res.status);
+      return {};
+    }
+
+    const json: { status: string; data: Record<string, Category> } = await res.json();
+    return json.data ?? {};
+  } catch (error) {
+    console.error('Failed to fetch categories:', error);
+    return {};
   }
-
-  const json: { status: string; data: RawCategory[] } = await res.json();
-  return json.data ?? [];
 }
 
 export default async function CategoriesPage() {
-  const categories = await getActiveCategories();
+  const categoriesData = await getCategories();
+  const categories = Object.entries(categoriesData).map(([key, value]) => ({
+    key,
+    ...value,
+  }));
 
   return (
     <main style={{ maxWidth: 1280, margin: '0 auto', padding: '4rem 2rem 6rem' }}>
@@ -78,7 +90,7 @@ export default async function CategoriesPage() {
           }}
         >
           {categories.map(cat => (
-            <CategoryCard key={cat.id} category={cat} />
+            <CategoryCard key={cat.key} category={cat} />
           ))}
         </div>
       )}
@@ -86,10 +98,14 @@ export default async function CategoriesPage() {
   );
 }
 
-function CategoryCard({ category }: { category: RawCategory }) {
+function CategoryCard({ 
+  category 
+}: { 
+  category: Category & { key: string } 
+}) {
   return (
     <Link
-      href={`/categories/${category.slug}`}
+      href={`/categories/${category.label.toLowerCase().replace(/\s+/g, '-')}`}
       style={{ textDecoration: 'none', color: 'inherit' }}
     >
       <article
@@ -112,17 +128,16 @@ function CategoryCard({ category }: { category: RawCategory }) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            position: 'relative',
           }}
         >
-          {category.image ? (
-            <img
-              src={category.image}
-              alt={category.name}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          ) : (
-            <CategoryGlyph name={category.name} />
-          )}
+          <Image
+            src={category.images.default}
+            alt={category.label}
+            fill
+            style={{ objectFit: 'cover' }}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
         </div>
 
         {/* Name */}
@@ -134,7 +149,7 @@ function CategoryCard({ category }: { category: RawCategory }) {
             margin: '0 0 0.4rem',
           }}
         >
-          {category.name}
+          {category.label}
         </h2>
 
         {/* Description (truncated) */}
@@ -155,25 +170,5 @@ function CategoryCard({ category }: { category: RawCategory }) {
         )}
       </article>
     </Link>
-  );
-}
-
-function CategoryGlyph({ name }: { name: string }) {
-  const stroke = 'oklch(0.708 0 0)';
-  const props = {
-    width: 48,
-    height: 48,
-    viewBox: '0 0 24 24',
-    fill: 'none' as const,
-    stroke,
-    strokeWidth: 1,
-  };
-
-  return (
-    <svg {...props}>
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <path d="M3 9h18" />
-      <path d="M9 21V9" />
-    </svg>
   );
 }
