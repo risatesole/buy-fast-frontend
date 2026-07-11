@@ -1,6 +1,3 @@
-'use client';
-
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -15,45 +12,31 @@ interface Category {
   };
 }
 
-export default function CategoryBar() {
-  const [categories, setCategories] = useState<Record<string, Category>>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+async function getCategories(): Promise<Record<string, Category>> {
+  try {
+    const response = await fetch('http://localhost:8000/api/v1/products/categories', {
+      next: { revalidate: 3600 }, // Revalidate every hour
+    });
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const url = 'http://localhost:8000/api/v1/products/categories';
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        
-        const json = await response.json();
-        setCategories(json.data);
-      } catch (error) {
-        console.error('Failed to fetch categories:', error);
-        setError(error instanceof Error ? error.message : 'Unknown error');
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
 
-    fetchCategories();
-  }, []);
-
-  if (error) {
-    return <div className="text-red-500 p-4">Error loading categories: {error}</div>;
+    const json = await response.json();
+    return json.data || {};
+  } catch (error) {
+    console.error('Failed to fetch categories:', error);
+    return {};
   }
+}
 
-  if (loading) {
-    return <div className="h-48 bg-gray-200 animate-pulse rounded-lg" />;
-  }
+export default async function CategoryBar() {
+  const categories = await getCategories();
 
   // Filter only priority 3 categories
-  const filteredCategories = Object.entries(categories)
-    .filter(([, category]) => category.priority === 3);
+  const filteredCategories = Object.entries(categories).filter(
+    ([, category]) => category.priority === 3
+  );
 
   if (filteredCategories.length === 0) {
     return <div className="text-gray-500 p-4">No categories available</div>;
@@ -63,7 +46,7 @@ export default function CategoryBar() {
     <div className="w-full px-4 py-6">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-base font-semibold mb-4">Shop by Category</h2>
-        
+
         {/* Desktop: 6 columns, Tablet: 3 columns, Mobile: 2 columns */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
           {filteredCategories.map(([key, category]) => (
@@ -73,7 +56,7 @@ export default function CategoryBar() {
               className="group flex flex-col text-center"
             >
               {/* Image Container */}
-              <div 
+              <div
                 className="relative w-full bg-gray-100 border border-gray-200 rounded overflow-hidden mb-2 group-hover:bg-gray-200 transition-colors"
                 style={{ aspectRatio: '1/1' }}
               >
