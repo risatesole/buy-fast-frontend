@@ -1,16 +1,16 @@
-type NormalProductVariant = {
+export type NormalProductVariant = {
   id: number;
   name: string;
   description: string;
   sku: string;
   slug: string;
-  selling_price: string;
+  selling_price: number;
   tax_rate: number;
   created_at: Date;
   updated_at: Date;
 };
 
-type Product = {
+export type Product = {
   id: number;
   name: string;
   category: 'electronics' | 'clothing' | 'books' | 'home' | 'toys' | 'food' | 'other';
