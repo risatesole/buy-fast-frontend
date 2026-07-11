@@ -63,6 +63,7 @@ export type ProductCardProps = {
   selling_price: number;
   categoryName: string;
   image?: string;
+  slug: string;
   onAdd: (productId: number, quantity: number) => void;
 };
 
@@ -72,6 +73,7 @@ export function ProductCard({
   selling_price,
   categoryName,
   image,
+  slug,
   onAdd,
 }: ProductCardProps) {
   const [hovered, setHovered] = useState(false);
@@ -96,7 +98,7 @@ export function ProductCard({
         paddingBottom: '2rem',
       }}
     >
-      <Link href={`/products/${id}`}>
+      <Link href={`/products/${slug}`}>
         <div
           style={{
             aspectRatio: '4/3',

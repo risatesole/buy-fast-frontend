@@ -32,6 +32,7 @@ export default function ProductList({ products }: ProductListProps) {
         <ProductCard
           key={product.id}
           id={product.id}
+          slug={product.slug}
           name={product.name}
           selling_price={product.selling_price}
           categoryName={product.category}
