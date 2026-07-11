@@ -27,7 +27,7 @@ export default async function Page() {
           type: product.product_type,
           category: product.category,
           selling_price: product.variants?.[0]?.selling_price ?? 0,
-          thumbnail: product.thumbnail,
+          thumbnail: product.variants?.[0]?.thumbnail
         }))}
       />
     </main>
