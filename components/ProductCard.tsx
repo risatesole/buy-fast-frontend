@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import type { ProductImage } from '@/types/products';
 import Image from 'next/image';
 
 // ─── Helpers ──────────────────────────────────────────────────
@@ -63,7 +62,7 @@ export type ProductCardProps = {
   name: string;
   selling_price: number;
   categoryName: string;
-  images?: ProductImage[];
+  image?: string;
   onAdd: (productId: number, quantity: number) => void;
 };
 
@@ -72,7 +71,7 @@ export function ProductCard({
   name,
   selling_price,
   categoryName,
-  images,
+  image,
   onAdd,
 }: ProductCardProps) {
   const [hovered, setHovered] = useState(false);
@@ -84,7 +83,7 @@ export function ProductCard({
     setTimeout(() => setAdded(false), 900);
   };
 
-  const heroImage = images?.find(img => img.type === 'HERO')?.url;
+  const heroImage = image;
 
   return (
     <article

@@ -1,31 +1,9 @@
 'use client';
 
 import { ProductCard } from '@/components/ProductCard';
-import type { ProductImage } from '@/types/products';
 
 const preheadline = 'Universidad Autonoma de Santo Domingo Semestre 2026-01';
 const headline = 'Todo lo que necesitas para tu vida *universitaria*';
-
-const mockImages = {
-  books: [
-    {
-      url: 'https://zdnhvnvrngxvxedrvuon.supabase.co/storage/v1/object/public/bucket1/uploads/1782667031_61HdqFs9wbL._AC_SX575_.jpg',
-      type: 'HERO' as const,
-    },
-  ] as ProductImage[],
-  notebooks: [
-    {
-      url: 'https://zdnhvnvrngxvxedrvuon.supabase.co/storage/v1/object/public/bucket1/uploads/1782667031_61HdqFs9wbL._AC_SX575_.jpg',
-      type: 'HERO' as const,
-    },
-  ] as ProductImage[],
-  pens: [
-    {
-      url: 'https://zdnhvnvrngxvxedrvuon.supabase.co/storage/v1/object/public/bucket1/uploads/1782667031_61HdqFs9wbL._AC_SX575_.jpg',
-      type: 'HERO' as const,
-    },
-  ] as ProductImage[],
-};
 
 export default function Page() {
   function handleAddToCart(productId: number, quantity: number) {
@@ -48,7 +26,7 @@ export default function Page() {
           name="No name for this product sir"
           selling_price={2000}
           categoryName="Books"
-          images={mockImages.books}
+          image="https://example.com"
           onAdd={handleAddToCart}
         />
         <ProductCard
@@ -56,7 +34,7 @@ export default function Page() {
           name="Another product"
           selling_price={2500}
           categoryName="Notebooks"
-          images={mockImages.notebooks}
+          image="https://example.com"
           onAdd={handleAddToCart}
         />
         <ProductCard
@@ -64,7 +42,7 @@ export default function Page() {
           name="Yet another item"
           selling_price={500}
           categoryName="Pens"
-          images={mockImages.pens}
+          image="https://example.com"
           onAdd={handleAddToCart}
         />
       </div>
