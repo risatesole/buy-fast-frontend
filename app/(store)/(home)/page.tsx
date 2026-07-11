@@ -1,3 +1,4 @@
+import Carousel from './ProductCarousel';
 import ProductList from './productList';
 import type { Product } from '@/entities/product';
 
@@ -18,6 +19,35 @@ export default async function Page() {
   return (
     <main>
       <p>Welcome to the store</p>
+
+      <Carousel
+        slides={[
+          {
+            id: '1',
+            image: 'https://buenoshoes.com.au/cdn/shop/files/34_87c195e7-7d7b-4960-a305-9f40957514cc_1600x.jpg?v=1766539471',
+            title: 'Summer Collection',
+            description: 'Discover our latest summer styles',
+            buttonText: 'Shop Now',
+            buttonLink: '/shop/summer'
+          },
+          {
+            id: '2',
+            image: 'https://eu.barkershoes.com/cdn/shop/collections/COLLECTIONPAGE_NEWARRIVALS_600x375_crop_center.jpg?v=1773395804',
+            title: 'New Arrivals',
+            description: 'Check out what just came in',
+            buttonText: 'View All',
+            buttonLink: '/shop/new'
+          },
+          {
+            id: '3',
+            image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRtZhExNQLgMRROIMQ7TlfuFu_qcdrzfyvkC3s6FMVJiudyON2lbBjM-E9b&s=10',
+            title: 'Special Offer',
+            description: 'Get 20% off on selected items',
+            buttonText: 'Claim Offer',
+            buttonLink: '/shop/sale'
+          }
+        ]}
+      />
 
       <ProductList
         products={products.map(product => ({
