@@ -2,6 +2,7 @@ export type NormalProductVariant = {
   id: number;
   name: string;
   description: string;
+  variantnumber: number;
   sku: string;
   slug: string;
   selling_price: number;

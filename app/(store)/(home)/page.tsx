@@ -1,5 +1,5 @@
 import ProductList from './productList';
-import type { Product } from '@/entities/product'; // Your raw API type
+import type { Product } from '@/entities/product';
 
 async function getProducts(): Promise<Product[]> {
   const response = await fetch('http://localhost:8000/api/v1/products/');
