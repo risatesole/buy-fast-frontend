@@ -19,10 +19,6 @@ export default function ProductPage({ initialProduct, initialVariant }: ProductP
   // Extract image URLs from variant.images array
   const imageUrls = selectedVariant.images.map(img => img.url);
 
-  console.log('🖼️ Image Gallery Debug:');
-  console.log('  Total images:', imageUrls.length);
-  console.log('  Images:', imageUrls);
-
   const handleAddToCart = async () => {
     setCartAdding(true);
     try {
