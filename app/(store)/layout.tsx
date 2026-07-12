@@ -9,6 +9,7 @@ import { Footer } from '@/components/Footer';
 import type { NavbarCartItem } from '@/components/navbar';
 import type { GetCartResponse } from '@/features/cart/types/GetCartResponse';
 import { AlertBanner } from '@/components/AlertBanner';
+import { CookieConsentBanner } from '@/components/CookieConsentBanner';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -122,6 +123,7 @@ export default async function HomeLayout({ children }: { children: React.ReactNo
       />
       {children}
       <Footer />
+      <CookieConsentBanner />
     </div>
   );
 }
