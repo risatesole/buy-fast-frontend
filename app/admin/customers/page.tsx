@@ -1,395 +1,284 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import type { User } from '@/entities/user';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
+import { useState, useMemo } from 'react';
+import { Search, MoreVertical, ChevronLeft, ChevronRight } from 'lucide-react';
 
-// ========== SERVICE ==========
-
-const LIMIT = 100;
-
-type CustomerQueryParameters = {
-  sort?: string;
-  limit?: number;
-  offset?: number;
-  search?: string;
-  role?: string;
-};
-
-const DEFAULT_QUERY_PARAMS: CustomerQueryParameters = {
-  sort: 'id',
-  limit: LIMIT,
-  offset: 0,
-  role: 'customer',
-};
-
-function buildQueryParams(overrides: CustomerQueryParameters): string {
-  const params = { ...DEFAULT_QUERY_PARAMS, ...overrides };
-  const entries = Object.entries(params)
-    .filter(([, value]) => value !== undefined)
-    .map(([key, value]) => [key, String(value)]);
-  return new URLSearchParams(entries).toString();
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  status: 'active' | 'inactive' | 'pending';
+  lastActive: string;
+  role: 'admin' | 'user' | 'moderator';
 }
 
-async function getCustomers(params: CustomerQueryParameters = {}): Promise<User[]> {
-  const url = `/api/v1/users?${buildQueryParams(params)}`;
+const mockUsers: User[] = [
+  {
+    id: '1',
+    name: 'Alice Johnson',
+    email: 'alice.johnson@example.com',
+    status: 'active',
+    lastActive: 'Just now',
+    role: 'admin',
+  },
+  {
+    id: '2',
+    name: 'Bob Smith',
+    email: 'bob.smith@example.com',
+    status: 'active',
+    lastActive: '5 minutes ago',
+    role: 'user',
+  },
+  {
+    id: '3',
+    name: 'Carol Davis',
+    email: 'carol.davis@example.com',
+    status: 'inactive',
+    lastActive: '2 hours ago',
+    role: 'moderator',
+  },
+  {
+    id: '4',
+    name: 'David Wilson',
+    email: 'david.wilson@example.com',
+    status: 'active',
+    lastActive: '1 hour ago',
+    role: 'user',
+  },
+  {
+    id: '5',
+    name: 'Emma Brown',
+    email: 'emma.brown@example.com',
+    status: 'pending',
+    lastActive: 'Never',
+    role: 'user',
+  },
+  {
+    id: '6',
+    name: 'Frank Miller',
+    email: 'frank.miller@example.com',
+    status: 'active',
+    lastActive: '30 minutes ago',
+    role: 'user',
+  },
+  {
+    id: '7',
+    name: 'Grace Lee',
+    email: 'grace.lee@example.com',
+    status: 'active',
+    lastActive: '15 minutes ago',
+    role: 'user',
+  },
+  {
+    id: '8',
+    name: 'Henry Zhang',
+    email: 'henry.zhang@example.com',
+    status: 'active',
+    lastActive: '45 minutes ago',
+    role: 'user',
+  },
+];
 
-  try {
-    const res = await fetch(url, {
-      cache: 'no-store',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-    });
+const USERS_PER_PAGE = 5;
 
-    if (!res.ok) {
-      console.error('Response not OK:', res.status, res.statusText);
-      return [];
+export default function UserListPage() {
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
+  const [searchQueryString, setSearchQueryString] = useState('');
+  const [currentPageNumber, setCurrentPageNumber] = useState(1);
+
+  const searchMatchingUsers = useMemo(() => {
+    return mockUsers.filter(
+      user =>
+        user.name.toLowerCase().includes(searchQueryString.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQueryString.toLowerCase())
+    );
+  }, [searchQueryString]);
+
+  const totalPages = Math.ceil(searchMatchingUsers.length / USERS_PER_PAGE);
+  const startIndexForCurrentPage = (currentPageNumber - 1) * USERS_PER_PAGE;
+  const endIndexForCurrentPage = startIndexForCurrentPage + USERS_PER_PAGE;
+  const usersDisplayedOnCurrentPage = searchMatchingUsers.slice(
+    startIndexForCurrentPage,
+    endIndexForCurrentPage
+  );
+
+  const toggleSelectSpecificUser = (userId: string) => {
+    const updatedSelectedUsers = new Set(selectedUserIds);
+    if (updatedSelectedUsers.has(userId)) {
+      updatedSelectedUsers.delete(userId);
+    } else {
+      updatedSelectedUsers.add(userId);
     }
-
-    const json = await res.json();
-    return json.data ?? [];
-  } catch (error) {
-    console.error('Error fetching customers:', error);
-    return [];
-  }
-}
-
-// ========== HOOKS ==========
-
-function useCustomersList() {
-  const [customers, setCustomers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [offset, setOffset] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const [totalLoaded, setTotalLoaded] = useState(0);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const fetchCustomers = useCallback(
-    async (search: string = '', resetOffset: boolean = true) => {
-      const currentOffset = resetOffset ? 0 : offset;
-
-      setLoading(resetOffset);
-      if (!resetOffset) setLoadingMore(true);
-      setError(null);
-
-      try {
-        const params = {
-          limit: LIMIT,
-          offset: currentOffset,
-          sort: 'id',
-          role: 'customer',
-          ...(search.trim() && { search: search.trim() }),
-        };
-
-        const newCustomers = await getCustomers(params);
-
-        if (!newCustomers || newCustomers.length === 0) {
-          setHasMore(false);
-          if (resetOffset) setCustomers([]);
-        } else {
-          if (resetOffset) {
-            setCustomers(newCustomers);
-            setOffset(LIMIT);
-            setTotalLoaded(newCustomers.length);
-          } else {
-            setCustomers(prev => [...prev, ...newCustomers]);
-            setOffset(prev => prev + newCustomers.length);
-            setTotalLoaded(prev => prev + newCustomers.length);
-          }
-          setHasMore(newCustomers.length >= LIMIT);
-        }
-      } catch (err) {
-        console.error('Error fetching customers:', err);
-        setError('Failed to load customers');
-      } finally {
-        setLoading(false);
-        setLoadingMore(false);
-        setIsSearching(false);
-      }
-    },
-    [offset]
-  );
-
-  const search = useCallback(
-    (value: string) => {
-      setSearchTerm(value);
-      setIsSearching(true);
-      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-      searchTimeoutRef.current = setTimeout(() => {
-        setOffset(0);
-        setHasMore(true);
-        setTotalLoaded(0);
-        fetchCustomers(value, true);
-      }, 500);
-    },
-    [fetchCustomers]
-  );
-
-  const clearSearch = useCallback(() => {
-    setSearchTerm('');
-    setOffset(0);
-    setHasMore(true);
-    setTotalLoaded(0);
-    fetchCustomers('', true);
-  }, [fetchCustomers]);
-
-  const loadMore = useCallback(async () => {
-    if (loadingMore || !hasMore || isSearching) return;
-    await fetchCustomers(searchTerm, false);
-  }, [loadingMore, hasMore, isSearching, searchTerm, fetchCustomers]);
-
-  const retry = useCallback(() => {
-    fetchCustomers(searchTerm, true);
-  }, [fetchCustomers, searchTerm]);
-
-  useEffect(() => {
-    fetchCustomers('', true);
-    return () => {
-      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    };
-  }, []);
-
-  return {
-    customers,
-    loading,
-    loadingMore,
-    hasMore,
-    error,
-    totalLoaded,
-    searchTerm,
-    isSearching,
-    search,
-    clearSearch,
-    loadMore,
-    retry,
+    setSelectedUserIds(updatedSelectedUsers);
   };
-}
 
-// ========== COMPONENTS ==========
+  const toggleSelectAllDisplayedUsers = () => {
+    if (selectedUserIds.size === usersDisplayedOnCurrentPage.length) {
+      setSelectedUserIds(new Set());
+    } else {
+      const allUserIdsOnCurrentPage = new Set(usersDisplayedOnCurrentPage.map(user => user.id));
+      setSelectedUserIds(allUserIdsOnCurrentPage);
+    }
+  };
 
-function BouncingDots() {
+  const getStatusIndicatorColor = (statusType: string) => {
+    const statusColorMap: Record<string, string> = {
+      active: 'bg-green-500',
+      inactive: 'bg-gray-400',
+      pending: 'bg-yellow-500',
+    };
+    return statusColorMap[statusType] || 'bg-gray-400';
+  };
+
+  const handleUserActionButtonClick = (clickedUser: User) => {
+    alert(`Actions for ${clickedUser.name} (${clickedUser.email})`);
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPageNumber > 1) {
+      setCurrentPageNumber(currentPageNumber - 1);
+    }
+  };
+
+  const goToNextPage = () => {
+    if (currentPageNumber < totalPages) {
+      setCurrentPageNumber(currentPageNumber + 1);
+    }
+  };
+
+  const isCurrentPageFirstPage = currentPageNumber === 1;
+  const isCurrentPageLastPage = currentPageNumber === totalPages;
+
   return (
-    <div className="flex space-x-2">
-      <div className="w-4 h-4 bg-blue-500 rounded-full animate-bounce" />
-      <div className="w-4 h-4 bg-blue-500 rounded-full animate-bounce [animation-delay:0.2s]" />
-      <div className="w-4 h-4 bg-blue-500 rounded-full animate-bounce [animation-delay:0.4s]" />
-    </div>
-  );
-}
+    <div className="flex-1 flex flex-col bg-white">
+      <div className="border-b border-gray-200 px-8 py-5">
+        <h1 className="text-xl font-medium text-gray-900">Users</h1>
+      </div>
 
-function SearchBar({
-  value,
-  onChange,
-  onClear,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  onClear: () => void;
-}) {
-  return (
-    <div className="mb-6">
-      <div className="relative">
-        <input
-          type="text"
-          placeholder="Search customers by name or email..."
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          className="w-full px-4 py-2 pl-10 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-        <svg
-          className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          />
-        </svg>
-        {value && (
+      <div className="border-b border-gray-200 px-8 py-4 bg-white flex items-center gap-4">
+        <div className="flex items-center gap-2">
           <button
-            onClick={onClear}
-            className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+            onClick={goToPreviousPage}
+            disabled={isCurrentPageFirstPage}
+            className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <ChevronLeft className="w-4 h-4 text-gray-600" />
           </button>
+          <button
+            onClick={goToNextPage}
+            disabled={isCurrentPageLastPage}
+            className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <ChevronRight className="w-4 h-4 text-gray-600" />
+          </button>
+        </div>
+
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by name or email"
+            value={searchQueryString}
+            onChange={e => {
+              setSearchQueryString(e.target.value);
+              setCurrentPageNumber(1);
+            }}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
+          />
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        {usersDisplayedOnCurrentPage.length > 0 ? (
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-200 bg-white sticky top-0">
+                <th className="px-8 py-3 text-left">
+                  <input
+                    type="checkbox"
+                    checked={
+                      selectedUserIds.size > 0 &&
+                      selectedUserIds.size === usersDisplayedOnCurrentPage.length
+                    }
+                    onChange={toggleSelectAllDisplayedUsers}
+                    className="w-4 h-4 cursor-pointer"
+                  />
+                </th>
+                <th className="px-8 py-3 text-left text-xs font-medium text-gray-700 tracking-wide">
+                  NAME
+                </th>
+                <th className="px-8 py-3 text-left text-xs font-medium text-gray-700 tracking-wide">
+                  EMAIL
+                </th>
+                <th className="px-8 py-3 text-left text-xs font-medium text-gray-700 tracking-wide">
+                  STATUS
+                </th>
+                <th className="px-8 py-3 text-left text-xs font-medium text-gray-700 tracking-wide">
+                  ROLE
+                </th>
+                <th className="px-8 py-3 text-left text-xs font-medium text-gray-700 tracking-wide">
+                  LAST ACTIVE
+                </th>
+                <th className="px-8 py-3 text-right text-xs font-medium text-gray-700 tracking-wide">
+                  ACTION
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {usersDisplayedOnCurrentPage.map(user => (
+                <tr
+                  key={user.id}
+                  className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
+                >
+                  <td className="px-8 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedUserIds.has(user.id)}
+                      onChange={() => toggleSelectSpecificUser(user.id)}
+                      className="w-4 h-4 cursor-pointer"
+                    />
+                  </td>
+                  <td className="px-8 py-4 text-sm font-medium text-gray-900">{user.name}</td>
+                  <td className="px-8 py-4 text-sm text-gray-600">{user.email}</td>
+                  <td className="px-8 py-4">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`w-2 h-2 rounded-full ${getStatusIndicatorColor(user.status)}`}
+                      />
+                      <span className="text-sm text-gray-700 capitalize">{user.status}</span>
+                    </div>
+                  </td>
+                  <td className="px-8 py-4 text-sm text-gray-600 capitalize">{user.role}</td>
+                  <td className="px-8 py-4 text-sm text-gray-600">{user.lastActive}</td>
+                  <td className="px-8 py-4 text-right">
+                    <button
+                      onClick={() => handleUserActionButtonClick(user)}
+                      className="p-1.5 hover:bg-gray-200 rounded transition-colors"
+                    >
+                      <MoreVertical className="w-4 h-4 text-gray-500" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+            <p className="text-sm font-medium">No users found</p>
+          </div>
         )}
       </div>
-    </div>
-  );
-}
 
-function StatusBadge({ status }: { status: boolean }) {
-  return status ? (
-    <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-      Active
-    </span>
-  ) : (
-    <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
-      Inactive
-    </span>
-  );
-}
-
-function CustomerRow({ customer }: { customer: User }) {
-  return (
-    <TableRow>
-      <TableCell>
-        <div className="flex items-center gap-3">
-          <img
-            src={customer.profilepicture}
-            alt={`${customer.firstname} ${customer.lastname}`}
-            width={32}
-            height={32}
-            className="rounded-full object-cover"
-          />
-          {customer.id}
-        </div>
-      </TableCell>
-      <TableCell>{customer.firstname}</TableCell>
-      <TableCell>{customer.lastname}</TableCell>
-      <TableCell>{customer.email}</TableCell>
-      <TableCell>{customer.role}</TableCell>
-      <TableCell>
-        <StatusBadge status={customer.status} />
-      </TableCell>
-      <TableCell>
-        <Button variant="outline" size="sm" asChild>
-          <a
-            href={`/admin/customers/edit/${customer.id}`}
-            className="inline-flex items-center gap-1.5"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-              />
-            </svg>
-            Edit
-          </a>
-        </Button>
-      </TableCell>
-    </TableRow>
-  );
-}
-
-// ========== MAIN PAGE ==========
-
-export default function CustomersPage() {
-  const {
-    customers,
-    loading,
-    loadingMore,
-    hasMore,
-    error,
-    totalLoaded,
-    searchTerm,
-    isSearching,
-    search,
-    clearSearch,
-    loadMore,
-    retry,
-  } = useCustomersList();
-
-  return (
-    <div className="container mx-auto px-4 py-10">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Customers</h1>
-      </div>
-
-      <SearchBar value={searchTerm} onChange={search} onClear={clearSearch} />
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-red-700">{error}</p>
-          <button
-            onClick={retry}
-            className="mt-2 bg-red-100 text-red-700 px-4 py-2 rounded hover:bg-red-200"
-          >
-            Retry
-          </button>
-        </div>
-      )}
-
-      {loading ? (
-        <div className="flex justify-center items-center py-16">
-          <BouncingDots />
-        </div>
-      ) : customers.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-xl shadow-sm">
-          <div className="text-6xl mb-4">👤</div>
-          <p className="text-gray-500 text-lg">
-            {searchTerm ? 'No customers found matching your search' : 'No customers found'}
-          </p>
-        </div>
-      ) : (
-        <>
-          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Id</TableHead>
-                  <TableHead>First Name</TableHead>
-                  <TableHead>Last Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {customers.map(customer => (
-                  <CustomerRow key={customer.id} customer={customer} />
-                ))}
-              </TableBody>
-            </Table>
+      {usersDisplayedOnCurrentPage.length > 0 && (
+        <div className="border-t border-gray-200 bg-white px-8 py-3 text-xs text-gray-600 flex items-center justify-between">
+          <div>
+            {usersDisplayedOnCurrentPage.length} of {searchMatchingUsers.length} users
+            {selectedUserIds.size > 0 && ` • ${selectedUserIds.size} selected`}
           </div>
-
-          <div className="mt-8 text-center">
-            {loadingMore ? (
-              <div className="flex justify-center items-center py-4">
-                <BouncingDots />
-              </div>
-            ) : hasMore ? (
-              <button
-                onClick={loadMore}
-                disabled={loadingMore || isSearching}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-8 rounded-lg transition-colors"
-              >
-                Load More Customers
-              </button>
-            ) : (
-              <p className="text-gray-400 text-sm">
-                ✨ Showing all {totalLoaded} customers
-                {searchTerm && ` matching "${searchTerm}"`}
-              </p>
-            )}
+          <div className="text-gray-500">
+            Page {currentPageNumber} of {totalPages}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
