@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { ProductImage } from '@/types/products';
+import type { NormalProductVariant } from '@/entities/product';
 
 // ─── Glyph ────────────────────────────────────────────────────
 
@@ -54,16 +54,15 @@ function ProductGlyph({ category }: { category: string }) {
 // ─── ImageGallery ─────────────────────────────────────────────
 
 export function ImageGallery({
-  images,
+  variants,
   productName,
   category,
 }: {
-  images: ProductImage[];
+  variants: NormalProductVariant[];
   productName: string;
   category: string;
 }) {
-  const hero = images.find(img => img.type === 'HERO');
-  const [selected, setSelected] = useState<ProductImage>(hero ?? images[0]);
+  const [selectedVariant, setSelectedVariant] = useState<NormalProductVariant>(variants[0]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -80,9 +79,9 @@ export function ImageGallery({
           border: '1px solid oklch(0.922 0 0)',
         }}
       >
-        {selected ? (
+        {selectedVariant?.thumbnail ? (
           <img
-            src={selected.url}
+            src={selectedVariant.thumbnail}
             alt={productName}
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
@@ -91,19 +90,19 @@ export function ImageGallery({
         )}
       </div>
 
-      {/* Thumbnails — only show if more than one image */}
-      {images.length > 1 && (
+      {/* Thumbnails — only show if more than one variant */}
+      {variants.length > 1 && (
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {images.map(img => (
+          {variants.map(variant => (
             <button
-              key={img.type}
-              onClick={() => setSelected(img)}
+              key={variant.id}
+              onClick={() => setSelectedVariant(variant)}
               style={{
                 width: 72,
                 height: 72,
                 padding: 0,
                 border:
-                  selected.type === img.type
+                  selectedVariant.id === variant.id
                     ? '2px solid oklch(0.145 0 0)'
                     : '2px solid oklch(0.922 0 0)',
                 borderRadius: 4,
@@ -115,8 +114,8 @@ export function ImageGallery({
               }}
             >
               <img
-                src={img.url}
-                alt={img.type}
+                src={variant.thumbnail}
+                alt={variant.name}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             </button>

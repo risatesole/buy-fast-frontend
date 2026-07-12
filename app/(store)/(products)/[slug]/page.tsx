@@ -1,3 +1,5 @@
+import ProductPage from './product-page-client';
+
 interface Variant {
   name: string;
   description: string;
@@ -31,30 +33,24 @@ interface ApiResponse {
   };
 }
 
-export default async function ProductPage({ params }: { params: { slug: string } }) {
+export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
-  const response = await fetch(
-    `${process.env.BACKEND_URL}/api/v1/products/?variantslug=${slug}`
-  ).then(res => res.json() as Promise<ApiResponse>);
+  try {
+    const response = await fetch(
+      `${process.env.BACKEND_URL}/api/v1/products/?variantslug=${slug}`
+    ).then(res => res.json() as Promise<ApiResponse>);
 
-  const product = response.data[0];
-  const variant = product?.variants.find(v => v.slug === slug);
+    const product = response.data[0];
+    const variant = product?.variants.find(v => v.slug === slug);
 
-  if (!variant) {
-    return <div>Variant not found</div>;
+    if (!product || !variant) {
+      return <div style={{ padding: '2rem' }}>Product not found</div>;
+    }
+
+    return <ProductPage initialProduct={product} initialVariant={variant} />;
+  } catch (error) {
+    console.error('Failed to fetch product:', error);
+    return <div style={{ padding: '2rem' }}>Failed to load product</div>;
   }
-
-  return (
-    <div>
-      <pre>{JSON.stringify(response, null, 2)}</pre>
-      <h1>{variant.name}</h1>
-      <p>{variant.description}</p>
-      <img src={variant.thumbnail} alt={variant.name} />
-      {variant.image_hero && <img src={variant.image_hero} alt="hero" />}
-      {variant.image_thumbnail && <img src={variant.image_thumbnail} alt="thumbnail" />}
-      {variant.image_gallery && <img src={variant.image_gallery} alt="gallery" />}
-      {variant.image_lifestyle && <img src={variant.image_lifestyle} alt="lifestyle" />}
-    </div>
-  );
 }
