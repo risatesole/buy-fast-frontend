@@ -22,8 +22,6 @@ function PlaceholderGlyph() {
   );
 }
 
-// ─── ImageGallery ─────────────────────────────────────────────
-
 interface ImageGalleryProps {
   images: string[];
 }
