@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { ProductCard } from '@/components/ProductCard';
 import CartService from '@/features/cart/service';
-
+import type { Product } from '@/entities/product';
 type ApiVariant = {
   name: string;
   description: string;
@@ -41,17 +41,31 @@ type NormalizedProduct = {
   slug: string;
 };
 
-function normalizeProduct(p: ApiProduct): NormalizedProduct {
+function normalizeProduct(p: ApiProduct): Product {
   const firstVariant = p.variants?.[0];
-  const image = firstVariant?.thumbnail || p.thumbnail || undefined;
 
   return {
     id: p.id,
     name: p.name,
-    selling_price: firstVariant?.selling_price ?? 0,
-    categoryName: p.category,
-    image: image || undefined,
+    category: p.category as
+      'electronics' | 'clothing' | 'books' | 'home' | 'toys' | 'food' | 'other',
+    thumbnail: firstVariant?.thumbnail || p.thumbnail || '',
     slug: p.slug,
+    tags: [],
+    variants: p.variants.map(v => ({
+      id: v.variantnumber,
+      name: v.name,
+      description: v.description,
+      thumbnail: v.thumbnail || '',
+      variantnumber: v.variantnumber,
+      sku: v.sku,
+      slug: v.slug,
+      selling_price: v.selling_price,
+      tax_rate: v.tax_rate,
+      created_at: new Date(),
+      updated_at: new Date(),
+    })),
+    product_type: 'normal',
   };
 }
 
@@ -131,7 +145,7 @@ function SearchContent() {
     });
   }
 
-  const products: NormalizedProduct[] = rawProducts.map(normalizeProduct);
+  const products: Product[] = rawProducts.map(normalizeProduct);
 
   return (
     <div style={{ fontFamily: 'var(--font-geist-sans), sans-serif' }}>
@@ -195,10 +209,10 @@ function SearchContent() {
                     key={product.id}
                     id={product.id}
                     name={product.name}
-                    selling_price={product.selling_price}
-                    categoryName={product.categoryName}
-                    image={product.image}
-                    slug={product.slug}
+                    selling_price={product.variants[0]?.selling_price || 0}
+                    categoryName={product.category}
+                    image={product.thumbnail}
+                    slug={product.variants[0]?.slug}
                     onAdd={handleAddToCart}
                   />
                 ))}
