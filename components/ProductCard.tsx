@@ -98,7 +98,7 @@ export function ProductCard({
         paddingBottom: '2rem',
       }}
     >
-      <Link href={`/products/${slug}`}>
+      <Link href={`/${slug}`}>
         <div
           style={{
             aspectRatio: '4/3',
@@ -139,7 +139,7 @@ export function ProductCard({
         {categoryName}
       </p>
 
-      <Link href={`/products/${slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+      <Link href={`/${slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
         <h3
           style={{
             fontFamily: "'Georgia', serif",

@@ -59,8 +59,8 @@ export default async function Page() {
         products={products.map(product => ({
           id: product.id,
           name: product.name,
-          slug: product.slug,
-          type: product.product_type,
+          slug: product.variants?.[0]?.slug,
+          type: product.variants?.[0]?.thumbnail,
           category: product.category,
           selling_price: product.variants?.[0]?.selling_price ?? 0,
           thumbnail: product.variants?.[0]?.thumbnail,
