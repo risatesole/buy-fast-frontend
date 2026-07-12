@@ -19,8 +19,6 @@ export default async function Page() {
 
   return (
     <main>
-      <p>Welcome to the store</p>
-
       <Carousel
         slides={[
           {
