@@ -1,3 +1,7 @@
+type imagecontent = {
+  type: string;
+  url: string;
+};
 export type NormalProductVariant = {
   id: number;
   name: string;
@@ -6,6 +10,7 @@ export type NormalProductVariant = {
   variantnumber: number;
   sku: string;
   slug: string;
+  images: imagecontent[]; // i want to see all the images that the api throws
   selling_price: number;
   tax_rate: number;
   created_at: Date;

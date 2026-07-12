@@ -1,6 +1,12 @@
 import ProductPage from './product-page-client';
+import type { Product, NormalProductVariant } from '@/entities/product';
 
-interface Variant {
+interface ApiImage {
+  type: string;
+  url: string;
+}
+
+interface ApiVariant {
   name: string;
   description: string;
   variantnumber: number;
@@ -9,13 +15,10 @@ interface Variant {
   tax_rate: number;
   sku: string;
   slug: string;
-  image_hero: null | string;
-  image_thumbnail: null | string;
-  image_gallery: null | string;
-  image_lifestyle: null | string;
+  images: ApiImage[];
 }
 
-interface Product {
+interface ApiProduct {
   id: number;
   name: string;
   category: string;
@@ -23,13 +26,44 @@ interface Product {
   thumbnail: string;
   slug: string;
   type: string;
-  variants: Variant[];
+  variants: ApiVariant[];
 }
 
 interface ApiResponse {
-  data: Product[];
+  data: ApiProduct[];
   meta: {
     timestamp: string;
+  };
+}
+
+// Transform API variant to entity variant
+function transformVariant(apiVariant: ApiVariant): NormalProductVariant {
+  return {
+    id: apiVariant.variantnumber,
+    name: apiVariant.name,
+    description: apiVariant.description,
+    thumbnail: apiVariant.thumbnail || '',
+    variantnumber: apiVariant.variantnumber,
+    sku: apiVariant.sku,
+    slug: apiVariant.slug,
+    images: apiVariant.images, // Use the images array directly from API
+    selling_price: apiVariant.selling_price,
+    tax_rate: apiVariant.tax_rate,
+    created_at: new Date(),
+    updated_at: new Date(),
+  };
+}
+
+function transformProduct(apiProduct: ApiProduct): Product {
+  return {
+    id: apiProduct.id,
+    name: apiProduct.name,
+    category: (apiProduct.category.toLowerCase() as any) || 'other',
+    thumbnail: apiProduct.thumbnail,
+    slug: apiProduct.slug,
+    tags: [],
+    variants: apiProduct.variants.map(transformVariant),
+    product_type: 'normal',
   };
 }
 
@@ -41,16 +75,20 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       `${process.env.BACKEND_URL}/api/v1/products/?variantslug=${slug}`
     ).then(res => res.json() as Promise<ApiResponse>);
 
-    const product = response.data[0];
-    const variant = product?.variants.find(v => v.slug === slug);
-
-    if (!product || !variant) {
+    const apiProduct = response.data[0];
+    if (!apiProduct) {
       return <div style={{ padding: '2rem' }}>Product not found</div>;
+    }
+
+    const product = transformProduct(apiProduct);
+    const variant = product.variants.find(v => v.slug === slug);
+
+    if (!variant) {
+      return <div style={{ padding: '2rem' }}>Variant not found</div>;
     }
 
     return <ProductPage initialProduct={product} initialVariant={variant} />;
   } catch (error) {
-    console.error('Failed to fetch product:', error);
     return <div style={{ padding: '2rem' }}>Failed to load product</div>;
   }
 }

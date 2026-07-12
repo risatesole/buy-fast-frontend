@@ -1,76 +1,31 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { ImageGallery } from '@/components/ImageGallery';
-import type { NormalProductVariant } from '@/entities/product';
-
-interface Variant {
-  name: string;
-  description: string;
-  variantnumber: number;
-  thumbnail: string;
-  selling_price: number;
-  tax_rate: number;
-  sku: string;
-  slug: string;
-  image_hero: null | string;
-  image_thumbnail: null | string;
-  image_gallery: null | string;
-  image_lifestyle: null | string;
-}
-
-interface Product {
-  id: number;
-  name: string;
-  category: string;
-  product_type: string;
-  thumbnail: string;
-  slug: string;
-  type: string;
-  variants: Variant[];
-}
-
-interface ApiResponse {
-  data: Product[];
-  meta: {
-    timestamp: string;
-  };
-}
-
-function normalizeVariant(variant: Variant): NormalProductVariant {
-  return {
-    id: variant.variantnumber,
-    name: variant.name,
-    description: variant.description,
-    thumbnail: variant.image_hero || variant.thumbnail || '',
-    variantnumber: variant.variantnumber,
-    sku: variant.sku,
-    slug: variant.slug,
-    selling_price: variant.selling_price,
-    tax_rate: variant.tax_rate,
-    created_at: new Date(),
-    updated_at: new Date(),
-  };
-}
+import type { Product, NormalProductVariant } from '@/entities/product';
 
 interface ProductPageProps {
   initialProduct: Product;
-  initialVariant: Variant;
+  initialVariant: NormalProductVariant;
 }
 
 export default function ProductPage({ initialProduct, initialVariant }: ProductPageProps) {
-  const [selectedVariant, setSelectedVariant] = useState<Variant>(initialVariant);
+  const [selectedVariant, setSelectedVariant] = useState<NormalProductVariant>(initialVariant);
   const [cartAdding, setCartAdding] = useState(false);
 
   const product = initialProduct;
-  const normalizedVariants = product.variants.map(normalizeVariant);
-  const selectedNormalized = normalizeVariant(selectedVariant);
+
+  // Extract image URLs from variant.images array
+  const imageUrls = selectedVariant.images.map(img => img.url);
+
+  console.log('🖼️ Image Gallery Debug:');
+  console.log('  Total images:', imageUrls.length);
+  console.log('  Images:', imageUrls);
 
   const handleAddToCart = async () => {
     setCartAdding(true);
     try {
-      // Add your cart logic here
       console.log('Adding to cart:', selectedVariant.sku);
     } finally {
       setCartAdding(false);
@@ -96,11 +51,7 @@ export default function ProductPage({ initialProduct, initialVariant }: ProductP
         >
           {/* Image Gallery */}
           <div>
-            <ImageGallery
-              variants={normalizedVariants}
-              productName={selectedVariant.name}
-              category={product.category}
-            />
+            <ImageGallery images={imageUrls} />
           </div>
 
           {/* Product Info */}
