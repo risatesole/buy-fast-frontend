@@ -8,6 +8,7 @@ import { NavbarWithCart } from '@/components/navbar-with-cart';
 import { Footer } from '@/components/Footer';
 import type { NavbarCartItem } from '@/components/navbar';
 import type { GetCartResponse } from '@/features/cart/types/GetCartResponse';
+import { AlertBanner } from '@/components/AlertBanner';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -93,7 +94,6 @@ async function getCartItems(): Promise<NavbarCartItem[]> {
 
 export default async function HomeLayout({ children }: { children: React.ReactNode }) {
   const [userData, cartItems] = await Promise.all([getUserDetails(), getCartItems()]);
-
   const rawUser = userData?.data?.user;
   const user = rawUser?.is_authenticated ? rawUser : null;
 
@@ -102,6 +102,12 @@ export default async function HomeLayout({ children }: { children: React.ReactNo
       style={{ fontFamily: 'var(--font-geist-sans), sans-serif' }}
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
+      {/* <AlertBanner
+          type="info"
+          message="Please verify your email address to unlock all features"
+          dismissible={true}
+        /> */}
+
       <NavbarWithCart
         user={
           user
