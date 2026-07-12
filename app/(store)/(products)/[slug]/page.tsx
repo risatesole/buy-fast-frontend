@@ -9,7 +9,7 @@ interface Product {
 export default async function ProductPage({ params }: { params: { slug: string } }) {
   const { slug } = await params;
 
-  const product = await fetch(`${process.env.BACKEND_URL}/api/v1/products/?slug=${slug}`).then(
+  const product = await fetch(`${process.env.BACKEND_URL}/api/v1/products/?variantslug=${slug}`).then(
     res => res.json()
   );
 
