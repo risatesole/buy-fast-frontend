@@ -1,5 +1,4 @@
 import Carousel from './ProductCarousel';
-import CategoryBar from './CategoryBar';
 import ProductList from './productList';
 import type { Product } from '@/entities/product';
 
@@ -50,8 +49,6 @@ export default async function Page() {
           },
         ]}
       />
-
-      <CategoryBar />
 
       <ProductList
         products={products.map(product => ({
