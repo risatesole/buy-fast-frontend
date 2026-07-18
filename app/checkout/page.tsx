@@ -382,13 +382,24 @@ export default function CheckoutPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
           <div className="mb-4 inline-flex items-center justify-center h-16 w-16 rounded-full bg-emerald-100">
-            <svg className="h-8 w-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            <svg
+              className="h-8 w-8 text-emerald-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-slate-900 mb-2">Order Confirmed</h1>
           <p className="text-slate-600 mb-6">
-            Thank you! Your order has been placed successfully. You'll receive a confirmation email shortly.
+            Thank you! Your order has been placed successfully. You'll receive a confirmation email
+            shortly.
           </p>
           <button
             onClick={() => (window.location.href = '/')}
@@ -430,8 +441,18 @@ export default function CheckoutPage() {
                     >
                       {['contact', 'shipping', 'payment', 'review'].indexOf(s) <
                       ['contact', 'shipping', 'payment', 'review'].indexOf(step) ? (
-                        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        <svg
+                          className="h-6 w-6"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
                         </svg>
                       ) : (
                         idx + 1
@@ -454,7 +475,9 @@ export default function CheckoutPage() {
                   <h2 className="text-2xl font-bold text-slate-900">Contact Information</h2>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">First Name</label>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        First Name
+                      </label>
                       <input
                         type="text"
                         name="firstname"
@@ -465,10 +488,14 @@ export default function CheckoutPage() {
                         }`}
                         placeholder="John"
                       />
-                      {formErrors.firstname && <p className="text-red-500 text-sm mt-1">{formErrors.firstname}</p>}
+                      {formErrors.firstname && (
+                        <p className="text-red-500 text-sm mt-1">{formErrors.firstname}</p>
+                      )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Last Name</label>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Last Name
+                      </label>
                       <input
                         type="text"
                         name="lastname"
@@ -479,7 +506,9 @@ export default function CheckoutPage() {
                         }`}
                         placeholder="Doe"
                       />
-                      {formErrors.lastname && <p className="text-red-500 text-sm mt-1">{formErrors.lastname}</p>}
+                      {formErrors.lastname && (
+                        <p className="text-red-500 text-sm mt-1">{formErrors.lastname}</p>
+                      )}
                     </div>
                   </div>
 
@@ -495,7 +524,9 @@ export default function CheckoutPage() {
                       }`}
                       placeholder="john@example.com"
                     />
-                    {formErrors.email && <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>}
+                    {formErrors.email && (
+                      <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>
+                    )}
                   </div>
 
                   <div>
@@ -510,7 +541,9 @@ export default function CheckoutPage() {
                       }`}
                       placeholder="+1 (555) 123-4567"
                     />
-                    {formErrors.phone && <p className="text-red-500 text-sm mt-1">{formErrors.phone}</p>}
+                    {formErrors.phone && (
+                      <p className="text-red-500 text-sm mt-1">{formErrors.phone}</p>
+                    )}
                   </div>
                 </div>
               )}
@@ -521,7 +554,9 @@ export default function CheckoutPage() {
                   <h2 className="text-2xl font-bold text-slate-900">Shipping & Pickup</h2>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Select Pickup Time</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Select Pickup Time
+                    </label>
                     <select
                       name="pickuptime"
                       value={formData.pickuptime}
@@ -541,7 +576,9 @@ export default function CheckoutPage() {
                         </option>
                       ))}
                     </select>
-                    {formErrors.pickuptime && <p className="text-red-500 text-sm mt-1">{formErrors.pickuptime}</p>}
+                    {formErrors.pickuptime && (
+                      <p className="text-red-500 text-sm mt-1">{formErrors.pickuptime}</p>
+                    )}
                   </div>
 
                   {/* Billing Address */}
@@ -549,7 +586,9 @@ export default function CheckoutPage() {
                     <h3 className="text-lg font-semibold text-slate-900 mb-4">Billing Address</h3>
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Street</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          Street
+                        </label>
                         <input
                           type="text"
                           name="billing_street"
@@ -567,7 +606,9 @@ export default function CheckoutPage() {
 
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-2">City</label>
+                          <label className="block text-sm font-medium text-slate-700 mb-2">
+                            City
+                          </label>
                           <input
                             type="text"
                             name="billing_city"
@@ -583,7 +624,9 @@ export default function CheckoutPage() {
                           )}
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-2">State</label>
+                          <label className="block text-sm font-medium text-slate-700 mb-2">
+                            State
+                          </label>
                           <input
                             type="text"
                             name="billing_state"
@@ -602,7 +645,9 @@ export default function CheckoutPage() {
 
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-2">Postal Code</label>
+                          <label className="block text-sm font-medium text-slate-700 mb-2">
+                            Postal Code
+                          </label>
                           <input
                             type="text"
                             name="billing_postal_code"
@@ -614,11 +659,15 @@ export default function CheckoutPage() {
                             placeholder="10001"
                           />
                           {formErrors.billing_postal_code && (
-                            <p className="text-red-500 text-sm mt-1">{formErrors.billing_postal_code}</p>
+                            <p className="text-red-500 text-sm mt-1">
+                              {formErrors.billing_postal_code}
+                            </p>
                           )}
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-2">Country</label>
+                          <label className="block text-sm font-medium text-slate-700 mb-2">
+                            Country
+                          </label>
                           <input
                             type="text"
                             name="billing_country"
@@ -630,7 +679,9 @@ export default function CheckoutPage() {
                             placeholder="USA"
                           />
                           {formErrors.billing_country && (
-                            <p className="text-red-500 text-sm mt-1">{formErrors.billing_country}</p>
+                            <p className="text-red-500 text-sm mt-1">
+                              {formErrors.billing_country}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -655,10 +706,14 @@ export default function CheckoutPage() {
                   {/* Shipping Address */}
                   {!useShippingAsBilling && (
                     <div>
-                      <h3 className="text-lg font-semibold text-slate-900 mb-4">Shipping Address</h3>
+                      <h3 className="text-lg font-semibold text-slate-900 mb-4">
+                        Shipping Address
+                      </h3>
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-2">Street</label>
+                          <label className="block text-sm font-medium text-slate-700 mb-2">
+                            Street
+                          </label>
                           <input
                             type="text"
                             name="shipping_street"
@@ -670,13 +725,17 @@ export default function CheckoutPage() {
                             placeholder="123 Main St"
                           />
                           {formErrors.shipping_street && (
-                            <p className="text-red-500 text-sm mt-1">{formErrors.shipping_street}</p>
+                            <p className="text-red-500 text-sm mt-1">
+                              {formErrors.shipping_street}
+                            </p>
                           )}
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">City</label>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                              City
+                            </label>
                             <input
                               type="text"
                               name="shipping_city"
@@ -688,11 +747,15 @@ export default function CheckoutPage() {
                               placeholder="New York"
                             />
                             {formErrors.shipping_city && (
-                              <p className="text-red-500 text-sm mt-1">{formErrors.shipping_city}</p>
+                              <p className="text-red-500 text-sm mt-1">
+                                {formErrors.shipping_city}
+                              </p>
                             )}
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">State</label>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                              State
+                            </label>
                             <input
                               type="text"
                               name="shipping_state"
@@ -704,30 +767,40 @@ export default function CheckoutPage() {
                               placeholder="NY"
                             />
                             {formErrors.shipping_state && (
-                              <p className="text-red-500 text-sm mt-1">{formErrors.shipping_state}</p>
+                              <p className="text-red-500 text-sm mt-1">
+                                {formErrors.shipping_state}
+                              </p>
                             )}
                           </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">Postal Code</label>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                              Postal Code
+                            </label>
                             <input
                               type="text"
                               name="shipping_postal_code"
                               value={formData.shipping_address?.postal_code || ''}
                               onChange={handleInputChange}
                               className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 transition-colors ${
-                                formErrors.shipping_postal_code ? 'border-red-500' : 'border-slate-300'
+                                formErrors.shipping_postal_code
+                                  ? 'border-red-500'
+                                  : 'border-slate-300'
                               }`}
                               placeholder="10001"
                             />
                             {formErrors.shipping_postal_code && (
-                              <p className="text-red-500 text-sm mt-1">{formErrors.shipping_postal_code}</p>
+                              <p className="text-red-500 text-sm mt-1">
+                                {formErrors.shipping_postal_code}
+                              </p>
                             )}
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">Country</label>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                              Country
+                            </label>
                             <input
                               type="text"
                               name="shipping_country"
@@ -739,7 +812,9 @@ export default function CheckoutPage() {
                               placeholder="USA"
                             />
                             {formErrors.shipping_country && (
-                              <p className="text-red-500 text-sm mt-1">{formErrors.shipping_country}</p>
+                              <p className="text-red-500 text-sm mt-1">
+                                {formErrors.shipping_country}
+                              </p>
                             )}
                           </div>
                         </div>
@@ -755,7 +830,9 @@ export default function CheckoutPage() {
                   <h2 className="text-2xl font-bold text-slate-900">Payment Method</h2>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Cardholder Name</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Cardholder Name
+                    </label>
                     <input
                       type="text"
                       name="card_cardholder_name"
@@ -772,7 +849,9 @@ export default function CheckoutPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Card Number</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Card Number
+                    </label>
                     <input
                       type="text"
                       name="card_card_number"
@@ -784,12 +863,16 @@ export default function CheckoutPage() {
                         formErrors.card_number ? 'border-red-500' : 'border-slate-300'
                       }`}
                     />
-                    {formErrors.card_number && <p className="text-red-500 text-sm mt-1">{formErrors.card_number}</p>}
+                    {formErrors.card_number && (
+                      <p className="text-red-500 text-sm mt-1">{formErrors.card_number}</p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Expiration (MM/YY)</label>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Expiration (MM/YY)
+                      </label>
                       <input
                         type="text"
                         name="card_expiration_date"
@@ -818,7 +901,9 @@ export default function CheckoutPage() {
                           formErrors.cvv ? 'border-red-500' : 'border-slate-300'
                         }`}
                       />
-                      {formErrors.cvv && <p className="text-red-500 text-sm mt-1">{formErrors.cvv}</p>}
+                      {formErrors.cvv && (
+                        <p className="text-red-500 text-sm mt-1">{formErrors.cvv}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -846,7 +931,9 @@ export default function CheckoutPage() {
 
                     <div>
                       <p className="text-sm text-slate-600">Billing Address</p>
-                      <p className="font-semibold text-slate-900">{formData.billing_address.street}</p>
+                      <p className="font-semibold text-slate-900">
+                        {formData.billing_address.street}
+                      </p>
                       <p className="text-slate-600">
                         {formData.billing_address.city}, {formData.billing_address.state}{' '}
                         {formData.billing_address.postal_code}
@@ -929,7 +1016,9 @@ export default function CheckoutPage() {
                   </div>
                   <div className="border-t pt-3 flex justify-between">
                     <p className="font-bold text-slate-900">Total</p>
-                    <p className="text-lg font-bold text-slate-900">${calculateTotal().toFixed(2)}</p>
+                    <p className="text-lg font-bold text-slate-900">
+                      ${calculateTotal().toFixed(2)}
+                    </p>
                   </div>
                 </div>
               </div>

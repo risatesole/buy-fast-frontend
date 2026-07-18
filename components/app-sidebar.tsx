@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { LayoutDashboard, Users, Package, ChevronDown, Menu, Truck } from 'lucide-react';
+import type { User } from '@/entities/user';
+import { getCurrentUser } from '@/app/actions/user-actions';
 
 const platformItems = [
   {
@@ -58,10 +60,28 @@ export function AppSidebar() {
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({});
+  const [loggedUserInformation, setLoggedUserInformation] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setIsMobileOpen(false);
   }, [pathname]);
+
+  // Fetch user data
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await getCurrentUser();
+        setLoggedUserInformation(user);
+      } catch (error) {
+        console.error('Failed to fetch user:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   const toggleAccordion = (id: string) => {
     setOpenAccordions(prev => ({ ...prev, [id]: !prev[id] }));
@@ -221,11 +241,11 @@ export function AppSidebar() {
             <div className="px-3 py-2">
               <div className="flex items-center gap-x-3">
                 <div className="size-7 rounded-full bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 text-xs font-medium flex items-center justify-center">
-                  {companyName[0].toUpperCase()}
+                  {loggedUserInformation?.firstname.charAt(0).toUpperCase() || '?'}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-neutral-900 dark:text-neutral-100 truncate">
-                    admin@example.com
+                    {loading ? 'Loading...' : loggedUserInformation?.email || 'User'}
                   </p>
                 </div>
               </div>
