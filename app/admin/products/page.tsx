@@ -29,13 +29,7 @@ export type NormalProductVariant = {
 };
 
 export type ProductCategory =
-  | 'electronics'
-  | 'clothing'
-  | 'books'
-  | 'home'
-  | 'toys'
-  | 'food'
-  | 'other';
+  'electronics' | 'clothing' | 'books' | 'home' | 'toys' | 'food' | 'other';
 
 export type Product = {
   id: number;
