@@ -1,5 +1,3 @@
-// app/(store)/(home)/page.tsx
-
 import Link from 'next/link';
 import Carousel from './ProductCarousel';
 import ProductList from './productList';
@@ -36,10 +34,6 @@ const CAROUSEL_SLIDES = [
   },
 ];
 
-/**
- * Diccionario centralizado de pesos para el ordenamiento de imágenes.
- * Almacenado fuera de la función para evitar re-asignaciones en memoria por cada iteración.
- */
 const IMAGE_TYPE_PRIORITIES: Record<string, number> = {
   THUMBNAIL: 100,
   HERO: 90,
@@ -61,7 +55,7 @@ async function getProducts(): Promise<Product[]> {
   }
 
   try {
-    const url = new URL('/api/v1/products/?ordering=-created_at&limit=6', baseUrl).toString();
+    const url = new URL('/api/v1/products/?ordering=-created_at&limit=3', baseUrl).toString();
     const response = await fetch(url, {
       next: { revalidate: 0 },
       headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
@@ -77,20 +71,14 @@ async function getProducts(): Promise<Product[]> {
   }
 }
 
-/**
- * Resolutor Jerárquico de Imágenes (Deep Inspection).
- * Intercepta colecciones serializadas, evaluando dinámicamente cualquier tipo de imagen
- * gestionada por el backend en Django mediante normalización estricta.
- */
 function extractBestImageUrl(entity: any, baseUrl: string): string {
   if (!entity) return '';
 
   let rawUrl = '';
 
-  // 1. Manejo de relaciones One-to-Many (Array de ProductImage de Django)
+  // Handle arrays of images (Product.images)
   if (Array.isArray(entity.images) && entity.images.length > 0) {
     const sortedImages = [...entity.images].sort((a, b) => {
-      // Normalización a mayúsculas para garantizar el match con el diccionario independientemente del case del payload JSON
       const typeA = String(a?.image_type || a?.type || '').toUpperCase();
       const typeB = String(b?.image_type || b?.type || '').toUpperCase();
 
@@ -106,18 +94,18 @@ function extractBestImageUrl(entity: any, baseUrl: string): string {
         ? target
         : target?.image || target?.original || target?.url || target?.src || '';
   }
-  // 2. Manejo de objetos planos o serializadores simplificados
+  // Handle flat objects (thumbnails, direct URLs)
   else if (typeof entity === 'object' && entity !== null) {
     rawUrl = entity.image || entity.thumbnail || entity.image_thumbnail || entity.url || '';
   }
-  // 3. String directo
+  // Handle direct strings
   else if (typeof entity === 'string') {
     rawUrl = entity;
   }
 
   if (!rawUrl || typeof rawUrl !== 'string') return '';
 
-  // 4. Normalización FQDN segura
+  // Make relative URLs absolute
   if (rawUrl.startsWith('/')) {
     return `${baseUrl.replace(/\/$/, '')}${rawUrl}`;
   }
@@ -129,27 +117,24 @@ export default async function Page() {
   const products = await getProducts();
   const baseUrl = process.env.BACKEND_URL || '';
 
-  const mappedProducts = products.flatMap(product => {
-    const variants = product.variants ?? [];
+  // Map each product once, using only the first variant
+  const mappedProducts = products.map(product => {
+    const firstVariant = product.variants?.[0];
+    const variantImage =
+      extractBestImageUrl(firstVariant, baseUrl) || extractBestImageUrl(product, baseUrl);
 
-    return variants.map(variant => {
-      const variantImage =
-        extractBestImageUrl(variant, baseUrl) || extractBestImageUrl(product, baseUrl);
-
-      return {
-        id: product.id,
-        variantId: variant.id ?? variant.variantnumber,
-        name: variant.name || product.name,
-        slug: variant.slug || product.slug || '',
-        categoryName:
-          typeof product.category === 'string'
-            ? product.category
-            : product.category?.name || 'Sin categoría',
-        selling_price: variant.selling_price ?? 0,
-        image: variantImage,
-        thumbnail: variantImage,
-      };
-    });
+    return {
+      id: product.id,
+      name: firstVariant?.name || product.name,
+      slug: firstVariant?.slug || product.slug || '',
+      categoryName:
+        typeof product.category === 'string'
+          ? product.category
+          : product.category?.name || 'Sin categoría',
+      selling_price: firstVariant?.selling_price ?? 0,
+      image: variantImage,
+      thumbnail: variantImage,
+    };
   });
 
   const latestProducts = mappedProducts.slice(0, 6);
