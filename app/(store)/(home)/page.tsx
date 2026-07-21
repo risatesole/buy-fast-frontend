@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import Carousel from './ProductCarousel';
 import ProductList from './productList';
-import type { Product } from '@/entities/product';
 
 import calculadorasImg from './img/calculadoras.png';
 import manualesLab from './img/manualeslab.png';
@@ -34,7 +33,7 @@ const CAROUSEL_SLIDES = [
   },
 ];
 
-const IMAGE_TYPE_PRIORITIES: Record<string, number> = {
+const IMAGE_PRIORITIES: { [key: string]: number } = {
   THUMBNAIL: 100,
   HERO: 90,
   DETAIL: 80,
@@ -46,7 +45,7 @@ const IMAGE_TYPE_PRIORITIES: Record<string, number> = {
   OTHER: 20,
 };
 
-async function getProducts(): Promise<Product[]> {
+async function getProducts() {
   const baseUrl = process.env.BACKEND_URL;
 
   if (!baseUrl) {
@@ -71,19 +70,46 @@ async function getProducts(): Promise<Product[]> {
   }
 }
 
-function extractBestImageUrl(entity: any, baseUrl: string): string {
+function extractBestImageUrl(
+  entity:
+    | {
+        images?: {
+          image_type?: string;
+          type?: string;
+          image?: string;
+          original?: string;
+          url?: string;
+          src?: string;
+        }[];
+        image?: string;
+        thumbnail?: string;
+        image_thumbnail?: string;
+        url?: string;
+        name?: string;
+        slug?: string;
+        selling_price?: number;
+      }
+    | string
+    | null,
+  baseUrl: string
+) {
   if (!entity) return '';
 
   let rawUrl = '';
 
   // Handle arrays of images (Product.images)
-  if (Array.isArray(entity.images) && entity.images.length > 0) {
+  if (
+    typeof entity === 'object' &&
+    entity !== null &&
+    Array.isArray(entity.images) &&
+    entity.images.length > 0
+  ) {
     const sortedImages = [...entity.images].sort((a, b) => {
       const typeA = String(a?.image_type || a?.type || '').toUpperCase();
       const typeB = String(b?.image_type || b?.type || '').toUpperCase();
 
-      const weightA = IMAGE_TYPE_PRIORITIES[typeA] || 0;
-      const weightB = IMAGE_TYPE_PRIORITIES[typeB] || 0;
+      const weightA = IMAGE_PRIORITIES[typeA] || 0;
+      const weightB = IMAGE_PRIORITIES[typeB] || 0;
 
       return weightB - weightA;
     });
@@ -117,25 +143,32 @@ export default async function Page() {
   const products = await getProducts();
   const baseUrl = process.env.BACKEND_URL || '';
 
-  // Map each product once, using only the first variant
-  const mappedProducts = products.map(product => {
-    const firstVariant = product.variants?.[0];
-    const variantImage =
-      extractBestImageUrl(firstVariant, baseUrl) || extractBestImageUrl(product, baseUrl);
+  const mappedProducts = products.map(
+    (product: {
+      id: string | number;
+      name: string;
+      category: string | { name: string };
+      slug: string;
+      variants: { name: string; slug: string; selling_price: number }[];
+    }) => {
+      const firstVariant = product.variants?.[0];
+      const variantImage =
+        extractBestImageUrl(firstVariant, baseUrl) || extractBestImageUrl(product, baseUrl);
 
-    return {
-      id: product.id,
-      name: firstVariant?.name || product.name,
-      slug: firstVariant?.slug || product.slug || '',
-      categoryName:
-        typeof product.category === 'string'
-          ? product.category
-          : product.category?.name || 'Sin categoría',
-      selling_price: firstVariant?.selling_price ?? 0,
-      image: variantImage,
-      thumbnail: variantImage,
-    };
-  });
+      return {
+        id: product.id,
+        name: firstVariant?.name || product.name,
+        slug: firstVariant?.slug || product.slug || '',
+        categoryName:
+          typeof product.category === 'string'
+            ? product.category
+            : product.category?.name || 'Sin categoría',
+        selling_price: firstVariant?.selling_price ?? 0,
+        image: variantImage,
+        thumbnail: variantImage,
+      };
+    }
+  );
 
   const latestProducts = mappedProducts.slice(0, 6);
 

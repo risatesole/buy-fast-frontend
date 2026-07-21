@@ -1,19 +1,17 @@
 import { ProductCard } from '@/components/ProductCard';
 
-export interface MappedProduct {
-  id: string | number;
-  name: string;
-  thumbnail: string;
-  slug: string;
-  selling_price: number;
-  categoryName: string;
-}
-
-interface ProductListProps {
-  products: MappedProduct[];
-}
-
-export default function ProductList({ products }: ProductListProps) {
+export default function ProductList({
+  products,
+}: {
+  products: {
+    id: string | number;
+    name: string;
+    thumbnail: string;
+    slug: string;
+    selling_price: number;
+    categoryName: string;
+  }[];
+}) {
   if (!products?.length) return null;
 
   return (
