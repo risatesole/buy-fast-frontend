@@ -1,40 +1,23 @@
-import type { AddProductToCartResponse } from '@/features/cart/types/AddProductToCartResponse';
-import type { GetCartResponse } from '@/features/cart/types/GetCartResponse';
+// features/cart/service/index.ts
+
 import { addProductToCart } from './helpers/AddProductToCart';
 import { getCart } from './helpers/GetProductsInCart';
-import { RemoveProductFromCart } from './helpers/RemoveProductFromCart';
-export default class CartService {
-  async getCart(cookieHeader?: string): Promise<GetCartResponse> {
-    return getCart(cookieHeader);
-  }
+import { removeProductFromCart } from './helpers/RemoveProductFromCart';
+import { editProductQuantity } from './helpers/EditProductQuantity';
 
-  async addProduct(productId: number, quantity: number = 1): Promise<AddProductToCartResponse> {
-    return addProductToCart(productId, quantity);
-  }
+export type { GetCartResponse } from './helpers/GetProductsInCart';
+export type { RemoveCartResponse } from './helpers/RemoveProductFromCart';
+export type { EditQuantityResponse } from './helpers/EditProductQuantity';
 
-  async removeProduct(productId: number | string) {
-    RemoveProductFromCart(productId);
-  }
-
-  async editProductQuantity(productId: number | string, quantity: number) {
-    const response = await fetch('/api/v1/cart', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        product_id: productId,
-        quantity: quantity,
-      }),
-    });
-
-    if (!response.ok) {
-      const body = await response.text();
-      alert(`Something wrong happened while editing product cart quantity`);
-      throw new Error(`Request failed: ${response.status} - ${body}`);
-    }
-
-    return response.json();
-    alert('updatingCartItem');
-  }
+export interface AddCartPayload {
+  variantId: string | number;
+  quantity: number;
 }
+
+// Exportación nombrada explícita para el AST de Turbopack
+export {
+  addProductToCart,
+  getCart,
+  removeProductFromCart,
+  editProductQuantity
+};

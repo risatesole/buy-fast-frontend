@@ -1,27 +1,24 @@
-// features/cart/service/helpers/RemoveProductFromCart.ts
+// features/cart/service/helpers/EditProductQuantity.ts
 
-export interface RemoveCartResponse {
+export interface EditQuantityResponse {
   status: string;
   message?: string;
   data?: {
     productvariantid?: number;
-    product_id?: number;
     quantity?: number;
   };
 }
 
-export async function removeProductFromCart(
+/**
+ * Actualiza la cantidad de una variante en el carrito.
+ * El backend actual usa PATCH /api/v1/cart/ con productvariantid en el body.
+ */
+export async function editProductQuantity(
   variantId: number | string,
-  quantity: number = 1
-): Promise<RemoveCartResponse> {
-  console.log('[Cart Delete] Enviando:', {
-    variantId,
-    productvariantid: Number(variantId),
-    quantity,
-  });
-
+  quantity: number
+): Promise<EditQuantityResponse> {
   const response = await fetch('/api/v1/cart/', {
-    method: 'DELETE',
+    method: 'PATCH',
     credentials: 'include',
     headers: {
       Accept: 'application/json',
@@ -38,7 +35,7 @@ export async function removeProductFromCart(
       message: 'Unknown error',
     }));
 
-    console.error('[Cart Delete] Error eliminando producto:', {
+    console.error('[Cart] Fallo actualizando cantidad:', {
       status: response.status,
       variantId,
       quantity,
@@ -48,9 +45,9 @@ export async function removeProductFromCart(
     throw new Error(
       errorData.message ||
         JSON.stringify(errorData.errors) ||
-        `Fallo en eliminación: HTTP ${response.status}`
+        `Fallo de actualización: HTTP ${response.status}`
     );
   }
 
-  return response.json() as Promise<RemoveCartResponse>;
+  return response.json() as Promise<EditQuantityResponse>;
 }

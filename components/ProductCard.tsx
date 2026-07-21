@@ -1,167 +1,114 @@
 'use client';
 
-import { useState } from 'react';
+import { memo, useCallback, MouseEvent } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
-// ─── Helpers ──────────────────────────────────────────────────
-
-function ProductGlyph({ category }: { category: string }) {
-  const stroke = 'oklch(0.708 0 0)';
-  const props = {
-    width: 48,
-    height: 48,
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke,
-    strokeWidth: 1,
-  } as const;
-
-  if (category === 'Books')
-    return (
-      <svg {...props}>
-        <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
-        <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
-      </svg>
-    );
-
-  if (category === 'Notebooks')
-    return (
-      <svg {...props}>
-        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-        <polyline points="14 2 14 8 20 8" />
-        <line x1="8" y1="13" x2="16" y2="13" />
-        <line x1="8" y1="17" x2="16" y2="17" />
-      </svg>
-    );
-
-  if (category === 'Pens')
-    return (
-      <svg {...props}>
-        <line x1="12" y1="19" x2="12" y2="23" />
-        <path d="M6.34 17.66l-1.41-1.42 1.41-1.41" />
-        <path d="M17.66 17.66l1.41-1.42-1.41-1.41" />
-        <path d="M12 2L4.93 9.07a7 7 0 000 9.9L12 22l7.07-3.03a7 7 0 000-9.9L12 2z" />
-      </svg>
-    );
-
-  return (
-    <svg {...props}>
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-    </svg>
-  );
-}
-
-const formatPrice = (n: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
-
-// ─── Component ────────────────────────────────────────────────
-
-export type ProductCardProps = {
-  id: number;
+export interface ProductCardProps {
+  id: string | number;
   name: string;
   selling_price: number;
   categoryName: string;
-  image?: string;
+  image?: string | null;
   slug: string;
-  onAdd: (productId: number, quantity: number) => void;
-};
+  actionLabel?: string;
+  actionHref?: string;
+  onAdd?: (productId: string | number, quantity: number) => void;
+}
 
-export function ProductCard({
+// Instancia global fuera del ciclo de renderizado para evitar regeneración
+const DOP_FORMATTER = new Intl.NumberFormat('es-DO', {
+  style: 'currency',
+  currency: 'DOP',
+});
+
+export const ProductCard = memo(function ProductCard({
   id,
   name,
   selling_price,
   categoryName,
   image,
   slug,
+  actionLabel = 'Añadir al carrito',
+  actionHref,
   onAdd,
 }: ProductCardProps) {
-  const [hovered, setHovered] = useState(false);
-  const [added, setAdded] = useState(false);
+  
+  // Callback memoizado con manejo explícito del evento sintético
+  const handleAddToCart = useCallback((e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation(); // Previene burbujeo si la tarjeta se anida en contenedores interactivos
+    onAdd?.(id, 1);
+  }, [id, onAdd]);
 
-  const handleAdd = () => {
-    onAdd(id, 1);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 900);
-  };
-
-  const heroImage = image;
+  const productHref = slug ? `/${slug}` : '#';
+  const finalActionHref = actionHref || productHref;
 
   return (
-    <article
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        borderBottom: '1px solid oklch(0.922 0 0)',
-        paddingBottom: '2rem',
-      }}
-    >
-      <Link href={`/${slug}`}>
-        <div
-          style={{
-            aspectRatio: '4/3',
-            background: hovered ? 'oklch(0.97 0 0)' : 'oklch(0.985 0 0)',
-            borderRadius: 4,
-            marginBottom: '1.25rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-            position: 'relative',
-          }}
-        >
-          {heroImage ? (
+    <article className="group relative flex h-full flex-col justify-between border border-[#e2e8f0] bg-white transition-shadow duration-200 hover:shadow-md">
+      
+      {/* Zona de navegación principal aislada estructuralmente del Call to Action */}
+      <Link 
+        href={productHref} 
+        prefetch={false}
+        className="flex flex-1 flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-[#002d62]"
+      >
+        <div className="relative aspect-square w-full overflow-hidden bg-[#f7f9fb]">
+          {image ? (
             <Image
-              src={heroImage}
-              alt={name}
+              src={image}
+              alt={`Fotografía de ${name}`}
               fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              loading="eager"
-              style={{ objectFit: 'cover' }}
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              className="object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
             />
           ) : (
-            <ProductGlyph category={categoryName} />
+            <div className="flex h-full w-full items-center justify-center text-sm font-medium text-[#747781]">
+              Sin imagen disponible
+            </div>
           )}
+        </div>
+
+        <div className="flex flex-1 flex-col p-4">
+          <span className="mb-1 text-xs font-bold uppercase tracking-wider text-[#747781]">
+            {categoryName}
+          </span>
+
+          <h3 className="mb-2 line-clamp-2 font-serif text-sm font-semibold leading-tight text-[#002d62] md:text-base">
+            {name}
+          </h3>
+
+          <div className="mt-auto pt-2">
+            <span className="font-serif text-lg font-bold text-[#191c1e]">
+              {DOP_FORMATTER.format(selling_price)}
+            </span>
+          </div>
         </div>
       </Link>
 
-      <p
-        style={{
-          fontSize: '0.68rem',
-          letterSpacing: '0.12em',
-          textTransform: 'uppercase',
-          color: 'oklch(0.708 0 0)',
-          marginBottom: '0.4rem',
-        }}
-      >
-        {categoryName}
-      </p>
-
-      <Link href={`/${slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-        <h3
-          style={{
-            fontFamily: "'Georgia', serif",
-            fontSize: '1rem',
-            fontWeight: 400,
-            marginBottom: '0.75rem',
-          }}
-        >
-          {name}
-        </h3>
-      </Link>
-
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <span style={{ fontFamily: 'monospace' }}>{formatPrice(selling_price)}</span>
-        <button onClick={handleAdd}>{added ? 'Added ✓' : 'Add to cart'}</button>
+      {/* Contenedor de acciones independiente */}
+      <div className="p-4 pt-0">
+        {actionHref ? (
+          <Link
+            href={finalActionHref}
+            prefetch={false}
+            className="inline-flex w-full items-center justify-center bg-[#002d62] px-4 py-2.5 text-sm font-semibold uppercase tracking-[0.05em] text-white transition-colors duration-200 hover:bg-[#115cb9] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#115cb9] active:scale-[0.98]"
+          >
+            {actionLabel}
+          </Link>
+        ) : (
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            aria-label={`Añadir ${name} al carrito`}
+            className="w-full bg-[#002d62] px-4 py-2.5 text-sm font-semibold uppercase tracking-[0.05em] text-white transition-colors duration-200 hover:bg-[#115cb9] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#115cb9] active:scale-[0.98]"
+          >
+            {actionLabel}
+          </button>
+        )}
       </div>
     </article>
   );
-}
+});
+
+ProductCard.displayName = 'ProductCard';
