@@ -51,25 +51,18 @@ function normalizeProduct(product: ApiProduct): SearchProduct {
     name: product.name,
     selling_price: firstVariant?.selling_price ?? 0,
     categoryName: product.category,
-    image:
-      firstVariant?.thumbnail ||
-      firstVariant?.image_thumbnail ||
-      product.thumbnail ||
-      '',
+    image: firstVariant?.thumbnail || firstVariant?.image_thumbnail || product.thumbnail || '',
     slug: firstVariant?.slug || product.slug || '',
   };
 }
 
 async function searchProducts(query: string): Promise<ApiProduct[]> {
-  const response = await fetch(
-    `/api/v1/products/?search=${encodeURIComponent(query)}`,
-    {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-      },
-    }
-  );
+  const response = await fetch(`/api/v1/products/?search=${encodeURIComponent(query)}`, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+    },
+  });
 
   if (!response.ok) {
     throw new Error(`Search failed: HTTP ${response.status}`);
@@ -113,11 +106,11 @@ function SearchContent() {
     setError(false);
 
     searchProducts(q)
-      .then((data) => {
+      .then(data => {
         setRawProducts(data);
         setLoading(false);
       })
-      .catch((err) => {
+      .catch(err => {
         console.error('[Search] Error buscando productos:', err);
         setError(true);
         setLoading(false);
@@ -159,7 +152,7 @@ function SearchContent() {
           <EmptyState query={q} />
         ) : (
           <section className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {products.map((product) => {
+            {products.map(product => {
               if (!product.variantId) {
                 console.warn('Producto sin variante válida:', product);
                 return null;

@@ -70,10 +70,9 @@ function transformProduct(apiProduct: ApiProduct): Product {
 
 async function fetchProductByVariantSlug(slug: string): Promise<ApiProduct | null> {
   // Implementación de ISR para optimizar TTFB y reducir carga en DRF
-  const response = await fetch(
-    `${process.env.BACKEND_URL}/api/v1/products/?variantslug=${slug}`,
-    { next: { revalidate: 3600, tags: ['product-detail', slug] } }
-  );
+  const response = await fetch(`${process.env.BACKEND_URL}/api/v1/products/?variantslug=${slug}`, {
+    next: { revalidate: 3600, tags: ['product-detail', slug] },
+  });
 
   if (!response.ok) {
     throw new Error(`Error en la respuesta de la API: ${response.statusText}`);
@@ -81,7 +80,7 @@ async function fetchProductByVariantSlug(slug: string): Promise<ApiProduct | nul
 
   const json = (await response.json()) as ApiResponse;
   // Validación de array segura
-  return json.data?.[0] || null; 
+  return json.data?.[0] || null;
 }
 
 // ─── Server Component ───────────────────────────────────────────
@@ -105,10 +104,9 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     }
 
     return <ProductPage initialProduct={product} initialVariant={variant} />;
-    
   } catch (error) {
     console.error(`[Product Detail Error]: Fallo al cargar el slug ${slug}`, error);
-    
+
     // Fallback UI tipado con el Design System (sin estilos en línea)
     return (
       <div className="flex min-h-[50vh] w-full items-center justify-center bg-[#f7f9fb] px-4">

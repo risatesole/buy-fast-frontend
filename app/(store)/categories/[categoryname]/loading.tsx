@@ -9,7 +9,7 @@ export default function Loading() {
         {/* Nodo exclusivo para lectores de pantalla */}
         <span className="sr-only">Cargando...</span>
       </div>
-      
+
       <p className="font-sans text-sm font-semibold uppercase tracking-wider text-[#43474f]">
         Cargando...
       </p>

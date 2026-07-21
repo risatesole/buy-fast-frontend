@@ -29,7 +29,7 @@ const buildCrumbs = (pathname: string): Crumb[] => {
 export function AdminTopbar() {
   const pathname = usePathname();
   const topbarRef = useRef<HTMLElement>(null);
-  
+
   const crumbs = useMemo(() => buildCrumbs(pathname), [pathname]);
   const [activeMenu, setActiveMenu] = useState<ActiveMenuType>(null);
 
@@ -47,18 +47,20 @@ export function AdminTopbar() {
   }, [activeMenu]);
 
   const toggleMenu = (menu: ActiveMenuType) => {
-    setActiveMenu((prev) => (prev === menu ? null : menu));
+    setActiveMenu(prev => (prev === menu ? null : menu));
   };
 
   return (
     <header
       ref={topbarRef}
-      className="sticky top-0 z-40 w-full bg-[#ffffff] border-b border-[#c4c6d1]" 
+      className="sticky top-0 z-40 w-full bg-[#ffffff] border-b border-[#c4c6d1]"
     >
       <div className="flex items-center justify-between px-8 h-20 relative">
-        
         {/* ─── Breadcrumbs ─── */}
-        <nav className="hidden sm:flex items-center gap-x-2 text-base font-sans" aria-label="Ruta de navegación">
+        <nav
+          className="hidden sm:flex items-center gap-x-2 text-base font-sans"
+          aria-label="Ruta de navegación"
+        >
           {crumbs.map((crumb, idx) => {
             const isLast = idx === crumbs.length - 1;
             return (
@@ -96,7 +98,6 @@ export function AdminTopbar() {
 
         {/* ─── Contenedor de Acciones (Derecha) ─── */}
         <div className="flex items-center gap-x-4 ml-6">
-          
           {/* Toggle de Búsqueda (Mobile) */}
           <div className="md:hidden relative">
             <button
@@ -144,12 +145,10 @@ export function AdminTopbar() {
                     { id: 1, title: 'Inventario agotado: Química 101', time: 'Hace 2 min' },
                     { id: 2, title: 'Uso del servidor al 90%', time: 'Hace 1 hr' },
                     { id: 3, title: 'Nuevo usuario registrado', time: 'Hace 3 hrs' },
-                  ].map((n) => (
+                  ].map(n => (
                     <li key={n.id}>
                       <button className="w-full text-left px-5 py-4 hover:bg-[#f2f4f6] transition-colors outline-none focus:bg-[#f2f4f6]">
-                        <p className="text-base font-sans font-medium text-[#191c1e]">
-                          {n.title}
-                        </p>
+                        <p className="text-base font-sans font-medium text-[#191c1e]">{n.title}</p>
                         <p className="text-sm font-sans text-[#747781] mt-1">{n.time}</p>
                       </button>
                     </li>
@@ -170,9 +169,7 @@ export function AdminTopbar() {
               <div className="size-10 rounded-none bg-[#002d62] text-[#ffffff] font-sans text-sm font-bold flex items-center justify-center border border-[#00193c]">
                 AD
               </div>
-            );
-          })}
-        </nav>
+            </button>
 
             {activeMenu === 'user' && (
               <div className="absolute top-full right-0 mt-4 w-64 bg-[#ffffff] rounded-none border border-[#c4c6d1] z-50 animate-in fade-in slide-in-from-top-2">
@@ -202,7 +199,6 @@ export function AdminTopbar() {
               </div>
             )}
           </div>
-          
         </div>
       </div>
     </header>

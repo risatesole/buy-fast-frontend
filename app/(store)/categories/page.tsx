@@ -37,7 +37,7 @@ async function getCategories(): Promise<Category[]> {
 
     // Adaptador de resiliencia: Soporta tanto el formato antiguo (Record) como el nuevo (Array)
     const categoriesArray = Array.isArray(data) ? data : Object.values(data ?? {});
-    
+
     // Ordenamiento por prioridad comercial
     return categoriesArray.sort((a, b) => a.priority - b.priority);
   } catch (error) {
@@ -72,7 +72,7 @@ export default async function CategoriesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {categories.map((cat) => (
+          {categories.map(cat => (
             <CategoryCard key={cat.slug} category={cat} />
           ))}
         </div>
@@ -106,11 +106,9 @@ function CategoryCard({ category }: { category: Category }) {
         <h2 className="mb-2 font-serif text-lg font-semibold leading-tight text-[#191c1e] transition-colors group-hover:text-[#115cb9]">
           {category.label}
         </h2>
-        
+
         {category.description && (
-          <p className="line-clamp-2 text-sm text-[#43474f]">
-            {category.description}
-          </p>
+          <p className="line-clamp-2 text-sm text-[#43474f]">{category.description}</p>
         )}
       </div>
     </Link>

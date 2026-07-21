@@ -20,9 +20,11 @@ export default function ProductList({ products }: ProductListProps) {
   if (!products?.length) return null;
 
   // Filtrado defensivo previo a la renderización
-  const validProducts = products.filter((product) => {
+  const validProducts = products.filter(product => {
     if (!product.slug) {
-      console.warn(`[Data Integrity] Variante omitida por falta de slug válido. Producto ID: ${product.id}`);
+      console.warn(
+        `[Data Integrity] Variante omitida por falta de slug válido. Producto ID: ${product.id}`
+      );
       return false;
     }
     return true;
@@ -31,10 +33,10 @@ export default function ProductList({ products }: ProductListProps) {
   if (!validProducts.length) return null;
 
   return (
-    // Se elimina el wrapper restrictivo (max-w-7xl, paddings) para delegar la 
+    // Se elimina el wrapper restrictivo (max-w-7xl, paddings) para delegar la
     // responsabilidad del layout al contenedor <section> padre en page.tsx
     <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
-      {validProducts.map((product) => (
+      {validProducts.map(product => (
         <ProductCard
           key={`p-${product.id}-v-${product.variantId ?? 'base'}`}
           id={product.variantId ?? product.id}

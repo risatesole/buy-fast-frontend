@@ -20,20 +20,88 @@ const USERS_PER_PAGE = 5;
 
 // Diccionario de estilos con acceso O(1) para evitar recálculos en el render cycle
 const STATUS_UI: Record<User['status'], { badge: string; dot: string; label: string }> = {
-  active: { badge: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]', dot: 'bg-[#1e8e3e]', label: 'Activo' },
-  inactive: { badge: 'bg-[#f1f3f4] text-[#5f6368] border-[#e8eaed]', dot: 'bg-[#9aa0a6]', label: 'Inactivo' },
-  pending: { badge: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]', dot: 'bg-[#f9ab00]', label: 'Pendiente' },
+  active: {
+    badge: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]',
+    dot: 'bg-[#1e8e3e]',
+    label: 'Activo',
+  },
+  inactive: {
+    badge: 'bg-[#f1f3f4] text-[#5f6368] border-[#e8eaed]',
+    dot: 'bg-[#9aa0a6]',
+    label: 'Inactivo',
+  },
+  pending: {
+    badge: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]',
+    dot: 'bg-[#f9ab00]',
+    label: 'Pendiente',
+  },
 };
 
 const mockUsers: User[] = [
-  { id: '1', name: 'Alice Johnson', email: 'alice.johnson@example.com', status: 'active', lastActive: 'Just now', role: 'admin' },
-  { id: '2', name: 'Bob Smith', email: 'bob.smith@example.com', status: 'active', lastActive: '5 minutes ago', role: 'user' },
-  { id: '3', name: 'Carol Davis', email: 'carol.davis@example.com', status: 'inactive', lastActive: '2 hours ago', role: 'moderator' },
-  { id: '4', name: 'David Wilson', email: 'david.wilson@example.com', status: 'active', lastActive: '1 hour ago', role: 'user' },
-  { id: '5', name: 'Emma Brown', email: 'emma.brown@example.com', status: 'pending', lastActive: 'Never', role: 'user' },
-  { id: '6', name: 'Frank Miller', email: 'frank.miller@example.com', status: 'active', lastActive: '30 minutes ago', role: 'user' },
-  { id: '7', name: 'Grace Lee', email: 'grace.lee@example.com', status: 'active', lastActive: '15 minutes ago', role: 'user' },
-  { id: '8', name: 'Henry Zhang', email: 'henry.zhang@example.com', status: 'active', lastActive: '45 minutes ago', role: 'user' },
+  {
+    id: '1',
+    name: 'Alice Johnson',
+    email: 'alice.johnson@example.com',
+    status: 'active',
+    lastActive: 'Just now',
+    role: 'admin',
+  },
+  {
+    id: '2',
+    name: 'Bob Smith',
+    email: 'bob.smith@example.com',
+    status: 'active',
+    lastActive: '5 minutes ago',
+    role: 'user',
+  },
+  {
+    id: '3',
+    name: 'Carol Davis',
+    email: 'carol.davis@example.com',
+    status: 'inactive',
+    lastActive: '2 hours ago',
+    role: 'moderator',
+  },
+  {
+    id: '4',
+    name: 'David Wilson',
+    email: 'david.wilson@example.com',
+    status: 'active',
+    lastActive: '1 hour ago',
+    role: 'user',
+  },
+  {
+    id: '5',
+    name: 'Emma Brown',
+    email: 'emma.brown@example.com',
+    status: 'pending',
+    lastActive: 'Never',
+    role: 'user',
+  },
+  {
+    id: '6',
+    name: 'Frank Miller',
+    email: 'frank.miller@example.com',
+    status: 'active',
+    lastActive: '30 minutes ago',
+    role: 'user',
+  },
+  {
+    id: '7',
+    name: 'Grace Lee',
+    email: 'grace.lee@example.com',
+    status: 'active',
+    lastActive: '15 minutes ago',
+    role: 'user',
+  },
+  {
+    id: '8',
+    name: 'Henry Zhang',
+    email: 'henry.zhang@example.com',
+    status: 'active',
+    lastActive: '45 minutes ago',
+    role: 'user',
+  },
 ];
 
 // ============================================================================
@@ -62,14 +130,20 @@ const UserTableRow = memo(({ user, isSelected, onToggleSelect, onAction }: UserT
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="flex flex-col">
-          <span className="text-[14px] font-semibold text-[#191c1e] tracking-tight">{user.name}</span>
+          <span className="text-[14px] font-semibold text-[#191c1e] tracking-tight">
+            {user.name}
+          </span>
           <span className="text-[12px] text-[#747781] mt-0.5">{user.email}</span>
         </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
-        <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${statusConfig.badge}`}>
+        <div
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${statusConfig.badge}`}
+        >
           <span className={`size-1.5 rounded-full ${statusConfig.dot}`} aria-hidden="true" />
-          <span className="text-[11px] font-bold uppercase tracking-wider">{statusConfig.label}</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider">
+            {statusConfig.label}
+          </span>
         </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
@@ -109,14 +183,16 @@ export default function UserListPage() {
   const searchMatchingUsers = useMemo(() => {
     if (!deferredSearchQuery.trim()) return mockUsers;
     const lowerQuery = deferredSearchQuery.toLowerCase();
-    
+
     return mockUsers.filter(
-      user => user.name.toLowerCase().includes(lowerQuery) || user.email.toLowerCase().includes(lowerQuery)
+      user =>
+        user.name.toLowerCase().includes(lowerQuery) ||
+        user.email.toLowerCase().includes(lowerQuery)
     );
   }, [deferredSearchQuery]);
 
   const totalPages = Math.max(1, Math.ceil(searchMatchingUsers.length / USERS_PER_PAGE));
-  
+
   const usersDisplayedOnCurrentPage = useMemo(() => {
     const startIndex = (currentPageNumber - 1) * USERS_PER_PAGE;
     return searchMatchingUsers.slice(startIndex, startIndex + USERS_PER_PAGE);
@@ -132,8 +208,10 @@ export default function UserListPage() {
   }, []);
 
   const isCurrentPageAllSelected = useMemo(() => {
-    return usersDisplayedOnCurrentPage.length > 0 && 
-           usersDisplayedOnCurrentPage.every(user => selectedUserIds.has(user.id));
+    return (
+      usersDisplayedOnCurrentPage.length > 0 &&
+      usersDisplayedOnCurrentPage.every(user => selectedUserIds.has(user.id))
+    );
   }, [usersDisplayedOnCurrentPage, selectedUserIds]);
 
   const toggleSelectAllDisplayedUsers = useCallback(() => {
@@ -170,11 +248,15 @@ export default function UserListPage() {
     <div className="flex flex-col h-full bg-[#f7f9fb]">
       <header className="flex items-center justify-between px-8 py-6 bg-white border-b border-[#e0e3e5]">
         <div>
-          <h1 className="text-2xl font-serif font-bold text-[#00193c] tracking-tight">Directorio de Usuarios</h1>
-          <p className="text-[13px] font-sans text-[#747781] mt-1">Gestione los accesos y roles administrativos del sistema.</p>
+          <h1 className="text-2xl font-serif font-bold text-[#00193c] tracking-tight">
+            Directorio de Usuarios
+          </h1>
+          <p className="text-[13px] font-sans text-[#747781] mt-1">
+            Gestione los accesos y roles administrativos del sistema.
+          </p>
         </div>
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={handleCreateNewUser}
             className="inline-flex items-center gap-2 px-4 py-2 bg-[#002d62] rounded-md text-[13px] font-semibold text-white hover:bg-[#00193c] transition-colors focus:outline-none focus:ring-2 focus:ring-[#002d62] focus:ring-offset-2"
           >
@@ -197,8 +279,8 @@ export default function UserListPage() {
             className="w-full pl-10 pr-4 py-2.5 bg-[#f7f9fb] border border-[#c4c6d1] rounded-md text-[13px] font-medium text-[#191c1e] placeholder:text-[#747781] transition-all focus:outline-none focus:border-[#002d62] focus:ring-1 focus:ring-[#002d62] focus:bg-white"
           />
         </div>
-        
-        <button 
+
+        <button
           onClick={handleAdvancedFilters}
           className="inline-flex items-center gap-2 px-3 py-2.5 border border-[#c4c6d1] rounded-md text-[13px] font-semibold text-[#43474f] hover:bg-[#f2f4f6] transition-colors focus:outline-none focus:ring-2 focus:ring-[#002d62]"
         >
@@ -220,11 +302,21 @@ export default function UserListPage() {
                     className="size-4 cursor-pointer text-[#002d62] rounded-sm border-[#c4c6d1] focus:ring-[#002d62]"
                   />
                 </th>
-                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">Identidad</th>
-                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">Estado Operativo</th>
-                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">Nivel de Acceso</th>
-                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">Última Sesión</th>
-                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider text-right">Acciones</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">
+                  Identidad
+                </th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">
+                  Estado Operativo
+                </th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">
+                  Nivel de Acceso
+                </th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">
+                  Última Sesión
+                </th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider text-right">
+                  Acciones
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#e0e3e5]">
@@ -243,16 +335,22 @@ export default function UserListPage() {
           <div className="flex flex-col items-center justify-center h-64 text-[#747781]">
             <Search className="size-10 mb-4 text-[#c4c6d1]" />
             <p className="text-[14px] font-semibold text-[#191c1e]">No se encontraron registros</p>
-            <p className="text-[13px] mt-1">Ajuste los parámetros de búsqueda e intente nuevamente.</p>
+            <p className="text-[13px] mt-1">
+              Ajuste los parámetros de búsqueda e intente nuevamente.
+            </p>
           </div>
         )}
       </main>
 
       <footer className="flex items-center justify-between px-8 py-4 bg-white border-t border-[#e0e3e5]">
         <div className="text-[13px] font-medium text-[#747781]">
-          Mostrando <span className="font-bold text-[#191c1e]">{usersDisplayedOnCurrentPage.length}</span> de <span className="font-bold text-[#191c1e]">{searchMatchingUsers.length}</span> resultados
+          Mostrando{' '}
+          <span className="font-bold text-[#191c1e]">{usersDisplayedOnCurrentPage.length}</span> de{' '}
+          <span className="font-bold text-[#191c1e]">{searchMatchingUsers.length}</span> resultados
           {selectedUserIds.size > 0 && (
-            <span className="ml-2 text-[#002d62] font-semibold">({selectedUserIds.size} seleccionados)</span>
+            <span className="ml-2 text-[#002d62] font-semibold">
+              ({selectedUserIds.size} seleccionados)
+            </span>
           )}
         </div>
 
@@ -265,15 +363,15 @@ export default function UserListPage() {
           >
             <ChevronLeft className="size-4" />
           </button>
-          
+
           <div className="flex items-center gap-1 mx-2">
             {paginationRange.map(page => (
               <button
                 key={page}
                 onClick={() => setCurrentPageNumber(page)}
                 className={`inline-flex items-center justify-center size-8 rounded-md text-[13px] font-semibold transition-all ${
-                  currentPageNumber === page 
-                    ? 'bg-[#002d62] text-white border border-[#002d62] shadow-sm' 
+                  currentPageNumber === page
+                    ? 'bg-[#002d62] text-white border border-[#002d62] shadow-sm'
                     : 'text-[#43474f] hover:bg-[#f2f4f6] border border-transparent hover:border-[#c4c6d1]'
                 }`}
               >

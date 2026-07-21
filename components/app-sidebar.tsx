@@ -4,7 +4,15 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useCallback, memo } from 'react';
-import { LayoutDashboard, Users, Package, ChevronDown, Menu, Truck, LucideIcon } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Users,
+  Package,
+  ChevronDown,
+  Menu,
+  Truck,
+  LucideIcon,
+} from 'lucide-react';
 
 // ─── Tipado Estricto ────────────────────────────────────────────────────────
 
@@ -29,9 +37,7 @@ const PLATFORM_ITEMS: NavigationItem[] = [
     title: 'Panel Principal',
     url: '/admin',
     icon: LayoutDashboard,
-    sub: [
-      { title: 'Dashboard Administrativo', url: '/admin' },
-    ],
+    sub: [{ title: 'Dashboard Administrativo', url: '/admin' }],
   },
   {
     id: 'customers',
@@ -78,16 +84,16 @@ const HELP_ITEMS: NavigationSubItem[] = [
 // ─── Componentes Puros Memotizados ──────────────────────────────────────────
 
 const BrandLogo = memo(() => (
-  <Link 
-    href="/" 
+  <Link
+    href="/"
     className="flex h-full w-full items-center justify-center gap-3 bg-[#001530] px-4 transition-colors duration-200 hover:bg-[#002048] outline-none focus:ring-2 focus:ring-[#5891ff]"
     aria-label="Ir al inicio de UASD BuyFast"
   >
-    <Image 
-      src="/image/logo_uasd.svg" 
-      alt="UASD Logo" 
-      width={140} 
-      height={36} 
+    <Image
+      src="/image/logo_uasd.svg"
+      alt="UASD Logo"
+      width={140}
+      height={36}
       className="h-8 w-auto object-contain shrink-0"
       priority
     />
@@ -120,23 +126,23 @@ export function AppSidebar() {
 
   const isPathActive = useCallback((url?: string) => !!url && pathname === url, [pathname]);
   const isSubPathActive = useCallback(
-    (subItems?: NavigationSubItem[]) => subItems?.some((sub) => pathname === sub.url) ?? false,
+    (subItems?: NavigationSubItem[]) => subItems?.some(sub => pathname === sub.url) ?? false,
     [pathname]
   );
 
   // Sincronización automática del acordeón activo según la ruta
   useEffect(() => {
     const activeAccordions: Record<string, boolean> = {};
-    PLATFORM_ITEMS.forEach((item) => {
+    PLATFORM_ITEMS.forEach(item => {
       if (item.sub && (isPathActive(item.url) || isSubPathActive(item.sub))) {
         activeAccordions[item.id] = true;
       }
     });
-    setOpenAccordions((prev) => ({ ...prev, ...activeAccordions }));
+    setOpenAccordions(prev => ({ ...prev, ...activeAccordions }));
   }, [isPathActive, isSubPathActive]);
 
   const toggleAccordion = useCallback((id: string) => {
-    setOpenAccordions((prev) => ({ ...prev, [id]: !prev[id] }));
+    setOpenAccordions(prev => ({ ...prev, [id]: !prev[id] }));
   }, []);
 
   return (
@@ -168,29 +174,31 @@ export function AppSidebar() {
 
         {/* Navegación Principal */}
         <nav className="flex flex-col gap-y-6 px-3 py-6 h-[calc(100%-5rem)] overflow-y-auto custom-scrollbar">
-          
           {/* Sección: Plataforma */}
           <div>
             <p className="px-3 mb-3 text-xs font-sans font-bold uppercase tracking-wider text-[#7d9ccb]">
               Plataforma
             </p>
             <ul className="space-y-1.5">
-              {PLATFORM_ITEMS.map((item) => {
+              {PLATFORM_ITEMS.map(item => {
                 const Icon = item.icon;
                 const hasSub = !!item.sub;
                 const isOpen = openAccordions[item.id] || false;
                 const isActiveModule = isPathActive(item.url) || isSubPathActive(item.sub);
 
-                const baseClasses = "w-full flex items-center gap-x-3.5 px-3.5 py-3 rounded-xl text-sm font-sans font-medium transition-all duration-200 outline-none";
+                const baseClasses =
+                  'w-full flex items-center gap-x-3.5 px-3.5 py-3 rounded-xl text-sm font-sans font-medium transition-all duration-200 outline-none';
                 const activeClasses = isActiveModule
-                  ? "bg-[#5891ff] text-[#001530] font-semibold shadow-sm"
-                  : "text-white hover:bg-[#002554]/60";
+                  ? 'bg-[#5891ff] text-[#001530] font-semibold shadow-sm'
+                  : 'text-white hover:bg-[#002554]/60';
 
                 if (!hasSub) {
                   return (
                     <li key={item.id}>
                       <Link href={item.url ?? '#'} className={`${baseClasses} ${activeClasses}`}>
-                        <Icon className={`size-5 shrink-0 ${isActiveModule ? 'text-[#001530]' : 'text-white'}`} />
+                        <Icon
+                          className={`size-5 shrink-0 ${isActiveModule ? 'text-[#001530]' : 'text-white'}`}
+                        />
                         <span className="truncate">{item.title}</span>
                       </Link>
                     </li>
@@ -204,7 +212,9 @@ export function AppSidebar() {
                       className={`${baseClasses} ${activeClasses}`}
                       aria-expanded={isOpen}
                     >
-                      <Icon className={`size-5 shrink-0 ${isActiveModule ? 'text-[#001530]' : 'text-white'}`} />
+                      <Icon
+                        className={`size-5 shrink-0 ${isActiveModule ? 'text-[#001530]' : 'text-white'}`}
+                      />
                       <span className="flex-1 text-left truncate">{item.title}</span>
                       <ChevronDown
                         className={`size-4 shrink-0 transition-transform duration-200 ${isOpen ? '-rotate-180' : ''} ${
@@ -216,7 +226,7 @@ export function AppSidebar() {
                     {/* Sub-menú colapsable */}
                     {isOpen && (
                       <ul className="mt-1 space-y-1 pl-11 pr-2 animate-in fade-in duration-200">
-                        {item.sub!.map((sub) => {
+                        {item.sub!.map(sub => {
                           const isSubActiveItem = isPathActive(sub.url);
                           return (
                             <li key={sub.url}>
@@ -224,9 +234,10 @@ export function AppSidebar() {
                                 href={sub.url}
                                 className={`
                                   block py-2 px-3 rounded-lg text-sm font-sans transition-colors truncate
-                                  ${isSubActiveItem 
-                                    ? 'text-white font-bold bg-[#00285a]' 
-                                    : 'text-[#d0e1ff] hover:text-white hover:bg-[#002048]'
+                                  ${
+                                    isSubActiveItem
+                                      ? 'text-white font-bold bg-[#00285a]'
+                                      : 'text-[#d0e1ff] hover:text-white hover:bg-[#002048]'
                                   }
                                 `}
                               >
@@ -249,7 +260,7 @@ export function AppSidebar() {
               Soporte
             </p>
             <ul className="space-y-1.5">
-              {HELP_ITEMS.map((item) => {
+              {HELP_ITEMS.map(item => {
                 const isActive = isPathActive(item.url);
                 return (
                   <li key={item.url}>
@@ -257,9 +268,10 @@ export function AppSidebar() {
                       href={item.url}
                       className={`
                         block px-3.5 py-3 rounded-xl text-sm font-sans font-medium transition-all duration-200 truncate
-                        ${isActive
-                          ? 'bg-[#5891ff] text-[#001530] font-semibold'
-                          : 'text-white hover:bg-[#002554]/60'
+                        ${
+                          isActive
+                            ? 'bg-[#5891ff] text-[#001530] font-semibold'
+                            : 'text-white hover:bg-[#002554]/60'
                         }
                       `}
                     >
@@ -281,13 +293,10 @@ export function AppSidebar() {
                 <p className="text-sm font-sans font-bold text-white truncate leading-snug">
                   Admin Principal
                 </p>
-                <p className="text-xs font-sans text-[#7d9ccb] truncate">
-                  admin@uasd.edu.do
-                </p>
+                <p className="text-xs font-sans text-[#7d9ccb] truncate">admin@uasd.edu.do</p>
               </div>
             </div>
           </div>
-
         </nav>
       </aside>
 

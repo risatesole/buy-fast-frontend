@@ -7,7 +7,7 @@ import type { Product } from '@/entities/product';
 // ─── Configuración ─────────────────────────────────────────────
 
 // Se unifica el límite de paginación para evitar desincronizaciones entre API y cálculo de offsets.
-const PAGE_SIZE = 30; 
+const PAGE_SIZE = 30;
 
 interface MappedProduct {
   id: string | number;
@@ -41,12 +41,12 @@ async function getProducts(categorySlug: string, offset: number): Promise<Pagina
   return {
     data: json.results || json.data || [],
     // Se elimina el hardcode (2000) priorizando el metadata 'count' estándar de la paginación de DRF.
-    total: json.count || 0, 
+    total: json.count || 0,
   };
 }
 
 function mapProductsToView(products: Product[]): MappedProduct[] {
-  return products.map((product) => {
+  return products.map(product => {
     const primaryVariant = product.variants?.[0];
     return {
       id: primaryVariant?.id ?? product.id,
@@ -69,19 +69,23 @@ function Pagination({ currentPage, totalPages }: { currentPage: number; totalPag
   const pageButtons = Array.from({ length: end - start + 1 }, (_, i) => start + i);
 
   // Clases basadas en el Design System institucional (sharp edges, colores de autoridad)
-  const baseClasses = "rounded-none border px-4 py-2 text-[13px] font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#002d62]";
-  const activeClasses = "bg-[#002d62] text-white border-[#002d62]";
-  const inactiveClasses = "bg-white text-[#43474f] border-[#c4c6d1] hover:bg-[#f2f4f6]";
+  const baseClasses =
+    'rounded-none border px-4 py-2 text-[13px] font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#002d62]';
+  const activeClasses = 'bg-[#002d62] text-white border-[#002d62]';
+  const inactiveClasses = 'bg-white text-[#43474f] border-[#c4c6d1] hover:bg-[#f2f4f6]';
 
   return (
-    <nav className="mt-16 flex items-center justify-center gap-2" aria-label="Paginación de catálogo">
+    <nav
+      className="mt-16 flex items-center justify-center gap-2"
+      aria-label="Paginación de catálogo"
+    >
       {currentPage > 1 && (
         <Link href={`?page=${currentPage - 1}`} className={`${baseClasses} ${inactiveClasses}`}>
           Anterior
         </Link>
       )}
 
-      {pageButtons.map((p) => (
+      {pageButtons.map(p => (
         <Link
           key={p}
           href={`?page=${p}`}
@@ -129,7 +133,8 @@ export default async function CategoryPage({
             Categoría sin inventario
           </h2>
           <p className="text-[13px] text-[#747781] mt-1.5 max-w-sm">
-            No se encontraron artículos disponibles bajo la clasificación solicitada o el identificador no existe en el catálogo.
+            No se encontraron artículos disponibles bajo la clasificación solicitada o el
+            identificador no existe en el catálogo.
           </p>
           <Link
             href="/categories/"

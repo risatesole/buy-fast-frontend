@@ -40,7 +40,7 @@ export default function ProductList({ products }: ProductListProps) {
   }, []);
 
   if (!products || products.length === 0) {
-    return null; 
+    return null;
   }
 
   return (

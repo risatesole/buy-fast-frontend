@@ -18,8 +18,8 @@ export default function ProductPage({ initialProduct, initialVariant }: ProductP
   // FIX: Resolución de herencia y mapeo defensivo de URLs
   const imageUrls = useMemo(() => {
     // 1. Fallback jerárquico: Si la variante no tiene imágenes, hereda las del producto padre
-    const sourceImages = selectedVariant.images?.length 
-      ? selectedVariant.images 
+    const sourceImages = selectedVariant.images?.length
+      ? selectedVariant.images
       : initialProduct.images || [];
 
     // 2. Extracción polimórfica: DRF puede mutar la key dependiendo del serializer
@@ -42,7 +42,6 @@ export default function ProductPage({ initialProduct, initialVariant }: ProductP
       });
 
       if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-      
     } catch (error) {
       console.error('[Cart Mutation Error]:', error);
     } finally {
@@ -53,7 +52,6 @@ export default function ProductPage({ initialProduct, initialVariant }: ProductP
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-16 lg:px-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start">
-        
         {/* Image Gallery */}
         <section className="w-full">
           <ImageGallery images={imageUrls} />
@@ -69,9 +67,7 @@ export default function ProductPage({ initialProduct, initialVariant }: ProductP
             {initialProduct.name}
           </h1>
 
-          <p className="mb-6 text-sm text-gray-500">
-            {selectedVariant.name}
-          </p>
+          <p className="mb-6 text-sm text-gray-500">{selectedVariant.name}</p>
 
           <div className="mb-8 flex flex-col gap-1">
             <p className="text-2xl font-bold text-gray-900">
@@ -91,7 +87,7 @@ export default function ProductPage({ initialProduct, initialVariant }: ProductP
             <div className="mb-8">
               <h3 className="mb-3 text-sm font-medium text-gray-900">Opciones disponibles:</h3>
               <div className="flex flex-wrap gap-2">
-                {initialProduct.variants.map((v) => {
+                {initialProduct.variants.map(v => {
                   const isActive = selectedVariant.slug === v.slug;
                   return (
                     <button
@@ -99,9 +95,11 @@ export default function ProductPage({ initialProduct, initialVariant }: ProductP
                       onClick={() => setSelectedVariant(v)}
                       className={`
                         inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-2 text-xs font-medium transition-colors duration-200
-                        ${isActive 
-                          ? 'border-2 border-gray-900 bg-gray-50 text-gray-900' 
-                          : 'border border-gray-200 text-gray-600 hover:border-gray-400 hover:bg-gray-50'}
+                        ${
+                          isActive
+                            ? 'border-2 border-gray-900 bg-gray-50 text-gray-900'
+                            : 'border border-gray-200 text-gray-600 hover:border-gray-400 hover:bg-gray-50'
+                        }
                       `}
                     >
                       {v.name}
@@ -119,9 +117,11 @@ export default function ProductPage({ initialProduct, initialVariant }: ProductP
             aria-disabled={isPending}
             className={`
               w-full rounded-md px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition-all duration-200
-              ${isPending 
-                ? 'cursor-not-allowed bg-gray-400 opacity-70' 
-                : 'bg-[#002d62] hover:bg-[#115cb9] active:scale-[0.98]'}
+              ${
+                isPending
+                  ? 'cursor-not-allowed bg-gray-400 opacity-70'
+                  : 'bg-[#002d62] hover:bg-[#115cb9] active:scale-[0.98]'
+              }
             `}
           >
             {isPending ? 'Añadiendo...' : 'Añadir al carrito'}
@@ -130,11 +130,15 @@ export default function ProductPage({ initialProduct, initialVariant }: ProductP
           {/* Technical Details */}
           <dl className="mt-8 grid grid-cols-2 gap-6 border-t border-gray-200 pt-8">
             <div>
-              <dt className="mb-1 text-xs font-semibold tracking-wider text-gray-500 uppercase">SKU</dt>
+              <dt className="mb-1 text-xs font-semibold tracking-wider text-gray-500 uppercase">
+                SKU
+              </dt>
               <dd className="text-sm font-medium text-gray-900">{selectedVariant.sku}</dd>
             </div>
             <div>
-              <dt className="mb-1 text-xs font-semibold tracking-wider text-gray-500 uppercase">Variante #</dt>
+              <dt className="mb-1 text-xs font-semibold tracking-wider text-gray-500 uppercase">
+                Variante #
+              </dt>
               <dd className="text-sm font-medium text-gray-900">{selectedVariant.variantnumber}</dd>
             </div>
           </dl>

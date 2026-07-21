@@ -20,22 +20,19 @@ export function NavbarWithCart({ user, initialCartItems = [] }: NavbarWithCartPr
 
   const handleRemove = useCallback(
     async (id: NavbarCartItem['id']) => {
-      const itemToRemove = cartItems.find((i) => i.id === id);
+      const itemToRemove = cartItems.find(i => i.id === id);
       if (!itemToRemove) return;
 
       console.log('[Cart Remove] Item seleccionado:', itemToRemove);
 
-      setCartItems((prev) => prev.filter((i) => i.id !== id));
+      setCartItems(prev => prev.filter(i => i.id !== id));
 
       try {
         await removeProductFromCart(itemToRemove.productId, 1);
       } catch (error) {
-        console.error(
-          `[Cart] Fallo al eliminar la variante ${itemToRemove.productId}:`,
-          error
-        );
+        console.error(`[Cart] Fallo al eliminar la variante ${itemToRemove.productId}:`, error);
 
-        setCartItems((prev) => [...prev, itemToRemove]);
+        setCartItems(prev => [...prev, itemToRemove]);
       }
     },
     [cartItems]
@@ -43,29 +40,22 @@ export function NavbarWithCart({ user, initialCartItems = [] }: NavbarWithCartPr
 
   const handleUpdateQuantity = useCallback(
     async (id: NavbarCartItem['id'], quantity: number) => {
-      const itemToUpdate = cartItems.find((i) => i.id === id);
+      const itemToUpdate = cartItems.find(i => i.id === id);
       if (!itemToUpdate) return;
 
       console.log('[Cart Update] Item seleccionado:', itemToUpdate);
 
       const previousQuantity = itemToUpdate.quantity;
 
-      setCartItems((prev) =>
-        prev.map((i) => (i.id === id ? { ...i, quantity } : i))
-      );
+      setCartItems(prev => prev.map(i => (i.id === id ? { ...i, quantity } : i)));
 
       try {
         await editProductQuantity(itemToUpdate.productId, quantity);
       } catch (error) {
-        console.error(
-          `[Cart] Fallo al actualizar variante ${itemToUpdate.productId}:`,
-          error
-        );
+        console.error(`[Cart] Fallo al actualizar variante ${itemToUpdate.productId}:`, error);
 
-        setCartItems((prev) =>
-          prev.map((i) =>
-            i.id === id ? { ...i, quantity: previousQuantity } : i
-          )
+        setCartItems(prev =>
+          prev.map(i => (i.id === id ? { ...i, quantity: previousQuantity } : i))
         );
       }
     },

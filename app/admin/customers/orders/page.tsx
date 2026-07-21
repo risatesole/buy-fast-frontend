@@ -2,7 +2,18 @@
 
 import { useState, useEffect, useCallback, useRef, memo, useMemo } from 'react';
 import Link from 'next/link';
-import { Clock, CheckCircle2, Undo2, Search, X, Eye, FileText, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Clock,
+  CheckCircle2,
+  Undo2,
+  Search,
+  X,
+  Eye,
+  FileText,
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 
 // ============================================================================
 // CAPA DE DOMINIO Y TIPOS ESTRICTOS
@@ -30,26 +41,53 @@ const ITEMS_PER_PAGE = 5;
 const SEARCH_DEBOUNCE_DELAY = 400;
 
 const dateFormatter = new Intl.DateTimeFormat('es-DO', {
-  year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+  hour12: true,
 });
 
 const currencyFormatter = new Intl.NumberFormat('es-DO', {
-  style: 'currency', currency: 'DOP'
+  style: 'currency',
+  currency: 'DOP',
 });
 
 function formatDate(dateString: string): string {
-  try { return dateFormatter.format(new Date(dateString)); } 
-  catch { return dateString; }
+  try {
+    return dateFormatter.format(new Date(dateString));
+  } catch {
+    return dateString;
+  }
 }
 
 function formatCurrency(amount: number): string {
   return currencyFormatter.format(amount);
 }
 
-const STATUS_UI: Record<OrderStatus, { badge: string; dot: string; label: string; icon: React.ElementType }> = {
-  pending: { badge: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]', dot: 'bg-[#f9ab00]', label: 'Pendiente', icon: Clock },
-  fullfilled: { badge: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]', dot: 'bg-[#1e8e3e]', label: 'Completada', icon: CheckCircle2 },
-  returned: { badge: 'bg-[#f1f3f4] text-[#5f6368] border-[#e8eaed]', dot: 'bg-[#9aa0a6]', label: 'Devuelta', icon: Undo2 },
+const STATUS_UI: Record<
+  OrderStatus,
+  { badge: string; dot: string; label: string; icon: React.ElementType }
+> = {
+  pending: {
+    badge: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]',
+    dot: 'bg-[#f9ab00]',
+    label: 'Pendiente',
+    icon: Clock,
+  },
+  fullfilled: {
+    badge: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]',
+    dot: 'bg-[#1e8e3e]',
+    label: 'Completada',
+    icon: CheckCircle2,
+  },
+  returned: {
+    badge: 'bg-[#f1f3f4] text-[#5f6368] border-[#e8eaed]',
+    dot: 'bg-[#9aa0a6]',
+    label: 'Devuelta',
+    icon: Undo2,
+  },
 };
 
 // ============================================================================
@@ -73,20 +111,25 @@ type PaginatedResponse = {
   total: number;
 };
 
-async function mockApiFetch(search: string, page: number, limit: number): Promise<PaginatedResponse> {
+async function mockApiFetch(
+  search: string,
+  page: number,
+  limit: number
+): Promise<PaginatedResponse> {
   await new Promise(resolve => setTimeout(resolve, 450)); // Simulación de latencia
 
   const lowerSearch = search.toLowerCase();
-  const filtered = MOCK_DB.filter(o => 
-    o.firstname.toLowerCase().includes(lowerSearch) || 
-    o.lastname.toLowerCase().includes(lowerSearch) ||
-    o.id.toLowerCase().includes(lowerSearch)
+  const filtered = MOCK_DB.filter(
+    o =>
+      o.firstname.toLowerCase().includes(lowerSearch) ||
+      o.lastname.toLowerCase().includes(lowerSearch) ||
+      o.id.toLowerCase().includes(lowerSearch)
   );
 
   const startIndex = (page - 1) * limit;
   return {
     data: filtered.slice(startIndex, startIndex + limit),
-    total: filtered.length
+    total: filtered.length,
   };
 }
 
@@ -98,7 +141,7 @@ function useOrdersPagination() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   // Estado de Paginación
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -114,7 +157,7 @@ function useOrdersPagination() {
 
     try {
       const { data, total } = await mockApiFetch(search.trim(), page, ITEMS_PER_PAGE);
-      
+
       // Control de concurrencia: Descartar respuestas obsoletas
       if (latestRequestRef.current !== requestId) return;
 
@@ -128,15 +171,18 @@ function useOrdersPagination() {
   }, []);
 
   // Handler de Búsqueda con Debounce
-  const handleSearch = useCallback((value: string) => {
-    setSearchTerm(value);
-    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    
-    searchTimeoutRef.current = setTimeout(() => {
-      setCurrentPage(1); // Resetear a la primera página en cada nueva búsqueda
-      fetchOrders(value, 1);
-    }, SEARCH_DEBOUNCE_DELAY);
-  }, [fetchOrders]);
+  const handleSearch = useCallback(
+    (value: string) => {
+      setSearchTerm(value);
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+
+      searchTimeoutRef.current = setTimeout(() => {
+        setCurrentPage(1); // Resetear a la primera página en cada nueva búsqueda
+        fetchOrders(value, 1);
+      }, SEARCH_DEBOUNCE_DELAY);
+    },
+    [fetchOrders]
+  );
 
   const clearSearch = useCallback(() => {
     setSearchTerm('');
@@ -144,10 +190,13 @@ function useOrdersPagination() {
     fetchOrders('', 1);
   }, [fetchOrders]);
 
-  const handlePageChange = useCallback((newPage: number) => {
-    setCurrentPage(newPage);
-    fetchOrders(searchTerm, newPage);
-  }, [searchTerm, fetchOrders]);
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      setCurrentPage(newPage);
+      fetchOrders(searchTerm, newPage);
+    },
+    [searchTerm, fetchOrders]
+  );
 
   // Montaje inicial
   useEffect(() => {
@@ -159,9 +208,16 @@ function useOrdersPagination() {
 
   const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
 
-  return { 
-    orders, isLoading, searchTerm, handleSearch, clearSearch, 
-    currentPage, totalPages, totalItems, handlePageChange 
+  return {
+    orders,
+    isLoading,
+    searchTerm,
+    handleSearch,
+    clearSearch,
+    currentPage,
+    totalPages,
+    totalItems,
+    handlePageChange,
   };
 }
 
@@ -186,30 +242,42 @@ const OrderRow = memo(({ order }: { order: Order }) => {
     <tr className="border-b border-[#e0e3e5] bg-white hover:bg-[#f8fafd] transition-colors duration-150">
       <td className="px-6 py-4 font-mono text-[13px] text-[#43474f] font-semibold">{order.id}</td>
       <td className="px-6 py-4">
-        <img 
-          src={order.profilepicture} 
-          alt={`${order.firstname} ${order.lastname}`} 
-          className="size-10 rounded-full object-cover border border-[#e0e3e5] bg-[#f2f4f6]" 
-          loading="lazy" 
+        <img
+          src={order.profilepicture}
+          alt={`${order.firstname} ${order.lastname}`}
+          className="size-10 rounded-full object-cover border border-[#e0e3e5] bg-[#f2f4f6]"
+          loading="lazy"
         />
       </td>
       <td className="px-6 py-4">
         <div className="flex flex-col">
-          <span className="text-[14px] font-semibold text-[#191c1e] tracking-tight">{order.firstname} {order.lastname}</span>
+          <span className="text-[14px] font-semibold text-[#191c1e] tracking-tight">
+            {order.firstname} {order.lastname}
+          </span>
           <span className="text-[12px] text-[#747781] mt-0.5">{order.email}</span>
         </div>
       </td>
-      <td className="px-6 py-4 text-[13px] text-[#43474f] whitespace-nowrap">{formatDate(order.created_at)}</td>
-      <td className="px-6 py-4 text-[14px] font-bold text-[#191c1e]">{formatCurrency(order.total)}</td>
+      <td className="px-6 py-4 text-[13px] text-[#43474f] whitespace-nowrap">
+        {formatDate(order.created_at)}
+      </td>
+      <td className="px-6 py-4 text-[14px] font-bold text-[#191c1e]">
+        {formatCurrency(order.total)}
+      </td>
       <td className="px-6 py-4">
-        <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${statusConfig.badge}`}>
+        <div
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${statusConfig.badge}`}
+        >
           <StatusIcon className="size-3.5" />
-          <span className="text-[11px] font-bold uppercase tracking-wider">{statusConfig.label}</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider">
+            {statusConfig.label}
+          </span>
         </div>
       </td>
-      <td className="px-6 py-4 text-[13px] text-[#43474f] whitespace-nowrap">{order.pickup_time ? formatDate(order.pickup_time) : 'Sin asignar'}</td>
+      <td className="px-6 py-4 text-[13px] text-[#43474f] whitespace-nowrap">
+        {order.pickup_time ? formatDate(order.pickup_time) : 'Sin asignar'}
+      </td>
       <td className="px-6 py-4 text-right">
-        <Link 
+        <Link
           href={`/admin/orders/${order.id}`}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-[#c4c6d1] rounded-md text-[12px] font-semibold text-[#43474f] hover:bg-[#f2f4f6] transition-colors focus:outline-none focus:ring-2 focus:ring-[#002d62]"
         >
@@ -226,9 +294,16 @@ OrderRow.displayName = 'OrderRow';
 // ============================================================================
 
 export default function OrdersPage() {
-  const { 
-    orders, isLoading, searchTerm, handleSearch, clearSearch, 
-    currentPage, totalPages, totalItems, handlePageChange 
+  const {
+    orders,
+    isLoading,
+    searchTerm,
+    handleSearch,
+    clearSearch,
+    currentPage,
+    totalPages,
+    totalItems,
+    handlePageChange,
   } = useOrdersPagination();
 
   // Memoización del rango de paginación para evitar recálculos en renders no relacionados
@@ -238,11 +313,14 @@ export default function OrdersPage() {
 
   return (
     <div className="flex flex-col h-full bg-[#f7f9fb]">
-      
       <header className="flex items-center justify-between px-8 py-6 bg-white border-b border-[#e0e3e5]">
         <div>
-          <h1 className="text-2xl font-serif font-bold text-[#00193c] tracking-tight">Directorio de Órdenes</h1>
-          <p className="text-[13px] font-sans text-[#747781] mt-1">Supervisión y trazabilidad del histórico de transacciones operativas.</p>
+          <h1 className="text-2xl font-serif font-bold text-[#00193c] tracking-tight">
+            Directorio de Órdenes
+          </h1>
+          <p className="text-[13px] font-sans text-[#747781] mt-1">
+            Supervisión y trazabilidad del histórico de transacciones operativas.
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <button className="inline-flex items-center gap-2 px-4 py-2 bg-[#002d62] rounded-md text-[13px] font-semibold text-white hover:bg-[#00193c] transition-colors focus:outline-none focus:ring-2 focus:ring-[#002d62] focus:ring-offset-2">
@@ -258,11 +336,14 @@ export default function OrdersPage() {
             type="text"
             placeholder="Buscar por ID, nombre o apellido..."
             value={searchTerm}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={e => handleSearch(e.target.value)}
             className="w-full pl-10 pr-10 py-2.5 bg-[#f7f9fb] border border-[#c4c6d1] rounded-md text-[13px] font-medium text-[#191c1e] placeholder:text-[#747781] transition-all focus:outline-none focus:border-[#002d62] focus:ring-1 focus:ring-[#002d62] focus:bg-white"
           />
           {searchTerm && (
-            <button onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#c4c6d1] hover:text-[#747781] transition-colors focus:outline-none">
+            <button
+              onClick={clearSearch}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#c4c6d1] hover:text-[#747781] transition-colors focus:outline-none"
+            >
               <X className="size-4" />
             </button>
           )}
@@ -276,25 +357,45 @@ export default function OrdersPage() {
           <div className="flex flex-col items-center justify-center py-24 text-[#747781]">
             <FileText className="size-12 mb-4 text-[#c4c6d1]" />
             <p className="text-[14px] font-semibold text-[#191c1e]">
-              {searchTerm ? 'No se encontraron registros coincidentes' : 'El registro de órdenes está vacío'}
+              {searchTerm
+                ? 'No se encontraron registros coincidentes'
+                : 'El registro de órdenes está vacío'}
             </p>
           </div>
         ) : (
           <table className="w-full text-left border-collapse min-w-[1000px]">
             <thead className="bg-[#f8fafd] sticky top-0 z-10 shadow-[0_1px_0_#e0e3e5]">
               <tr>
-                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">ID</th>
-                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">Perfil</th>
-                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">Identidad Sujeto</th>
-                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">Emisión</th>
-                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">Facturación</th>
-                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">Estado</th>
-                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">Logística</th>
-                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider text-right">Acción</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">
+                  ID
+                </th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">
+                  Perfil
+                </th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">
+                  Identidad Sujeto
+                </th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">
+                  Emisión
+                </th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">
+                  Facturación
+                </th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">
+                  Estado
+                </th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">
+                  Logística
+                </th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider text-right">
+                  Acción
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#e0e3e5]">
-              {orders.map(order => <OrderRow key={order.id} order={order} />)}
+              {orders.map(order => (
+                <OrderRow key={order.id} order={order} />
+              ))}
             </tbody>
           </table>
         )}
@@ -304,7 +405,11 @@ export default function OrdersPage() {
       {!isLoading && orders.length > 0 && (
         <footer className="flex items-center justify-between px-8 py-4 bg-white border-t border-[#e0e3e5]">
           <div className="text-[13px] font-medium text-[#747781]">
-            Mostrando <span className="font-bold text-[#191c1e]">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> a{' '}
+            Mostrando{' '}
+            <span className="font-bold text-[#191c1e]">
+              {(currentPage - 1) * ITEMS_PER_PAGE + 1}
+            </span>{' '}
+            a{' '}
             <span className="font-bold text-[#191c1e]">
               {Math.min(currentPage * ITEMS_PER_PAGE, totalItems)}
             </span>{' '}
@@ -320,15 +425,15 @@ export default function OrdersPage() {
             >
               <ChevronLeft className="size-4" />
             </button>
-            
+
             <div className="flex items-center gap-1 mx-2">
               {paginationRange.map(page => (
                 <button
                   key={page}
                   onClick={() => handlePageChange(page)}
                   className={`inline-flex items-center justify-center size-8 rounded-md text-[13px] font-semibold transition-all ${
-                    currentPage === page 
-                      ? 'bg-[#002d62] text-white border border-[#002d62] shadow-sm' 
+                    currentPage === page
+                      ? 'bg-[#002d62] text-white border border-[#002d62] shadow-sm'
                       : 'text-[#43474f] hover:bg-[#f2f4f6] border border-transparent hover:border-[#c4c6d1]'
                   }`}
                 >

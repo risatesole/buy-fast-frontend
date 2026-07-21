@@ -28,21 +28,21 @@ const LEGAL_LINKS: FooterLink[] = [
 // ── Sub-components ─────────────────────────────────────────────
 
 const BrandLogo = () => (
-  <Link 
-    href="/" 
+  <Link
+    href="/"
     className="inline-flex w-fit items-center justify-start gap-4 transition-opacity duration-300 ease-in-out hover:opacity-80 active:scale-[0.98]"
   >
-    <Image 
-      src="/image/logo_uasd.svg" 
-      alt="UASD Logo" 
-      width={140} 
-      height={36} 
+    <Image
+      src="/image/logo_uasd.svg"
+      alt="UASD Logo"
+      width={140}
+      height={36}
       className="h-8 w-auto object-contain"
       loading="lazy" // Optimización: lazy loading nativo para elementos below-the-fold
     />
-    
+
     <div className="h-7 w-px bg-white/40"></div>
-    
+
     <div className="flex flex-col justify-center">
       <span className="font-serif text-base font-bold tracking-widest text-white leading-tight uppercase">
         BUYFAST
@@ -55,8 +55,9 @@ const BrandLogo = () => (
 );
 
 const FooterLinkItem = ({ label, href, isExternal }: FooterLink) => {
-  const baseClasses = "text-sm font-medium text-[#abc7ff] transition-colors duration-200 hover:text-white hover:underline underline-offset-4";
-  
+  const baseClasses =
+    'text-sm font-medium text-[#abc7ff] transition-colors duration-200 hover:text-white hover:underline underline-offset-4';
+
   if (isExternal) {
     return (
       <a href={href} target="_blank" rel="noopener noreferrer" className={baseClasses}>
@@ -81,12 +82,12 @@ export function Footer() {
     <footer className="border-t border-[#00193c] bg-[#002d62] px-6 py-12 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4 lg:gap-12">
-          
           {/* Brand & Descripción */}
           <div className="flex flex-col gap-5 md:col-span-2">
             <BrandLogo />
             <p className="max-w-sm text-sm text-[#abc7ff]/80 leading-relaxed">
-              Plataforma tecnológica para la gestión e inventario del Ecónomato Universitario, optimizando el acceso a recursos académicos.
+              Plataforma tecnológica para la gestión e inventario del Ecónomato Universitario,
+              optimizando el acceso a recursos académicos.
             </p>
           </div>
 

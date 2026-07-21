@@ -15,9 +15,4 @@ export interface AddCartPayload {
 }
 
 // Exportación nombrada explícita para el AST de Turbopack
-export {
-  addProductToCart,
-  getCart,
-  removeProductFromCart,
-  editProductQuantity
-};
+export { addProductToCart, getCart, removeProductFromCart, editProductQuantity };

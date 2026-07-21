@@ -33,23 +33,24 @@ export const ProductCard = memo(function ProductCard({
   actionHref,
   onAdd,
 }: ProductCardProps) {
-  
   // Callback memoizado con manejo explícito del evento sintético
-  const handleAddToCart = useCallback((e: MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    e.stopPropagation(); // Previene burbujeo si la tarjeta se anida en contenedores interactivos
-    onAdd?.(id, 1);
-  }, [id, onAdd]);
+  const handleAddToCart = useCallback(
+    (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      e.stopPropagation(); // Previene burbujeo si la tarjeta se anida en contenedores interactivos
+      onAdd?.(id, 1);
+    },
+    [id, onAdd]
+  );
 
   const productHref = slug ? `/${slug}` : '#';
   const finalActionHref = actionHref || productHref;
 
   return (
     <article className="group relative flex h-full flex-col justify-between border border-[#e2e8f0] bg-white transition-shadow duration-200 hover:shadow-md">
-      
       {/* Zona de navegación principal aislada estructuralmente del Call to Action */}
-      <Link 
-        href={productHref} 
+      <Link
+        href={productHref}
         prefetch={false}
         className="flex flex-1 flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-[#002d62]"
       >

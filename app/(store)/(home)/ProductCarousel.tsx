@@ -56,18 +56,17 @@ export default function Carousel({ slides, autoPlay = true, interval = 5000 }: C
   const slide = slides[current];
 
   return (
-    <div 
+    <div
       className="group relative w-full overflow-hidden bg-[#091a2d]"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
       <div className="relative flex w-full aspect-[4/3] sm:aspect-[16/7] xl:aspect-[21/7] max-h-[850px]">
-        
         {slide.image ? (
           <Image
             src={slide.image}
             alt={slide.title}
-            fill 
+            fill
             sizes="100vw"
             className="object-cover object-center"
             priority={current === 0}
@@ -80,7 +79,6 @@ export default function Carousel({ slides, autoPlay = true, interval = 5000 }: C
         <div className="absolute inset-0 bg-gradient-to-t from-[#091a2d]/95 via-[#091a2d]/40 to-transparent" />
 
         <div className="absolute inset-0 mx-auto flex w-full max-w-7xl flex-col justify-end px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16 pointer-events-none">
-          
           <div className="max-w-2xl pointer-events-auto">
             <h3 className="mb-3 font-serif text-3xl font-bold leading-tight text-white sm:text-4xl md:text-5xl drop-shadow-md">
               {slide.title}
@@ -94,7 +92,12 @@ export default function Carousel({ slides, autoPlay = true, interval = 5000 }: C
               <button className="inline-flex items-center gap-2 rounded-none bg-[#115cb9] px-8 py-3.5 text-sm font-bold tracking-wide text-white transition-all duration-200 hover:bg-[#002d62] active:scale-95 shadow-lg">
                 {slide.buttonText || 'Ver Detalles'}
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </button>
             </Link>
@@ -108,7 +111,12 @@ export default function Carousel({ slides, autoPlay = true, interval = 5000 }: C
           aria-label="Diapositiva anterior"
         >
           <svg className="h-6 w-6 pr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2.5}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
         </button>
 

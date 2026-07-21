@@ -1,9 +1,6 @@
 import type { AddProductToCartResponse } from '@/features/cart/types/AddProductToCartResponse';
 
-export async function addProductToCart(
-  variantId: string | number,
-  quantity: number = 1
-) {
+export async function addProductToCart(variantId: string | number, quantity: number = 1) {
   const response = await fetch('/api/v1/cart/', {
     method: 'POST',
     credentials: 'include',
@@ -24,9 +21,7 @@ export async function addProductToCart(
     console.error('Error agregando al carrito:', errorData);
 
     throw new Error(
-      errorData.message ||
-      JSON.stringify(errorData.errors) ||
-      `Request failed: ${response.status}`
+      errorData.message || JSON.stringify(errorData.errors) || `Request failed: ${response.status}`
     );
   }
 

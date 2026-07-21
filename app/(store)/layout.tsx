@@ -106,7 +106,7 @@ async function getCartItems(): Promise<NavbarCartItem[]> {
 
   if (!json?.data?.items) return [];
 
-  return json.data.items.map((item) => ({
+  return json.data.items.map(item => ({
     // ID interno del item en el carrito, usado por el componente visual
     id: String(item.id),
 
@@ -114,9 +114,7 @@ async function getCartItems(): Promise<NavbarCartItem[]> {
     productId: Number(item.variant_id),
 
     // Mostrar producto + variante si existe variant_name
-    name: item.variant_name
-      ? `${item.variant_name}`
-      : item.product_name,
+    name: item.variant_name ? `${item.variant_name}` : item.product_name,
 
     price: Number(item.selling_price),
     quantity: item.quantity,
@@ -124,15 +122,8 @@ async function getCartItems(): Promise<NavbarCartItem[]> {
   }));
 }
 
-export default async function HomeLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [userData, cartItems] = await Promise.all([
-    getUserDetails(),
-    getCartItems(),
-  ]);
+export default async function HomeLayout({ children }: { children: React.ReactNode }) {
+  const [userData, cartItems] = await Promise.all([getUserDetails(), getCartItems()]);
 
   const rawUser = userData?.data?.user;
   const user = rawUser?.is_authenticated ? rawUser : null;
