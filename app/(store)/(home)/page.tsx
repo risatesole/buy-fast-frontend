@@ -181,9 +181,7 @@ export default async function Page() {
           </>
         ) : (
           <div className="flex h-48 w-full items-center justify-center rounded-xl border border-dashed border-[#e2e8f0] bg-[#f7f9fb]">
-            <p className="font-medium text-[#747781]">
-              El catálogo no está disponible temporalmente.
-            </p>
+            <p className="font-medium text-[#747781]">Productos no disponible temporalmente.</p>
           </div>
         )}
       </section>
