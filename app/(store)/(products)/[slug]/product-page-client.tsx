@@ -1,32 +1,55 @@
-// app/(store)/(products)/[slug]/product-page-client.tsx
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ImageGallery } from '@/components/ImageGallery';
-import type { Product, NormalProductVariant } from '@/entities/product';
 
-interface ProductPageProps {
-  initialProduct: Product;
-  initialVariant: NormalProductVariant;
-}
-
-export default function ProductPage({ initialProduct, initialVariant }: ProductPageProps) {
-  const [selectedVariant, setSelectedVariant] = useState<NormalProductVariant>(initialVariant);
+export default function ProductPage({
+  initialProduct,
+  initialVariant,
+}: {
+  initialProduct: {
+    id: number;
+    name: string;
+    category: string;
+    slug: string;
+    variants: {
+      id: number;
+      name: string;
+      slug: string;
+      description: string;
+      selling_price: number;
+      tax_rate: number;
+      sku: string;
+      variantnumber: number;
+      images: { type: string; url: string }[];
+    }[];
+  };
+  initialVariant: {
+    id: number;
+    name: string;
+    slug: string;
+    description: string;
+    selling_price: number;
+    tax_rate: number;
+    sku: string;
+    variantnumber: number;
+    images: { type: string; url: string }[];
+  };
+}) {
+  const router = useRouter();
+  const [selectedVariant, setSelectedVariant] = useState(initialVariant);
   const [isPending, setIsPending] = useState(false);
 
-  // FIX: Resolución de herencia y mapeo defensivo de URLs
   const imageUrls = useMemo(() => {
-    // 1. Fallback jerárquico: Si la variante no tiene imágenes, hereda las del producto padre
     const sourceImages = selectedVariant.images?.length
       ? selectedVariant.images
-      : initialProduct.images || [];
+      : initialProduct.variants[0]?.images || [];
 
-    // 2. Extracción polimórfica: DRF puede mutar la key dependiendo del serializer
     return sourceImages
-      .map((img: any) => img.url || img.image || img.original || img.src)
-      .filter(Boolean) as string[]; // Elimina undefined/nulls que quiebren el ImageGallery
-  }, [selectedVariant.images, initialProduct.images]);
+      .map((img: { type?: string; url?: string }) => img.url)
+      .filter(Boolean) as string[];
+  }, [selectedVariant.images, initialProduct.variants]);
 
   const handleAddToCart = useCallback(async () => {
     setIsPending(true);
@@ -52,12 +75,10 @@ export default function ProductPage({ initialProduct, initialVariant }: ProductP
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-16 lg:px-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start">
-        {/* Image Gallery */}
         <section className="w-full">
           <ImageGallery images={imageUrls} />
         </section>
 
-        {/* Product Info */}
         <section className="flex flex-col">
           <p className="mb-4 text-xs font-semibold tracking-widest text-gray-500 uppercase">
             {initialProduct.category}
@@ -82,7 +103,6 @@ export default function ProductPage({ initialProduct, initialVariant }: ProductP
             {selectedVariant.description}
           </p>
 
-          {/* Variant Selector */}
           {initialProduct.variants && initialProduct.variants.length > 1 && (
             <div className="mb-8">
               <h3 className="mb-3 text-sm font-medium text-gray-900">Opciones disponibles:</h3>
@@ -92,7 +112,7 @@ export default function ProductPage({ initialProduct, initialVariant }: ProductP
                   return (
                     <button
                       key={v.slug}
-                      onClick={() => setSelectedVariant(v)}
+                      onClick={() => router.push(`/${v.slug}`)}
                       className={`
                         inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-2 text-xs font-medium transition-colors duration-200
                         ${
@@ -110,7 +130,6 @@ export default function ProductPage({ initialProduct, initialVariant }: ProductP
             </div>
           )}
 
-          {/* Add to Cart Action */}
           <button
             onClick={handleAddToCart}
             disabled={isPending}
@@ -127,7 +146,6 @@ export default function ProductPage({ initialProduct, initialVariant }: ProductP
             {isPending ? 'Añadiendo...' : 'Añadir al carrito'}
           </button>
 
-          {/* Technical Details */}
           <dl className="mt-8 grid grid-cols-2 gap-6 border-t border-gray-200 pt-8">
             <div>
               <dt className="mb-1 text-xs font-semibold tracking-wider text-gray-500 uppercase">

@@ -1,8 +1,5 @@
 import { notFound } from 'next/navigation';
 import ProductPage from './product-page-client';
-import type { Product, NormalProductVariant } from '@/entities/product';
-
-// ─── Interfaces (Data Transfer Objects) ─────────────────────────
 
 interface ApiImage {
   type: string;
@@ -40,23 +37,19 @@ interface ApiResponse {
   };
 }
 
-// ─── Capa de Transformación (Mappers) ───────────────────────────
-
-function transformVariant(apiVariant: ApiVariant): NormalProductVariant {
+function transformVariant(apiVariant: ApiVariant) {
   return {
     ...apiVariant,
     thumbnail: apiVariant.thumbnail || '',
-    // Idealmente, estas fechas deberían venir del serializador en DRF.
     created_at: new Date(),
     updated_at: new Date(),
   };
 }
 
-function transformProduct(apiProduct: ApiProduct): Product {
+function transformProduct(apiProduct: ApiProduct) {
   return {
     id: apiProduct.id,
     name: apiProduct.name,
-    // Eliminado el casting inseguro `as any`
     category: apiProduct.category?.toLowerCase() || 'other',
     thumbnail: apiProduct.thumbnail,
     slug: apiProduct.slug,
@@ -66,10 +59,7 @@ function transformProduct(apiProduct: ApiProduct): Product {
   };
 }
 
-// ─── Capa de Servicio (Data Fetching) ───────────────────────────
-
-async function fetchProductByVariantSlug(slug: string): Promise<ApiProduct | null> {
-  // Implementación de ISR para optimizar TTFB y reducir carga en DRF
+async function fetchProductByVariantSlug(slug: string) {
   const response = await fetch(`${process.env.BACKEND_URL}/api/v1/products/?variantslug=${slug}`, {
     next: { revalidate: 3600, tags: ['product-detail', slug] },
   });
@@ -79,35 +69,31 @@ async function fetchProductByVariantSlug(slug: string): Promise<ApiProduct | nul
   }
 
   const json = (await response.json()) as ApiResponse;
-  // Validación de array segura
   return json.data?.[0] || null;
 }
 
-// ─── Server Component ───────────────────────────────────────────
-
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+
+  let product;
+  let variant;
 
   try {
     const apiProduct = await fetchProductByVariantSlug(slug);
 
     if (!apiProduct) {
-      // Delega el estado 404 al boundary nativo de Next.js en lugar de retornar HTML parcial
       notFound();
     }
 
-    const product = transformProduct(apiProduct);
-    const variant = product.variants.find(v => v.slug === slug);
+    product = transformProduct(apiProduct);
+    variant = product.variants.find(v => v.slug === slug);
 
     if (!variant) {
       notFound();
     }
-
-    return <ProductPage initialProduct={product} initialVariant={variant} />;
   } catch (error) {
     console.error(`[Product Detail Error]: Fallo al cargar el slug ${slug}`, error);
 
-    // Fallback UI tipado con el Design System (sin estilos en línea)
     return (
       <div className="flex min-h-[50vh] w-full items-center justify-center bg-[#f7f9fb] px-4">
         <p className="rounded-none border border-[#ffdad6] bg-[#ffffff] p-6 text-sm font-medium text-[#ba1a1a] shadow-sm">
@@ -116,4 +102,6 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       </div>
     );
   }
+
+  return <ProductPage initialProduct={product} initialVariant={variant} />;
 }
