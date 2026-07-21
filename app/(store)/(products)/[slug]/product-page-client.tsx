@@ -38,18 +38,17 @@ export default function ProductPage({
   };
 }) {
   const router = useRouter();
-  const [selectedVariant, setSelectedVariant] = useState(initialVariant);
   const [isPending, setIsPending] = useState(false);
 
   const imageUrls = useMemo(() => {
-    const sourceImages = selectedVariant.images?.length
-      ? selectedVariant.images
+    const sourceImages = initialVariant.images?.length
+      ? initialVariant.images
       : initialProduct.variants[0]?.images || [];
 
     return sourceImages
       .map((img: { type?: string; url?: string }) => img.url)
       .filter(Boolean) as string[];
-  }, [selectedVariant.images, initialProduct.variants]);
+  }, [initialVariant.images, initialProduct.variants]);
 
   const handleAddToCart = useCallback(async () => {
     setIsPending(true);
@@ -59,7 +58,7 @@ export default function ProductPage({
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          productvariantid: selectedVariant.id,
+          productvariantid: initialVariant.id,
           quantity: 1,
         }),
       });
@@ -70,7 +69,7 @@ export default function ProductPage({
     } finally {
       setIsPending(false);
     }
-  }, [selectedVariant.id]);
+  }, [initialVariant.id]);
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-16 lg:px-8">
@@ -88,19 +87,19 @@ export default function ProductPage({
             {initialProduct.name}
           </h1>
 
-          <p className="mb-6 text-sm text-gray-500">{selectedVariant.name}</p>
+          <p className="mb-6 text-sm text-gray-500">{initialVariant.name}</p>
 
           <div className="mb-8 flex flex-col gap-1">
             <p className="text-2xl font-bold text-gray-900">
-              ${selectedVariant.selling_price.toFixed(2)}
+              ${initialVariant.selling_price.toFixed(2)}
             </p>
             <p className="text-xs text-gray-500">
-              Tasa de impuesto: {(selectedVariant.tax_rate * 100).toFixed(0)}%
+              Tasa de impuesto: {(initialVariant.tax_rate * 100).toFixed(0)}%
             </p>
           </div>
 
           <p className="mb-8 text-base leading-relaxed text-gray-600">
-            {selectedVariant.description}
+            {initialVariant.description}
           </p>
 
           {initialProduct.variants && initialProduct.variants.length > 1 && (
@@ -108,7 +107,7 @@ export default function ProductPage({
               <h3 className="mb-3 text-sm font-medium text-gray-900">Opciones disponibles:</h3>
               <div className="flex flex-wrap gap-2">
                 {initialProduct.variants.map(v => {
-                  const isActive = selectedVariant.slug === v.slug;
+                  const isActive = initialVariant.slug === v.slug;
                   return (
                     <button
                       key={v.slug}
@@ -151,13 +150,13 @@ export default function ProductPage({
               <dt className="mb-1 text-xs font-semibold tracking-wider text-gray-500 uppercase">
                 SKU
               </dt>
-              <dd className="text-sm font-medium text-gray-900">{selectedVariant.sku}</dd>
+              <dd className="text-sm font-medium text-gray-900">{initialVariant.sku}</dd>
             </div>
             <div>
               <dt className="mb-1 text-xs font-semibold tracking-wider text-gray-500 uppercase">
                 Variante #
               </dt>
-              <dd className="text-sm font-medium text-gray-900">{selectedVariant.variantnumber}</dd>
+              <dd className="text-sm font-medium text-gray-900">{initialVariant.variantnumber}</dd>
             </div>
           </dl>
         </section>
