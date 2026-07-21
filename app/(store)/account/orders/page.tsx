@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { SectionLabel } from '@/components/account/SectionLabel';
 import { Button } from '@/components/ui/button';
 
@@ -15,12 +16,22 @@ type Order = {
   trackingNumber?: string;
 };
 
-// Mock data generator - simulates paginated API responses
-const generateMockOrders = (offset: number, limit: number): Order[] => {
+type PaginatedResponse = {
+  orders: Order[];
+  totalPages: number;
+  currentPage: number;
+};
+
+const TOTAL_ORDERS = 1000;
+const LIMIT = 5;
+const TOTAL_PAGES = Math.ceil(TOTAL_ORDERS / LIMIT);
+
+const generateMockOrders = (page: number): PaginatedResponse => {
   const statuses: OrderStatus[] = ['delivered', 'shipped', 'processing', 'cancelled'];
   const mockOrders: Order[] = [];
+  const offset = (page - 1) * LIMIT;
 
-  for (let i = 0; i < limit; i++) {
+  for (let i = 0; i < LIMIT; i++) {
     const id = offset + i + 1;
     const status = statuses[Math.floor(Math.random() * statuses.length)];
     mockOrders.push({
@@ -33,7 +44,12 @@ const generateMockOrders = (offset: number, limit: number): Order[] => {
         status !== 'cancelled' && Math.random() > 0.3 ? `1Z999AA101234567${84 - id}` : undefined,
     });
   }
-  return mockOrders;
+
+  return {
+    orders: mockOrders,
+    totalPages: TOTAL_PAGES,
+    currentPage: page,
+  };
 };
 
 const statusStyles: Record<OrderStatus, { label: string; color: string; bg: string }> = {
@@ -95,92 +111,102 @@ function formatCurrency(amount: number) {
   }).format(amount);
 }
 
-// ========== HOOKS ==========
-
-function useOrdersList() {
+function useOrdersPagination() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [offset, setOffset] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [totalLoaded, setTotalLoaded] = useState(0);
-  const LIMIT = 5; // Small limit for demo purposes
+  const PAGE_WINDOW = 5;
 
-  const fetchOrders = useCallback(
-    async (resetOffset: boolean = true) => {
-      const currentOffset = resetOffset ? 0 : offset;
+  const currentPage = parseInt(searchParams.get('p') || '1', 10);
+  const isInvalidPage = currentPage < 1 || currentPage > TOTAL_PAGES;
 
-      setLoading(resetOffset);
-      if (!resetOffset) setLoadingMore(true);
+  const fetchPage = useCallback(
+    (page: number) => {
+      if (page < 1 || page > TOTAL_PAGES) {
+        setError('This page does not exist. Please select a valid page.');
+        setOrders([]);
+        router.push(`?p=1`);
+        return;
+      }
+
+      setLoading(true);
       setError(null);
 
       try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 800));
-
-        const newOrders = generateMockOrders(currentOffset, LIMIT);
-
-        if (newOrders.length === 0) {
-          setHasMore(false);
-          if (resetOffset) {
-            setOrders([]);
-          }
-        } else {
-          if (resetOffset) {
-            setOrders(newOrders);
-            setOffset(LIMIT);
-            setTotalLoaded(newOrders.length);
-          } else {
-            setOrders(prev => [...prev, ...newOrders]);
-            setOffset(prev => prev + newOrders.length);
-            setTotalLoaded(prev => prev + newOrders.length);
-          }
-
-          // Simulate no more data after 3 loads (15 items total)
-          if (newOrders.length < LIMIT || currentOffset >= 10) {
-            setHasMore(false);
-          } else {
-            setHasMore(true);
-          }
-        }
+        const response = generateMockOrders(page);
+        setOrders(response.orders);
+        router.push(`?p=${page}`);
       } catch (err) {
         console.error('Error fetching orders:', err);
         setError('Failed to load orders');
       } finally {
         setLoading(false);
-        setLoadingMore(false);
       }
     },
-    [offset]
+    [router]
   );
 
-  const loadMore = useCallback(async () => {
-    if (loadingMore || !hasMore) return;
-    await fetchOrders(false);
-  }, [loadingMore, hasMore, fetchOrders]);
+  const goToPage = useCallback(
+    (page: number) => {
+      fetchPage(page);
+    },
+    [fetchPage]
+  );
+
+  const nextPage = useCallback(() => {
+    if (currentPage < TOTAL_PAGES) {
+      goToPage(currentPage + 1);
+    }
+  }, [currentPage, goToPage]);
+
+  const prevPage = useCallback(() => {
+    if (currentPage > 1) {
+      goToPage(currentPage - 1);
+    }
+  }, [currentPage, goToPage]);
 
   const retry = useCallback(() => {
-    fetchOrders(true);
-  }, [fetchOrders]);
+    fetchPage(1);
+  }, [fetchPage]);
+
+  const getPageRange = useCallback(() => {
+    const halfWindow = Math.floor(PAGE_WINDOW / 2);
+    let startPage = currentPage - halfWindow;
+    let endPage = currentPage + halfWindow;
+
+    if (startPage < 1) {
+      startPage = 1;
+      endPage = Math.min(PAGE_WINDOW, TOTAL_PAGES);
+    }
+
+    if (endPage > TOTAL_PAGES) {
+      endPage = TOTAL_PAGES;
+      startPage = Math.max(1, TOTAL_PAGES - PAGE_WINDOW + 1);
+    }
+
+    return { startPage, endPage };
+  }, [currentPage]);
 
   useEffect(() => {
-    fetchOrders(true);
-  }, []);
+    fetchPage(currentPage);
+  }, [currentPage, fetchPage]);
 
   return {
     orders,
     loading,
-    loadingMore,
-    hasMore,
     error,
-    totalLoaded,
-    loadMore,
+    currentPage,
+    totalPages: TOTAL_PAGES,
+    isInvalidPage,
+    goToPage,
+    nextPage,
+    prevPage,
     retry,
+    getPageRange,
   };
 }
-
-// ========== COMPONENTS ==========
 
 function BouncingDots() {
   return (
@@ -256,50 +282,108 @@ function ErrorBanner({ message, onRetry }: { message: string; onRetry: () => voi
   );
 }
 
-function LoadMoreSection({
-  loadingMore,
-  hasMore,
-  totalLoaded,
-  onLoadMore,
+function PaginationControls({
+  currentPage,
+  totalPages,
+  onPrevPage,
+  onNextPage,
+  onGoToPage,
+  getPageRange,
 }: {
-  loadingMore: boolean;
-  hasMore: boolean;
-  totalLoaded: number;
-  onLoadMore: () => void;
+  currentPage: number;
+  totalPages: number;
+  onPrevPage: () => void;
+  onNextPage: () => void;
+  onGoToPage: (page: number) => void;
+  getPageRange: () => { startPage: number; endPage: number };
 }) {
+  const { startPage, endPage } = getPageRange();
+  const pageNumbers = Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
+
   return (
-    <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-      {loadingMore ? (
-        <div style={{ padding: '1rem' }}>
-          <BouncingDots />
-        </div>
-      ) : hasMore ? (
-        <Button
-          onClick={onLoadMore}
-          disabled={loadingMore}
-          variant="outline"
-          size="lg"
-          style={{
-            padding: '0.75rem 2rem',
-            fontSize: '0.875rem',
-          }}
-        >
-          Load more orders
-        </Button>
-      ) : (
-        <p style={{ fontSize: '0.75rem', color: 'oklch(0.708 0 0)' }}>
-          Showing all {totalLoaded} orders
-        </p>
-      )}
+    <div
+      style={{
+        marginTop: '2rem',
+        display: 'flex',
+        gap: '0.5rem',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+      }}
+    >
+      <Button
+        onClick={() => onGoToPage(1)}
+        disabled={currentPage === 1}
+        variant="outline"
+        size="sm"
+        style={{ fontSize: '0.75rem' }}
+      >
+        ⏮ First
+      </Button>
+
+      <Button onClick={onPrevPage} disabled={currentPage === 1} variant="outline" size="sm">
+        ← Previous
+      </Button>
+
+      <div style={{ display: 'flex', gap: '0.25rem' }}>
+        {pageNumbers.map(page => (
+          <button
+            key={page}
+            onClick={() => onGoToPage(page)}
+            style={{
+              padding: '0.4rem 0.6rem',
+              borderRadius: 4,
+              border:
+                page === currentPage ? '2px solid oklch(0.556 0 0)' : '1px solid oklch(0.922 0 0)',
+              background: page === currentPage ? 'oklch(0.928 0.046 242.384)' : 'transparent',
+              color: page === currentPage ? 'oklch(0.556 0 0)' : 'oklch(0.556 0 0)',
+              fontWeight: page === currentPage ? 600 : 500,
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
+          >
+            {page}
+          </button>
+        ))}
+      </div>
+
+      <Button
+        onClick={onNextPage}
+        disabled={currentPage === totalPages}
+        variant="outline"
+        size="sm"
+      >
+        Next →
+      </Button>
+
+      <Button
+        onClick={() => onGoToPage(totalPages)}
+        disabled={currentPage === totalPages}
+        variant="outline"
+        size="sm"
+        style={{ fontSize: '0.75rem' }}
+      >
+        Last ⏭
+      </Button>
     </div>
   );
 }
 
-// ========== MAIN PAGE ==========
-
 export default function OrdersPage() {
-  const { orders, loading, loadingMore, hasMore, error, totalLoaded, loadMore, retry } =
-    useOrdersList();
+  const {
+    orders,
+    loading,
+    error,
+    currentPage,
+    totalPages,
+    isInvalidPage,
+    goToPage,
+    nextPage,
+    prevPage,
+    retry,
+    getPageRange,
+  } = useOrdersPagination();
 
   return (
     <div>
@@ -307,7 +391,45 @@ export default function OrdersPage() {
 
       {error && <ErrorBanner message={error} onRetry={retry} />}
 
-      {loading ? (
+      {isInvalidPage ? (
+        <>
+          <EmptyState />
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '2rem',
+              color: 'oklch(0.637 0.237 25.331)',
+              fontSize: '0.95rem',
+            }}
+          >
+            <p>Page {currentPage} does not exist in this range.</p>
+          </div>
+          <PaginationControls
+            currentPage={1}
+            totalPages={totalPages}
+            onPrevPage={prevPage}
+            onNextPage={nextPage}
+            onGoToPage={goToPage}
+            getPageRange={() => {
+              const halfWindow = Math.floor(5 / 2);
+              let startPage = 1 - halfWindow;
+              let endPage = 1 + halfWindow;
+
+              if (startPage < 1) {
+                startPage = 1;
+                endPage = Math.min(5, totalPages);
+              }
+
+              if (endPage > totalPages) {
+                endPage = totalPages;
+                startPage = Math.max(1, totalPages - 5 + 1);
+              }
+
+              return { startPage, endPage };
+            }}
+          />
+        </>
+      ) : loading ? (
         <div style={{ padding: '3rem' }}>
           <BouncingDots />
         </div>
@@ -402,11 +524,13 @@ export default function OrdersPage() {
             ))}
           </div>
 
-          <LoadMoreSection
-            loadingMore={loadingMore}
-            hasMore={hasMore}
-            totalLoaded={totalLoaded}
-            onLoadMore={loadMore}
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPrevPage={prevPage}
+            onNextPage={nextPage}
+            onGoToPage={goToPage}
+            getPageRange={getPageRange}
           />
         </>
       )}
