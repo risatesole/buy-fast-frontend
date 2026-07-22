@@ -22,35 +22,23 @@ type PaginatedResponse = {
   currentPage: number;
 };
 
-const TOTAL_ORDERS = 1000;
-const LIMIT = 5;
-const TOTAL_PAGES = Math.ceil(TOTAL_ORDERS / LIMIT);
+export async function getOrders(page: number): Promise<PaginatedResponse> {
+  try {
+    const response = await fetch(`/api/v1/orders?page=${page}`);
 
-async function generateMockOrders(page: number): Promise<PaginatedResponse> {
-  const statuses: OrderStatus[] = ['delivered', 'shipped', 'processing', 'cancelled'];
-  const mockOrders: Order[] = [];
-  const offset = (page - 1) * LIMIT;
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+    }
 
-  for (let i = 0; i < LIMIT; i++) {
-    const id = offset + i + 1;
-    const status = statuses[Math.floor(Math.random() * statuses.length)];
-    mockOrders.push({
-      id: `ORD-${String(12345 - id).padStart(5, '0')}`,
-      date: new Date(Date.now() - id * 86400000 * 2).toISOString().split('T')[0],
-      total: Math.round((Math.random() * 200 + 10) * 100) / 100,
-      status,
-      items: Math.floor(Math.random() * 5) + 1,
-      trackingNumber:
-        status !== 'cancelled' && Math.random() > 0.3 ? `1Z999AA101234567${84 - id}` : undefined,
-    });
+    const data: PaginatedResponse = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    throw error;
   }
-
-  return {
-    orders: mockOrders,
-    totalPages: TOTAL_PAGES,
-    currentPage: page,
-  };
 }
+
 const statusStyles: Record<OrderStatus, { label: string; color: string; bg: string }> = {
   delivered: {
     label: 'Delivered',
@@ -109,17 +97,16 @@ function formatCurrency(amount: number) {
     currency: 'USD',
   }).format(amount);
 }
-
 function useOrdersPagination() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState(1);
   const PAGE_WINDOW = 5;
 
   const currentPage = parseInt(searchParams.get('p') || '1', 10);
-  const isInvalidPage = currentPage < 1 || currentPage > TOTAL_PAGES;
 
   const isMounted = useRef(true);
 
@@ -132,7 +119,7 @@ function useOrdersPagination() {
 
   const fetchPage = useCallback(
     async (page: number) => {
-      if (page < 1 || page > TOTAL_PAGES) {
+      if (page < 1) {
         setError('This page does not exist. Please select a valid page.');
         setOrders([]);
         router.push(`?p=1`);
@@ -143,9 +130,18 @@ function useOrdersPagination() {
       setError(null);
 
       try {
-        const response = await generateMockOrders(page);
+        const response = await getOrders(page);
         if (isMounted.current) {
           setOrders(response.orders);
+          setTotalPages(response.totalPages);
+
+          // Check if page is valid after getting totalPages
+          if (page > response.totalPages) {
+            setError('This page does not exist. Please select a valid page.');
+            setOrders([]);
+            router.push(`?p=1`);
+            return;
+          }
         }
         router.push(`?p=${page}`);
       } catch (err) {
@@ -170,10 +166,10 @@ function useOrdersPagination() {
   );
 
   const nextPage = useCallback(() => {
-    if (currentPage < TOTAL_PAGES) {
+    if (currentPage < totalPages) {
       goToPage(currentPage + 1);
     }
-  }, [currentPage, goToPage]);
+  }, [currentPage, totalPages, goToPage]);
 
   const prevPage = useCallback(() => {
     if (currentPage > 1) {
@@ -182,8 +178,8 @@ function useOrdersPagination() {
   }, [currentPage, goToPage]);
 
   const retry = useCallback(() => {
-    fetchPage(1);
-  }, [fetchPage]);
+    fetchPage(currentPage);
+  }, [fetchPage, currentPage]);
 
   const getPageRange = useCallback(() => {
     const halfWindow = Math.floor(PAGE_WINDOW / 2);
@@ -192,16 +188,16 @@ function useOrdersPagination() {
 
     if (startPage < 1) {
       startPage = 1;
-      endPage = Math.min(PAGE_WINDOW, TOTAL_PAGES);
+      endPage = Math.min(PAGE_WINDOW, totalPages);
     }
 
-    if (endPage > TOTAL_PAGES) {
-      endPage = TOTAL_PAGES;
-      startPage = Math.max(1, TOTAL_PAGES - PAGE_WINDOW + 1);
+    if (endPage > totalPages) {
+      endPage = totalPages;
+      startPage = Math.max(1, totalPages - PAGE_WINDOW + 1);
     }
 
     return { startPage, endPage };
-  }, [currentPage]);
+  }, [currentPage, totalPages]);
 
   useEffect(() => {
     let isEffectActive = true;
@@ -219,13 +215,15 @@ function useOrdersPagination() {
     };
   }, [currentPage, fetchPage]);
 
+  const isInvalidPage = currentPage < 1 || currentPage > totalPages;
+
   return {
     orders,
     loading,
     error,
     currentPage,
-    totalPages: TOTAL_PAGES,
-    isInvalidPage,
+    totalPages,
+    isInvalidPage, // Add this line
     goToPage,
     nextPage,
     prevPage,
