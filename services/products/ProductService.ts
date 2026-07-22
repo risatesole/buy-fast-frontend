@@ -1,4 +1,4 @@
-import type { Product } from '@/types/products';
+import type { Product } from '@/entities/product';
 
 export type ProductQueryParameters = {
   sort?: string;

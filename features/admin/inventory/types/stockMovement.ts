@@ -1,4 +1,4 @@
-import type { Product } from '@/types/products';
+import type { Product } from '@/entities/product';
 
 type StockMovementType = 'initial_inventory' | 'purchase_entry' | 'customer_sell';
 

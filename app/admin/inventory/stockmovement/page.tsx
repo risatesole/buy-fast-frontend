@@ -334,10 +334,10 @@ function StockMovementRow({ movement }: StockMovementRowProps) {
       <TableCell>
         <div>
           <div className="font-medium text-gray-900">{movement.product.name}</div>
-          <div className="text-sm text-gray-500">{movement.product.brand}</div>
+          <div className="text-sm text-gray-500">{movement.product.slug}</div>
         </div>
       </TableCell>
-      <TableCell>{movement.product.category?.name || '-'}</TableCell>
+      <TableCell>{movement.product.category || '-'}</TableCell>
       <TableCell>
         <MovementTypeBadge type={movement.movement.type} />
       </TableCell>
