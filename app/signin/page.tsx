@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import Link from 'next/link';
 
 export default function SignInPage() {
   const [formData, setFormData] = useState({
@@ -158,13 +159,13 @@ export default function SignInPage() {
             </Button>
 
             <p className="text-center text-xs text-muted-foreground pt-1">
-              Don't have an account?{' '}
-              <a
+              Don&apos;t have an account?{' '}
+              <Link
                 href="/signup"
                 className="text-foreground font-medium underline underline-offset-2 hover:text-foreground/80 transition-colors"
               >
                 Sign up
-              </a>
+              </Link>
             </p>
           </CardContent>
         </Card>
