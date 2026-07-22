@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef, memo, useMemo } from 'react';
 import Link from 'next/link';
 import { Search, X, Edit2, FolderOpen, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import Image from 'next/image';
 
 // ============================================================================
 // CAPA DE DOMINIO Y TIPOS ESTRICTOS
@@ -210,11 +211,23 @@ function useCategoriesPagination() {
   );
 
   useEffect(() => {
-    fetchCategories('', 1);
+    const loadInitialData = async () => {
+      setIsLoading(true);
+      try {
+        const { data, total } = await mockApiFetch('', 1, ITEMS_PER_PAGE);
+        setCategories(data);
+        setTotalItems(total);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadInitialData();
+
     return () => {
       if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     };
-  }, [fetchCategories]);
+  }, []);
 
   const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
 
@@ -254,11 +267,14 @@ const CategoryRow = memo(({ category }: { category: Category }) => {
         <div className="flex items-center gap-3">
           <div className="size-10 rounded-md border border-[#e0e3e5] bg-[#f2f4f6] flex items-center justify-center overflow-hidden shrink-0">
             {category.image ? (
-              <img
+              <Image
                 src={category.image}
                 alt={category.name}
+                width={40}
+                height={40}
                 className="size-full object-cover"
                 loading="lazy"
+                unoptimized // Since using picsum.photos external images
               />
             ) : (
               <FolderOpen className="size-4 text-[#c4c6d1]" />
