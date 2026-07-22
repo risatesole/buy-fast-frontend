@@ -1,13 +1,13 @@
-// components/CookieConsentBanner.tsx
+/* eslint-disable react-hooks/set-state-in-effect */
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 export function CookieConsentBanner() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Check if user has already accepted cookies
     const hasConsent = localStorage.getItem('cookie-consent');
     if (!hasConsent) {
       setIsVisible(true);
@@ -31,9 +31,9 @@ export function CookieConsentBanner() {
       <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
         <p className="text-sm">
           This website uses cookies to enhance your experience and analyze traffic.
-          <a href="/privacy" className="underline ml-1 hover:text-gray-300">
+          <Link href="/privacy" className="underline ml-1 hover:text-gray-300">
             Learn more
-          </a>
+          </Link>
         </p>
         <div className="flex gap-3 whitespace-nowrap">
           <button
