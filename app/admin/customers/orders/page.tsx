@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, memo, useMemo } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import {
   Clock,
@@ -116,7 +117,7 @@ async function mockApiFetch(
   page: number,
   limit: number
 ): Promise<PaginatedResponse> {
-  await new Promise(resolve => setTimeout(resolve, 450)); // Simulación de latencia
+  await new Promise(resolve => setTimeout(resolve, 450));
 
   const lowerSearch = search.toLowerCase();
   const filtered = MOCK_DB.filter(
@@ -199,12 +200,25 @@ function useOrdersPagination() {
   );
 
   // Montaje inicial
+  // Separate the data fetching into its own effect
   useEffect(() => {
-    fetchOrders('', 1);
+    const loadInitialData = async () => {
+      setIsLoading(true);
+      try {
+        const { data, total } = await mockApiFetch('', 1, ITEMS_PER_PAGE);
+        setOrders(data);
+        setTotalItems(total);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadInitialData();
+
     return () => {
       if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     };
-  }, [fetchOrders]);
+  }, []);
 
   const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
 
@@ -242,11 +256,14 @@ const OrderRow = memo(({ order }: { order: Order }) => {
     <tr className="border-b border-[#e0e3e5] bg-white hover:bg-[#f8fafd] transition-colors duration-150">
       <td className="px-6 py-4 font-mono text-[13px] text-[#43474f] font-semibold">{order.id}</td>
       <td className="px-6 py-4">
-        <img
+        <Image
           src={order.profilepicture}
           alt={`${order.firstname} ${order.lastname}`}
-          className="size-10 rounded-full object-cover border border-[#e0e3e5] bg-[#f2f4f6]"
+          width={40} // size-10 = 40px
+          height={40} // size-10 = 40px
+          className="rounded-full object-cover border border-[#e0e3e5] bg-[#f2f4f6]"
           loading="lazy"
+          unoptimized // Since these are external images, you might need this
         />
       </td>
       <td className="px-6 py-4">
