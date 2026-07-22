@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 
 // ─── Glyph (fallback) ─────────────────────────────────────────
 
@@ -48,9 +49,11 @@ export function ImageGallery({ images }: ImageGalleryProps) {
         }}
       >
         {selectedImage ? (
-          <img
+          <Image
             src={selectedImage}
             alt={`Product image ${selectedIndex + 1}`}
+            width={400}
+            height={400}
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         ) : (
@@ -81,9 +84,11 @@ export function ImageGallery({ images }: ImageGalleryProps) {
                 transition: 'border-color 0.15s ease',
               }}
             >
-              <img
+              <Image
                 src={image}
                 alt={`Thumbnail ${index + 1}`}
+                width={72}
+                height={72}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             </button>
