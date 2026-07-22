@@ -1,11 +1,18 @@
 import type { Product } from '@/entities/product';
+
 export type CartItem = {
-  id: number; // product variant id
-  name: string;
-  description: string;
-  selling_price: number;
-  slug: string;
-  tax_rate: number;
+  id: number | string; // cart item id
+  product: {
+    id: number | string; // product variant id
+    name: string;
+    description: string;
+    selling_price: number;
+    slug: string;
+    images: Array<{
+      type: string;
+      url: string;
+    }>;
+  };
   quantity: number;
-  thumbnail: string;
+  tax_rate: number;
 };

@@ -1,8 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import type { AddProductToCartResponse } from '@/features/cart/types/AddProductToCartResponse';
 import type { GetCartResponse } from '@/features/cart/types/GetCartResponse';
 
 const DJANGO_BASE = process.env.BACKEND_URL ?? 'http://localhost:8000';
+
+// Django backend response structure
+interface DjangoCartItem {
+  id: number | string;
+  name: string;
+  description: string;
+  selling_price: number;
+  slug: string;
+  thumbnail?: string | null;
+  quantity: number;
+  tax_rate: number;
+}
+
+interface GetCartResponseFromDjango {
+  status: string;
+  data: {
+    items: DjangoCartItem[];
+  };
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -19,13 +37,13 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as GetCartResponseFromDjango;
 
     // Transform Django response to frontend format
     const transformedData: GetCartResponse = {
       status: data.status,
       data: {
-        items: data.data.items.map((item: any) => ({
+        items: data.data.items.map(item => ({
           id: item.id,
           product: {
             id: item.id,
