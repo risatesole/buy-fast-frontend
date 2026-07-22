@@ -1,5 +1,3 @@
-// app/(store)/cart/page.tsx
-
 import Link from 'next/link';
 import Image from 'next/image';
 import { cookies } from 'next/headers';
@@ -107,10 +105,12 @@ export default async function CartPage() {
                     >
                       <div className="relative h-24 w-24 overflow-hidden border border-gray-200 bg-gray-50 md:h-28 md:w-28">
                         {item.thumbnail ? (
-                          <img
+                          <Image
                             src={item.thumbnail}
                             alt={itemName}
-                            className="h-full w-full object-cover"
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 768px) 96px, 110px"
                           />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center text-gray-400">
