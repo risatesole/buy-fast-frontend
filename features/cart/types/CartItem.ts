@@ -1,5 +1,3 @@
-import type { Product } from '@/entities/product';
-
 export type CartItem = {
   id: number | string; // cart item id
   product: {

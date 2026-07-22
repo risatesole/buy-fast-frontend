@@ -66,7 +66,12 @@ function useStockMovementList() {
       setError(null);
 
       try {
-        const params: any = {
+        const params: {
+          limit: number;
+          offset: number;
+          sort: string;
+          search?: string;
+        } = {
           limit: LIMIT,
           offset: currentOffset,
           sort: 'date_time',
@@ -75,8 +80,8 @@ function useStockMovementList() {
         if (search.trim()) {
           params.search = search.trim();
         }
-
-        const newMovements = await InventoryService.getStockMovements(params);
+        const inventoryService = new InventoryService();
+        const newMovements = await inventoryService.getStockMovements(params);
 
         if (!newMovements || newMovements.length === 0) {
           setHasMore(false);
@@ -148,15 +153,20 @@ function useStockMovementList() {
     fetchMovements(searchTerm, true);
   }, [fetchMovements, searchTerm]);
 
+  const initialLoadRef = useRef(false);
+
   useEffect(() => {
-    fetchMovements('', true);
+    if (!initialLoadRef.current) {
+      initialLoadRef.current = true;
+      fetchMovements('', true);
+    }
 
     return () => {
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
       }
     };
-  }, []);
+  }, [fetchMovements]);
 
   return {
     movements,

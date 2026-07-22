@@ -1,6 +1,6 @@
 import { type StockMovement } from '../types/stockMovement';
 
-class InventoryService {
+export default class InventoryService {
   async getStockMovements(params: {
     limit: number;
     offset: number;
@@ -34,4 +34,4 @@ class InventoryService {
   }
 }
 
-export default new InventoryService();
+//  InventoryService();
