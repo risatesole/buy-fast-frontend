@@ -2,16 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef, memo, useMemo } from 'react';
 import Link from 'next/link';
-import {
-  Search,
-  X,
-  Edit2,
-  FileText,
-  UserPlus,
-  ShieldAlert,
-  ChevronLeft,
-  ChevronRight,
-} from 'lucide-react';
+import Image from 'next/image';
+import { Search, X, Edit2, UserPlus, ShieldAlert, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // ============================================================================
 // CAPA DE DOMINIO Y TIPOS ESTRICTOS
@@ -215,11 +207,14 @@ const EmployeeRow = memo(({ employee }: { employee: Employee }) => {
         {employee.id}
       </td>
       <td className="px-6 py-4">
-        <img
+        <Image
           src={employee.profilepicture}
           alt={`${employee.firstname} ${employee.lastname}`}
-          className="size-10 rounded-full object-cover border border-[#e0e3e5] bg-[#f2f4f6]"
+          width={40}
+          height={40}
+          className="rounded-full object-cover border border-[#e0e3e5] bg-[#f2f4f6]"
           loading="lazy"
+          unoptimized // Since using external images from i.pravatar.cc
         />
       </td>
       <td className="px-6 py-4">

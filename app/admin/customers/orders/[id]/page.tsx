@@ -7,6 +7,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import Image from 'next/image';
 import {
   ArrowLeft,
   Clock,
@@ -14,13 +15,11 @@ import {
   Undo2,
   User,
   Mail,
-  Calendar,
   DollarSign,
   Package,
   Truck,
   MapPin,
   Phone,
-  AlertCircle,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
@@ -294,13 +293,15 @@ function CustomerInfoCard({ order }: { order: Order }) {
       <CardContent className="space-y-3">
         {/* Profile */}
         <div className="flex items-center gap-4">
-          <img
+          <Image
             src={order.profilepicture}
             alt={`${order.firstname} ${order.lastname}`}
             width={48}
             height={48}
             className="rounded-full object-cover"
+            unoptimized // Since using external images
           />
+
           <div>
             <p className="font-medium">
               {order.firstname} {order.lastname}
@@ -586,10 +587,13 @@ function OrderItemsTable({ items = [] }: { items: OrderItem[] }) {
               {/* Product image */}
               <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
                 {item.image_url ? (
-                  <img
+                  <Image
                     src={item.image_url}
                     alt={item.product_name}
+                    width={64}
+                    height={64}
                     className="w-full h-full object-cover"
+                    unoptimized
                   />
                 ) : (
                   <Package className="w-8 h-8 text-gray-400" />
@@ -637,7 +641,16 @@ function OrderItemsTable({ items = [] }: { items: OrderItem[] }) {
 function OrderNotFound({ onBack }: { onBack: () => void }) {
   return (
     <div className="container mx-auto px-4 py-10">
-      <p>Order not found</p>
+      <div className="flex flex-col items-center justify-center py-20">
+        <p className="text-lg font-medium text-gray-900 mb-4">Order not found</p>
+        <button
+          onClick={onBack}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-[#002d62] rounded-md text-sm font-semibold text-white hover:bg-[#00193c] transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Go Back
+        </button>
+      </div>
     </div>
   );
 }
