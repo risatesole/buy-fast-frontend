@@ -198,11 +198,14 @@ export default function UserListPage() {
     return searchMatchingUsers.slice(startIndex, startIndex + USERS_PER_PAGE);
   }, [searchMatchingUsers, currentPageNumber]);
 
-  // Manejo de dependencias estrictas para evitar recreación de funciones
   const toggleSelectSpecificUser = useCallback((userId: string) => {
     setSelectedUserIds(prev => {
       const updated = new Set(prev);
-      updated.has(userId) ? updated.delete(userId) : updated.add(userId);
+      if (updated.has(userId)) {
+        updated.delete(userId);
+      } else {
+        updated.add(userId);
+      }
       return updated;
     });
   }, []);
