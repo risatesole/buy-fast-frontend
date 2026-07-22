@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
 import { PackageSearch, ArrowLeft } from 'lucide-react';
 import ProductList from './productList';
 import type { Product } from '@/entities/product';
@@ -104,8 +103,6 @@ function Pagination({ currentPage, totalPages }: { currentPage: number; totalPag
     </nav>
   );
 }
-
-// ─── Componente Principal (Server Component) ───────────────────
 
 export default async function CategoryPage({
   params,

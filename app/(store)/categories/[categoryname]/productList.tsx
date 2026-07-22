@@ -4,9 +4,9 @@ import { useCallback } from 'react';
 import { ProductCard } from '@/components/ProductCard';
 
 export interface MappedProduct {
-  id: number;
+  id: string | number;
   name: string;
-  thumbnail: string;
+  thumbnail?: string;
   slug: string;
   selling_price: number;
   category: string;
@@ -17,7 +17,7 @@ interface ProductListProps {
 }
 
 export default function ProductList({ products }: ProductListProps) {
-  const handleAddToCart = useCallback(async (productId: number, quantity: number) => {
+  const handleAddToCart = useCallback(async (productId: string | number, quantity: number) => {
     try {
       const response = await fetch('/api/v1/cart/', {
         method: 'POST',
