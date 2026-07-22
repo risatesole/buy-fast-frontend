@@ -79,16 +79,14 @@ type CheckoutPageData = {
 // ============================================================================
 
 class CheckoutService {
-  constructor(public baseurl: string) {}
-
   async getCheckoutData(): Promise<CheckoutPageData> {
     const [checkoutResponse, timeslotsResponse] = await Promise.all([
-      fetch(`${this.baseurl}/api/v1/checkout/`, {
+      fetch('/api/v1/checkout', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
       }),
-      fetch(`${this.baseurl}/api/v1/checkout/timeslots`, {
+      fetch('/api/v1/checkout/timeslots', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -163,7 +161,7 @@ class CheckoutService {
       })),
     };
 
-    const response = await fetch(`${this.baseurl}/api/v1/checkout/`, {
+    const response = await fetch('/api/v1/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -210,7 +208,7 @@ function useCheckoutLogic() {
     let isMounted = true;
     const fetchData = async () => {
       try {
-        const service = new CheckoutService(process.env.NEXT_PUBLIC_API_URL || '');
+        const service = new CheckoutService();
         const data = await service.getCheckoutData();
         if (!isMounted) return;
 
@@ -351,7 +349,7 @@ function useCheckoutLogic() {
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      const service = new CheckoutService(process.env.NEXT_PUBLIC_API_URL || '');
+      const service = new CheckoutService();
       await service.executeCheckout({
         ...formData,
         shipping_address: useShippingAsBilling ? undefined : formData.shipping_address,

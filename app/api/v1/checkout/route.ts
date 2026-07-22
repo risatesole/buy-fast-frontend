@@ -1,27 +1,67 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-const DJANGO_BASE = process.env.BACKEND_URL ?? 'http://localhost:8000';
+// Server-only env var — never exposed to the client bundle (no NEXT_PUBLIC_ prefix)
+const BACKEND_URL = process.env.BACKEND_URL;
 
-export async function GET(req: NextRequest) {
-  const response = await fetch(`${DJANGO_BASE}/api/v1/checkout/`, {
-    method: req.method,
-    headers: req.headers,
+export async function GET(request: NextRequest) {
+  if (!BACKEND_URL) {
+    return NextResponse.json(
+      { error: 'Server misconfiguration: BACKEND_API_URL not set' },
+      { status: 500 }
+    );
+  }
+
+  const res = await fetch(`${BACKEND_URL}/api/v1/checkout/`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      cookie: request.headers.get('cookie') ?? '',
+    },
+    cache: 'no-store',
   });
-  return new Response(response.body, {
-    status: response.status,
-    headers: response.headers,
-  });
+
+  const data = await res.json().catch(() => null);
+  const response = NextResponse.json(data, { status: res.status });
+
+  for (const cookie of res.headers.getSetCookie()) {
+    response.headers.append('set-cookie', cookie);
+  }
+
+  return response;
 }
 
-export async function POST(req: NextRequest) {
-  const response = await fetch(`${DJANGO_BASE}/api/v1/checkout/`, {
+export async function POST(request: NextRequest) {
+  if (!BACKEND_URL) {
+    return NextResponse.json(
+      { error: 'Server misconfiguration: BACKEND_API_URL not set' },
+      { status: 500 }
+    );
+  }
+
+  const body = await request.json().catch(() => null);
+  if (!body) {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
+
+  const res = await fetch(`${BACKEND_URL}/api/v1/checkout/`, {
     method: 'POST',
-    headers: req.headers,
-    body: req.body,
-    duplex: 'half',
-  } as RequestInit);
-  return new Response(response.body, {
-    status: response.status,
-    headers: response.headers,
+    headers: {
+      'Content-Type': 'application/json',
+      cookie: request.headers.get('cookie') ?? '',
+    },
+    body: JSON.stringify(body),
   });
+
+  const contentType = res.headers.get('content-type') ?? '';
+  const data = contentType.includes('application/json')
+    ? await res.json().catch(() => null)
+    : { error: await res.text().catch(() => 'Unknown error') };
+
+  const response = NextResponse.json(data, { status: res.status });
+
+  for (const cookie of res.headers.getSetCookie()) {
+    response.headers.append('set-cookie', cookie);
+  }
+
+  return response;
 }

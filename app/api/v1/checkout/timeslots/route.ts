@@ -1,15 +1,24 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-const DJANGO_BASE = process.env.BACKEND_URL ?? 'http://localhost:8000';
+const BACKEND_URL = process.env.BACKEND_URL;
 
-export async function GET(req: NextRequest) {
-  const response = await fetch(`${DJANGO_BASE}/api/v1/checkout/timeslots/`, {
-    method: req.method,
-    headers: req.headers,
+export async function GET(request: NextRequest) {
+  if (!BACKEND_URL) {
+    return NextResponse.json(
+      { error: 'Server misconfiguration: BACKEND_API_URL not set' },
+      { status: 500 }
+    );
+  }
+
+  const res = await fetch(`${BACKEND_URL}/api/v1/checkout/timeslots`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      cookie: request.headers.get('cookie') ?? '',
+    },
+    cache: 'no-store',
   });
 
-  return new Response(response.body, {
-    status: response.status,
-    headers: response.headers,
-  });
+  const data = await res.json().catch(() => null);
+  return NextResponse.json(data, { status: res.status });
 }
