@@ -135,7 +135,6 @@ function useOrdersPagination() {
           setOrders(response.orders);
           setTotalPages(response.totalPages);
 
-          // Check if page is valid after getting totalPages
           if (page > response.totalPages) {
             setError('This page does not exist. Please select a valid page.');
             setOrders([]);
@@ -223,7 +222,7 @@ function useOrdersPagination() {
     error,
     currentPage,
     totalPages,
-    isInvalidPage, // Add this line
+    isInvalidPage,
     goToPage,
     nextPage,
     prevPage,
