@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { SectionLabel } from '@/components/account/SectionLabel';
 import { Button } from '@/components/ui/button';
@@ -26,7 +26,7 @@ const TOTAL_ORDERS = 1000;
 const LIMIT = 5;
 const TOTAL_PAGES = Math.ceil(TOTAL_ORDERS / LIMIT);
 
-const generateMockOrders = (page: number): PaginatedResponse => {
+async function generateMockOrders(page: number): Promise<PaginatedResponse> {
   const statuses: OrderStatus[] = ['delivered', 'shipped', 'processing', 'cancelled'];
   const mockOrders: Order[] = [];
   const offset = (page - 1) * LIMIT;
@@ -50,8 +50,7 @@ const generateMockOrders = (page: number): PaginatedResponse => {
     totalPages: TOTAL_PAGES,
     currentPage: page,
   };
-};
-
+}
 const statusStyles: Record<OrderStatus, { label: string; color: string; bg: string }> = {
   delivered: {
     label: 'Delivered',
@@ -122,8 +121,17 @@ function useOrdersPagination() {
   const currentPage = parseInt(searchParams.get('p') || '1', 10);
   const isInvalidPage = currentPage < 1 || currentPage > TOTAL_PAGES;
 
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
   const fetchPage = useCallback(
-    (page: number) => {
+    async (page: number) => {
       if (page < 1 || page > TOTAL_PAGES) {
         setError('This page does not exist. Please select a valid page.');
         setOrders([]);
@@ -135,14 +143,20 @@ function useOrdersPagination() {
       setError(null);
 
       try {
-        const response = generateMockOrders(page);
-        setOrders(response.orders);
+        const response = await generateMockOrders(page);
+        if (isMounted.current) {
+          setOrders(response.orders);
+        }
         router.push(`?p=${page}`);
       } catch (err) {
         console.error('Error fetching orders:', err);
-        setError('Failed to load orders');
+        if (isMounted.current) {
+          setError('Failed to load orders');
+        }
       } finally {
-        setLoading(false);
+        if (isMounted.current) {
+          setLoading(false);
+        }
       }
     },
     [router]
@@ -190,7 +204,19 @@ function useOrdersPagination() {
   }, [currentPage]);
 
   useEffect(() => {
-    fetchPage(currentPage);
+    let isEffectActive = true;
+
+    const loadData = async () => {
+      if (isEffectActive) {
+        await fetchPage(currentPage);
+      }
+    };
+
+    loadData();
+
+    return () => {
+      isEffectActive = false;
+    };
   }, [currentPage, fetchPage]);
 
   return {
