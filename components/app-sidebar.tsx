@@ -115,14 +115,7 @@ BrandLogo.displayName = 'BrandLogo';
 export function AppSidebar() {
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState<boolean>(false);
-  const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({});
-  const [loggedUserInformation, setLoggedUserInformation] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  // Cierre de menú móvil al navegar
-  useEffect(() => {
-    setIsMobileOpen(false);
-  }, [pathname]);
+  const [manuallyOpenAccordions, setManuallyOpenAccordions] = useState<Record<string, boolean>>({});
 
   const isPathActive = useCallback((url?: string) => !!url && pathname === url, [pathname]);
   const isSubPathActive = useCallback(
@@ -130,19 +123,29 @@ export function AppSidebar() {
     [pathname]
   );
 
-  // Sincronización automática del acordeón activo según la ruta
-  useEffect(() => {
+  useEffect(() => {}, [pathname]);
+
+  const computeActiveAccordions = useCallback((): Record<string, boolean> => {
     const activeAccordions: Record<string, boolean> = {};
     PLATFORM_ITEMS.forEach(item => {
       if (item.sub && (isPathActive(item.url) || isSubPathActive(item.sub))) {
         activeAccordions[item.id] = true;
       }
     });
-    setOpenAccordions(prev => ({ ...prev, ...activeAccordions }));
+    return activeAccordions;
   }, [isPathActive, isSubPathActive]);
 
+  const openAccordions: Record<string, boolean> = {
+    ...computeActiveAccordions(),
+    ...manuallyOpenAccordions,
+  };
+
   const toggleAccordion = useCallback((id: string) => {
-    setOpenAccordions(prev => ({ ...prev, [id]: !prev[id] }));
+    setManuallyOpenAccordions(prev => ({ ...prev, [id]: !prev[id] }));
+  }, []);
+
+  const handleCloseMobileMenu = useCallback(() => {
+    setIsMobileOpen(false);
   }, []);
 
   return (
@@ -195,7 +198,11 @@ export function AppSidebar() {
                 if (!hasSub) {
                   return (
                     <li key={item.id}>
-                      <Link href={item.url ?? '#'} className={`${baseClasses} ${activeClasses}`}>
+                      <Link
+                        href={item.url ?? '#'}
+                        className={`${baseClasses} ${activeClasses}`}
+                        onClick={handleCloseMobileMenu}
+                      >
                         <Icon
                           className={`size-5 shrink-0 ${isActiveModule ? 'text-[#001530]' : 'text-white'}`}
                         />
@@ -232,6 +239,7 @@ export function AppSidebar() {
                             <li key={sub.url}>
                               <Link
                                 href={sub.url}
+                                onClick={handleCloseMobileMenu}
                                 className={`
                                   block py-2 px-3 rounded-lg text-sm font-sans transition-colors truncate
                                   ${
@@ -266,6 +274,7 @@ export function AppSidebar() {
                   <li key={item.url}>
                     <Link
                       href={item.url}
+                      onClick={handleCloseMobileMenu}
                       className={`
                         block px-3.5 py-3 rounded-xl text-sm font-sans font-medium transition-all duration-200 truncate
                         ${
