@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef, memo, useMemo } from 'react';
 import Link from 'next/link';
 import { Search, X, Edit2, Package, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import Image from 'next/image';
 
 // ============================================================================
 // CAPA DE DOMINIO Y TIPOS ESTRICTOS
@@ -195,11 +196,23 @@ function useProductsPagination() {
   );
 
   useEffect(() => {
-    fetchProducts('', 1);
+    const loadInitialData = async () => {
+      setIsLoading(true);
+      try {
+        const { data, total } = await mockApiFetch('', 1, ITEMS_PER_PAGE);
+        setProducts(data);
+        setTotalItems(total);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadInitialData();
+
     return () => {
       if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     };
-  }, [fetchProducts]);
+  }, []);
 
   const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
 
@@ -241,11 +254,14 @@ const ProductRow = memo(({ product }: { product: Product }) => {
       </td>
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
-          <img
+          <Image
             src={product.thumbnail}
             alt={product.name}
-            className="size-10 rounded-md object-cover border border-[#e0e3e5] bg-[#f2f4f6]"
+            width={40}
+            height={40}
+            className="rounded-md object-cover border border-[#e0e3e5] bg-[#f2f4f6]"
             loading="lazy"
+            unoptimized // Since using picsum.photos external images
           />
           <div className="flex flex-col max-w-xs">
             <span className="text-[14px] font-semibold text-[#191c1e] tracking-tight truncate">
