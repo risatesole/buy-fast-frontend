@@ -160,11 +160,23 @@ function useEmployeesPagination() {
   );
 
   useEffect(() => {
-    fetchEmployees('', 1);
+    const loadInitialData = async () => {
+      setIsLoading(true);
+      try {
+        const { data, total } = await mockApiFetch('', 1, ITEMS_PER_PAGE);
+        setEmployees(data);
+        setTotalItems(total);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadInitialData();
+
     return () => {
       if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     };
-  }, [fetchEmployees]);
+  }, []);
 
   const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
 
