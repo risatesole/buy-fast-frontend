@@ -1,6 +1,4 @@
 'use client';
-import { useState, useEffect } from 'react';
-
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
 
@@ -132,144 +130,6 @@ class CheckoutService {
         pickup_times: pickupTimes,
       },
     };
-
-    validateAddress(formData.billing_address, 'billing');
-    if (!useShippingAsBilling) {
-      validateAddress(formData.shipping_address!, 'shipping');
-    }
-    if (!formData.pickuptime) {
-      errors.pickuptime = 'Please select a pickup time';
-    }
-
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  }
-
-  validatePaymentStep = (): boolean => {
-    const errors: FormErrors = {};
-
-    if (!formData.credit_card.cardholder_name.trim()) {
-      errors.cardholder_name = 'Cardholder name is required';
-    }
-    if (!formData.credit_card.card_number.trim()) {
-      errors.card_number = 'Card number is required';
-    } else if (!validateCardNumber(formData.credit_card.card_number)) {
-      errors.card_number = 'Invalid card number';
-    }
-    if (!formData.credit_card.expiration_date.trim()) {
-      errors.expiration_date = 'Expiration date is required';
-    } else if (!/^\d{2}\/\d{2}$/.test(formData.credit_card.expiration_date)) {
-      errors.expiration_date = 'Use MM/YY format';
-    }
-    if (!formData.credit_card.cvv.trim()) {
-      errors.cvv = 'CVV is required';
-    } else if (!/^\d{3,4}$/.test(formData.credit_card.cvv)) {
-      errors.cvv = 'CVV must be 3-4 digits';
-    }
-
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setError(null);
-
-    if (name.startsWith('card_')) {
-      setFormData(prev => ({
-        ...prev,
-        credit_card: {
-          ...prev.credit_card,
-          [name.replace('card_', '')]: value,
-        },
-      }));
-    } else if (name.startsWith('billing_')) {
-      setFormData(prev => ({
-        ...prev,
-        billing_address: {
-          ...prev.billing_address,
-          [name.replace('billing_', '')]: value,
-        },
-      }));
-    } else if (name.startsWith('shipping_')) {
-      setFormData(prev => ({
-        ...prev,
-        shipping_address: {
-          ...prev.shipping_address!,
-          [name.replace('shipping_', '')]: value,
-        },
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
-
-    // Clear specific field error when user starts typing
-    if (formErrors[name]) {
-      setFormErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
-      });
-    }
-  };
-
-  handleNextStep = () => {
-    let isValid = false;
-
-    if (step === 'contact') {
-      isValid = validateContactStep();
-      if (isValid) setStep('shipping');
-    } else if (step === 'shipping') {
-      isValid = validateAddressStep();
-      if (isValid) setStep('payment');
-    } else if (step === 'payment') {
-      isValid = validatePaymentStep();
-      if (isValid) setStep('review');
-    }
-  };
-
-  handleSubmit = async () => {
-    setSubmitting(true);
-    try {
-      const service = new CheckoutService(process.env.NEXT_PUBLIC_API_URL || '');
-
-      const submitData: CheckoutData = {
-        ...formData,
-        shipping_address: useShippingAsBilling ? undefined : formData.shipping_address,
-      };
-
-      await service.executeCheckout(submitData);
-      setSuccess(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Checkout failed');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  calculateTotal = (): number => {
-    return (
-      checkoutData?.data.cart.items.reduce(
-        (sum, item) => sum + item.productvariant.selling_price * item.quantity,
-        0
-      ) || 0
-    );
-  };
-
-  if(loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="mb-4 inline-block">
-            <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-300 border-t-slate-900"></div>
-          </div>
-          <p className="text-slate-600 font-medium">Loading checkout...</p>
-        </div>
-      </div>
-    );
   }
 
   async executeCheckout(formData: CheckoutData): Promise<void> {
@@ -527,6 +387,52 @@ function useCheckoutLogic() {
 // CAPA DE PRESENTACIÓN (UI)
 // ============================================================================
 
+interface InputFieldProps {
+  label: string;
+  name: string;
+  type?: string;
+  value: string;
+  placeholder?: string;
+  maxLength?: number;
+  formErrors: FormErrors;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+function InputField({
+  label,
+  name,
+  type = 'text',
+  value,
+  placeholder = '',
+  maxLength,
+  formErrors,
+  onChange,
+}: InputFieldProps) {
+  return (
+    <div>
+      <label className="block text-sm font-medium leading-6 text-gray-900">{label}</label>
+      <div className="mt-2 relative">
+        <input
+          type={type}
+          name={name}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          maxLength={maxLength}
+          className={`block w-full rounded-xl border-0 py-2.5 px-3.5 text-gray-900 shadow-sm ring-1 ring-inset transition-all duration-200 ${
+            formErrors[name]
+              ? 'ring-red-300 focus:ring-red-500 bg-red-50/50'
+              : 'ring-gray-300 focus:ring-blue-600 hover:ring-gray-400'
+          } placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6`}
+        />
+        {formErrors[name] && (
+          <p className="absolute -bottom-5 left-0 text-xs text-red-600">{formErrors[name]}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function CheckoutPage() {
   const {
     step,
@@ -595,30 +501,6 @@ export default function CheckoutPage() {
       </div>
     );
   }
-
-  const InputField = ({ label, name, type = 'text', value, placeholder = '', maxLength }: any) => (
-    <div>
-      <label className="block text-sm font-medium leading-6 text-gray-900">{label}</label>
-      <div className="mt-2 relative">
-        <input
-          type={type}
-          name={name}
-          value={value}
-          onChange={handleInputChange}
-          placeholder={placeholder}
-          maxLength={maxLength}
-          className={`block w-full rounded-xl border-0 py-2.5 px-3.5 text-gray-900 shadow-sm ring-1 ring-inset transition-all duration-200 ${
-            formErrors[name]
-              ? 'ring-red-300 focus:ring-red-500 bg-red-50/50'
-              : 'ring-gray-300 focus:ring-blue-600 hover:ring-gray-400'
-          } placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6`}
-        />
-        {formErrors[name] && (
-          <p className="absolute -bottom-5 left-0 text-xs text-red-600">{formErrors[name]}</p>
-        )}
-      </div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -737,14 +619,28 @@ export default function CheckoutPage() {
                       </p>
                     </div>
                     <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">
-                      <InputField label="Nombres" name="firstname" value={formData.firstname} />
-                      <InputField label="Apellidos" name="lastname" value={formData.lastname} />
+                      <InputField
+                        label="Nombres"
+                        name="firstname"
+                        value={formData.firstname}
+                        formErrors={formErrors}
+                        onChange={handleInputChange}
+                      />
+                      <InputField
+                        label="Apellidos"
+                        name="lastname"
+                        value={formData.lastname}
+                        formErrors={formErrors}
+                        onChange={handleInputChange}
+                      />
                       <div className="sm:col-span-2">
                         <InputField
                           label="Correo Electrónico"
                           name="email"
                           type="email"
                           value={formData.email}
+                          formErrors={formErrors}
+                          onChange={handleInputChange}
                         />
                       </div>
                       <div className="sm:col-span-2">
@@ -753,6 +649,8 @@ export default function CheckoutPage() {
                           name="phone"
                           type="tel"
                           value={formData.phone}
+                          formErrors={formErrors}
+                          onChange={handleInputChange}
                         />
                       </div>
                     </div>
@@ -806,27 +704,37 @@ export default function CheckoutPage() {
                           label="Dirección"
                           name="billing_street"
                           value={formData.billing_address.street}
+                          formErrors={formErrors}
+                          onChange={handleInputChange}
                         />
                       </div>
                       <InputField
                         label="Ciudad"
                         name="billing_city"
                         value={formData.billing_address.city}
+                        formErrors={formErrors}
+                        onChange={handleInputChange}
                       />
                       <InputField
                         label="Provincia / Estado"
                         name="billing_state"
                         value={formData.billing_address.state}
+                        formErrors={formErrors}
+                        onChange={handleInputChange}
                       />
                       <InputField
                         label="Código Postal"
                         name="billing_postal_code"
                         value={formData.billing_address.postal_code}
+                        formErrors={formErrors}
+                        onChange={handleInputChange}
                       />
                       <InputField
                         label="País"
                         name="billing_country"
                         value={formData.billing_address.country}
+                        formErrors={formErrors}
+                        onChange={handleInputChange}
                       />
 
                       <div className="sm:col-span-2 pt-2">
@@ -862,27 +770,37 @@ export default function CheckoutPage() {
                               label="Dirección"
                               name="shipping_street"
                               value={formData.shipping_address?.street || ''}
+                              formErrors={formErrors}
+                              onChange={handleInputChange}
                             />
                           </div>
                           <InputField
                             label="Ciudad"
                             name="shipping_city"
                             value={formData.shipping_address?.city || ''}
+                            formErrors={formErrors}
+                            onChange={handleInputChange}
                           />
                           <InputField
                             label="Provincia / Estado"
                             name="shipping_state"
                             value={formData.shipping_address?.state || ''}
+                            formErrors={formErrors}
+                            onChange={handleInputChange}
                           />
                           <InputField
                             label="Código Postal"
                             name="shipping_postal_code"
                             value={formData.shipping_address?.postal_code || ''}
+                            formErrors={formErrors}
+                            onChange={handleInputChange}
                           />
                           <InputField
                             label="País"
                             name="shipping_country"
                             value={formData.shipping_address?.country || ''}
+                            formErrors={formErrors}
+                            onChange={handleInputChange}
                           />
                         </>
                       )}
@@ -906,6 +824,8 @@ export default function CheckoutPage() {
                           label="Nombre en la tarjeta"
                           name="card_cardholder_name"
                           value={formData.credit_card.cardholder_name}
+                          formErrors={formErrors}
+                          onChange={handleInputChange}
                         />
                       </div>
                       <div className="sm:col-span-2">
@@ -914,6 +834,8 @@ export default function CheckoutPage() {
                           name="card_card_number"
                           value={formData.credit_card.card_number}
                           maxLength={19}
+                          formErrors={formErrors}
+                          onChange={handleInputChange}
                         />
                       </div>
                       <InputField
@@ -922,12 +844,16 @@ export default function CheckoutPage() {
                         value={formData.credit_card.expiration_date}
                         placeholder="MM/AA"
                         maxLength={5}
+                        formErrors={formErrors}
+                        onChange={handleInputChange}
                       />
                       <InputField
                         label="CVC"
                         name="card_cvv"
                         value={formData.credit_card.cvv}
                         maxLength={4}
+                        formErrors={formErrors}
+                        onChange={handleInputChange}
                       />
                     </div>
                   </div>
