@@ -463,6 +463,15 @@ export default function NewProductPage() {
           >
             Cancelar
           </button>
+
+          <button
+            type="button"
+            onClick={() => router.push('/admin/products/import')}
+            className="rounded-md px-6 py-3 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50"
+          >
+            Import
+          </button>
+
           <button
             type="submit"
             disabled={isPending}
