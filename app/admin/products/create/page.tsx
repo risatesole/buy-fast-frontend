@@ -19,6 +19,7 @@ interface VariantDraft {
   selling_price: string;
   tax_rate: string;
   initial_inventory: string;
+  status: boolean;
   images: ImageDraft[];
 }
 
@@ -33,6 +34,7 @@ function emptyVariant(nextNumber: number): VariantDraft {
     selling_price: '',
     tax_rate: '0.1',
     initial_inventory: '0',
+    status: true,
     images: [{ type: 'GALLERY', url: '' }],
   };
 }
@@ -152,6 +154,7 @@ export default function NewProductPage() {
         selling_price: roundTo(Number(v.selling_price), 2),
         tax_rate: Number(v.tax_rate).toFixed(4),
         initial_inventory: Number(v.initial_inventory),
+        status: v.status,
         images: v.images
           .filter(img => img.url.trim())
           .map(img => ({ type: img.type || 'GALLERY', url: img.url.trim() })),
@@ -364,6 +367,19 @@ export default function NewProductPage() {
                       onChange={e => updateVariant(vIndex, { initial_inventory: e.target.value })}
                       placeholder="0"
                     />
+                  </div>
+
+                  {/* Status Dropdown - New Field */}
+                  <div>
+                    <label className={labelClass}>Estado</label>
+                    <select
+                      className={`${inputClass} appearance-none`}
+                      value={variant.status ? 'active' : 'inactive'}
+                      onChange={e => updateVariant(vIndex, { status: e.target.value === 'active' })}
+                    >
+                      <option value="active">Activo</option>
+                      <option value="inactive">Inactivo</option>
+                    </select>
                   </div>
 
                   <div className="sm:col-span-2">
