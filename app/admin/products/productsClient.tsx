@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, memo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Search, X, Edit2, Package, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, X, Package, Plus, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { Product, isProductAvailable, getDisplayPrice } from '@/lib/products';
 
 const SEARCH_DEBOUNCE_DELAY = 400;
@@ -99,10 +99,10 @@ const ProductRow = memo(({ product }: { product: Product }) => {
       </td>
       <td className="px-6 py-4 text-right">
         <Link
-          href={`/admin/products/edit/${product.id}`}
+          href={`/admin/products/info/${product.id}`}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-[#c4c6d1] rounded-md text-[12px] font-semibold text-[#43474f] hover:bg-[#f2f4f6] transition-colors focus:outline-none focus:ring-2 focus:ring-[#002d62]"
         >
-          <Edit2 className="size-3.5" /> Editar
+          <Info className="size-3.5" /> Info
         </Link>
       </td>
     </tr>
