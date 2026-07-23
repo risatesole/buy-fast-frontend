@@ -1,11 +1,32 @@
 'use client';
 
-import { useState, useMemo, useCallback, useDeferredValue, memo } from 'react';
-import { Search, MoreHorizontal, ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
+import { useState, useMemo, useCallback, useDeferredValue, memo, useEffect } from 'react';
+import { Search, ChevronLeft, ChevronRight, SlidersHorizontal, Info } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 // ============================================================================
 // CAPA DE DOMINIO Y TIPOS
 // ============================================================================
+
+interface ApiUser {
+  id: number;
+  profilepicture: string | null;
+  firstname: string;
+  lastname: string;
+  email: string;
+  lastLoggedIn: string;
+  status: boolean;
+  role: string;
+  customer_profile: Record<string, unknown> | null;
+}
+
+interface ApiResponse {
+  success: boolean;
+  total: number;
+  limit: number;
+  offset: number;
+  data: ApiUser[];
+}
 
 interface User {
   id: string;
@@ -13,7 +34,7 @@ interface User {
   email: string;
   status: 'active' | 'inactive' | 'pending';
   lastActive: string;
-  role: 'admin' | 'user' | 'moderator';
+  role: 'admin' | 'user' | 'moderator' | 'customer';
 }
 
 const USERS_PER_PAGE = 5;
@@ -37,73 +58,6 @@ const STATUS_UI: Record<User['status'], { badge: string; dot: string; label: str
   },
 };
 
-const mockUsers: User[] = [
-  {
-    id: '1',
-    name: 'Alice Johnson',
-    email: 'alice.johnson@example.com',
-    status: 'active',
-    lastActive: 'Just now',
-    role: 'admin',
-  },
-  {
-    id: '2',
-    name: 'Bob Smith',
-    email: 'bob.smith@example.com',
-    status: 'active',
-    lastActive: '5 minutes ago',
-    role: 'user',
-  },
-  {
-    id: '3',
-    name: 'Carol Davis',
-    email: 'carol.davis@example.com',
-    status: 'inactive',
-    lastActive: '2 hours ago',
-    role: 'moderator',
-  },
-  {
-    id: '4',
-    name: 'David Wilson',
-    email: 'david.wilson@example.com',
-    status: 'active',
-    lastActive: '1 hour ago',
-    role: 'user',
-  },
-  {
-    id: '5',
-    name: 'Emma Brown',
-    email: 'emma.brown@example.com',
-    status: 'pending',
-    lastActive: 'Never',
-    role: 'user',
-  },
-  {
-    id: '6',
-    name: 'Frank Miller',
-    email: 'frank.miller@example.com',
-    status: 'active',
-    lastActive: '30 minutes ago',
-    role: 'user',
-  },
-  {
-    id: '7',
-    name: 'Grace Lee',
-    email: 'grace.lee@example.com',
-    status: 'active',
-    lastActive: '15 minutes ago',
-    role: 'user',
-  },
-  {
-    id: '8',
-    name: 'Henry Zhang',
-    email: 'henry.zhang@example.com',
-    status: 'active',
-    lastActive: '45 minutes ago',
-    role: 'user',
-  },
-];
-
 // ============================================================================
 // COMPONENTES Puros (Memoizados)
 // ============================================================================
@@ -112,10 +66,10 @@ interface UserTableRowProps {
   user: User;
   isSelected: boolean;
   onToggleSelect: (id: string) => void;
-  onAction: (user: User) => void;
+  onViewInfo: (userId: string) => void;
 }
 
-const UserTableRow = memo(({ user, isSelected, onToggleSelect, onAction }: UserTableRowProps) => {
+const UserTableRow = memo(({ user, isSelected, onToggleSelect, onViewInfo }: UserTableRowProps) => {
   const statusConfig = STATUS_UI[user.status];
 
   return (
@@ -156,11 +110,11 @@ const UserTableRow = memo(({ user, isSelected, onToggleSelect, onAction }: UserT
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-right">
         <button
-          onClick={() => onAction(user)}
-          className="inline-flex items-center justify-center size-8 rounded-md text-[#747781] hover:text-[#002d62] hover:bg-[#e8f0fe] border border-transparent hover:border-[#d2e3fc] transition-all focus:outline-none focus:ring-2 focus:ring-[#002d62] focus:ring-offset-1"
-          aria-label={`Opciones para ${user.name}`}
+          onClick={() => onViewInfo(user.id)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium text-[#002d62] bg-[#e8f0fe] hover:bg-[#d2e3fc] border border-transparent hover:border-[#002d62] transition-all focus:outline-none focus:ring-2 focus:ring-[#002d62] focus:ring-offset-1"
         >
-          <MoreHorizontal className="size-4" />
+          <Info className="size-3.5" />
+          Info
         </button>
       </td>
     </tr>
@@ -173,30 +127,98 @@ UserTableRow.displayName = 'UserTableRow';
 // ============================================================================
 
 export default function UserListPage() {
+  const router = useRouter();
   const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
   const [searchQueryString, setSearchQueryString] = useState('');
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [totalUsers, setTotalUsers] = useState(0);
+
+  // Helper function to convert API user to UI user
+  const convertApiUserToUIUser = (apiUser: ApiUser): User => {
+    return {
+      id: apiUser.id.toString(),
+      name: `${apiUser.firstname} ${apiUser.lastname}`,
+      email: apiUser.email,
+      status: apiUser.status ? 'active' : 'inactive',
+      lastActive: apiUser.lastLoggedIn ? new Date(apiUser.lastLoggedIn).toLocaleString() : 'Never',
+      role: apiUser.role as 'admin' | 'user' | 'moderator' | 'customer',
+    };
+  };
+
+  // Fetch users from API with pagination
+  const fetchUsers = useCallback(async (limit: number, offset: number) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/v1/users?role=customer&limit=${limit}&offset=${offset}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result: ApiResponse = await response.json();
+      console.log('Users fetched:', result);
+
+      // Convert API users to UI users
+      const convertedUsers = result.data.map(convertApiUserToUIUser);
+      setUsers(convertedUsers);
+      setTotalUsers(result.total);
+
+      return result;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error fetching users';
+      setError(errorMessage);
+      console.error('Error fetching users:', err);
+      setUsers([]);
+      setTotalUsers(0);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Load data function
+  const loadUsers = useCallback(() => {
+    const offset = (currentPageNumber - 1) * USERS_PER_PAGE;
+    fetchUsers(USERS_PER_PAGE, offset);
+  }, [currentPageNumber, fetchUsers]);
+
+  // Fetch users on mount and when page changes
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadUsers();
+  }, [loadUsers]);
 
   // Optimización de concurrencia: Evita bloqueos en el main thread al teclear
   const deferredSearchQuery = useDeferredValue(searchQueryString);
 
   const searchMatchingUsers = useMemo(() => {
-    if (!deferredSearchQuery.trim()) return mockUsers;
+    if (!deferredSearchQuery.trim()) return users;
     const lowerQuery = deferredSearchQuery.toLowerCase();
 
-    return mockUsers.filter(
+    return users.filter(
       user =>
         user.name.toLowerCase().includes(lowerQuery) ||
         user.email.toLowerCase().includes(lowerQuery)
     );
-  }, [deferredSearchQuery]);
+  }, [deferredSearchQuery, users]);
 
-  const totalPages = Math.max(1, Math.ceil(searchMatchingUsers.length / USERS_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(totalUsers / USERS_PER_PAGE));
 
   const usersDisplayedOnCurrentPage = useMemo(() => {
-    const startIndex = (currentPageNumber - 1) * USERS_PER_PAGE;
-    return searchMatchingUsers.slice(startIndex, startIndex + USERS_PER_PAGE);
-  }, [searchMatchingUsers, currentPageNumber]);
+    // Since we're using server-side pagination, we just show what the API returned
+    return searchMatchingUsers;
+  }, [searchMatchingUsers]);
 
   const toggleSelectSpecificUser = useCallback((userId: string) => {
     setSelectedUserIds(prev => {
@@ -229,13 +251,15 @@ export default function UserListPage() {
     });
   }, [isCurrentPageAllSelected, usersDisplayedOnCurrentPage]);
 
-  // Handlers para las acciones persistidas
-  const handleUserActionButtonClick = useCallback((clickedUser: User) => {
-    console.log(`Ejecutando acción contextual para: ${clickedUser.id}`);
-  }, []);
+  // Handler para ver información del usuario
+  const handleViewInfo = useCallback(
+    (userId: string) => {
+      router.push(`/admin/customers/info/${userId}`);
+    },
+    [router]
+  );
 
   const handleCreateNewUser = useCallback(() => {
-    // Espacio reservado para invocar un modal o empujar ruta (ej. router.push('/admin/users/new'))
     console.log('Iniciando flujo de creación de usuario');
   }, []);
 
@@ -243,9 +267,46 @@ export default function UserListPage() {
     console.log('Desplegando panel de filtros avanzados');
   }, []);
 
+  const handlePageChange = useCallback((newPage: number) => {
+    setCurrentPageNumber(newPage);
+  }, []);
+
   const paginationRange = useMemo(() => {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }, [totalPages]);
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full bg-[#f7f9fb]">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#002d62] border-t-transparent"></div>
+          <p className="mt-4 text-[#747781]">Cargando usuarios...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full bg-[#f7f9fb]">
+        <div className="text-center max-w-md p-6 bg-white rounded-lg shadow-sm border border-[#e0e3e5]">
+          <p className="text-[#d93025] font-semibold">Error al cargar usuarios</p>
+          <p className="text-[#747781] text-sm mt-2">{error}</p>
+          <button
+            onClick={() => {
+              setError(null);
+              loadUsers();
+            }}
+            className="mt-4 px-4 py-2 bg-[#002d62] text-white rounded-md text-sm hover:bg-[#00193c] transition-colors"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full bg-[#f7f9fb]">
@@ -329,7 +390,7 @@ export default function UserListPage() {
                   user={user}
                   isSelected={selectedUserIds.has(user.id)}
                   onToggleSelect={toggleSelectSpecificUser}
-                  onAction={handleUserActionButtonClick}
+                  onViewInfo={handleViewInfo}
                 />
               ))}
             </tbody>
@@ -349,7 +410,7 @@ export default function UserListPage() {
         <div className="text-[13px] font-medium text-[#747781]">
           Mostrando{' '}
           <span className="font-bold text-[#191c1e]">{usersDisplayedOnCurrentPage.length}</span> de{' '}
-          <span className="font-bold text-[#191c1e]">{searchMatchingUsers.length}</span> resultados
+          <span className="font-bold text-[#191c1e]">{totalUsers}</span> resultados
           {selectedUserIds.size > 0 && (
             <span className="ml-2 text-[#002d62] font-semibold">
               ({selectedUserIds.size} seleccionados)
@@ -359,7 +420,7 @@ export default function UserListPage() {
 
         <div className="flex items-center gap-1.5">
           <button
-            onClick={() => setCurrentPageNumber(prev => Math.max(1, prev - 1))}
+            onClick={() => handlePageChange(Math.max(1, currentPageNumber - 1))}
             disabled={currentPageNumber === 1}
             className="inline-flex items-center justify-center size-8 rounded-md border border-[#c4c6d1] text-[#43474f] hover:bg-[#f2f4f6] disabled:opacity-40 disabled:pointer-events-none transition-colors"
             aria-label="Página anterior"
@@ -371,7 +432,7 @@ export default function UserListPage() {
             {paginationRange.map(page => (
               <button
                 key={page}
-                onClick={() => setCurrentPageNumber(page)}
+                onClick={() => handlePageChange(page)}
                 className={`inline-flex items-center justify-center size-8 rounded-md text-[13px] font-semibold transition-all ${
                   currentPageNumber === page
                     ? 'bg-[#002d62] text-white border border-[#002d62] shadow-sm'
@@ -384,7 +445,7 @@ export default function UserListPage() {
           </div>
 
           <button
-            onClick={() => setCurrentPageNumber(prev => Math.min(totalPages, prev + 1))}
+            onClick={() => handlePageChange(Math.min(totalPages, currentPageNumber + 1))}
             disabled={currentPageNumber === totalPages}
             className="inline-flex items-center justify-center size-8 rounded-md border border-[#c4c6d1] text-[#43474f] hover:bg-[#f2f4f6] disabled:opacity-40 disabled:pointer-events-none transition-colors"
             aria-label="Página siguiente"
