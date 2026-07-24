@@ -20,12 +20,12 @@ import {
 // CAPA DE DOMINIO Y TIPOS ESTRICTOS
 // ============================================================================
 
-type OrderStatus = 'fullfilled' | 'pending' | 'returned';
+type OrderStatus = 'fulfilled' | 'pending' | 'returned';
 
 type Order = {
-  id: string;
-  profilepicture: string;
-  firstname: string;
+  id: number;
+  profilepicture: string | null;
+  firstname: string | null;
   lastname: string;
   email: string;
   created_at: string;
@@ -78,7 +78,7 @@ const STATUS_UI: Record<
     label: 'Pendiente',
     icon: Clock,
   },
-  fullfilled: {
+  fulfilled: {
     badge: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]',
     dot: 'bg-[#1e8e3e]',
     label: 'Completada',
@@ -131,15 +131,14 @@ function useOrdersPagination() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Estado de Paginación
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
 
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const isMountedRef = useRef(true);
 
   const fetchOrders = useCallback(async (search: string, page: number) => {
-    // Control de concurrencia: cancelar petición previa en vuelo
     abortControllerRef.current?.abort();
     const controller = new AbortController();
     abortControllerRef.current = controller;
@@ -154,7 +153,7 @@ function useOrdersPagination() {
         controller.signal
       );
 
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted || !isMountedRef.current) return;
 
       setOrders(data);
       setTotalItems(total);
@@ -162,20 +161,19 @@ function useOrdersPagination() {
       if ((error as Error).name === 'AbortError') return;
       console.error(error);
     } finally {
-      if (!controller.signal.aborted) {
+      if (!controller.signal.aborted && isMountedRef.current) {
         setIsLoading(false);
       }
     }
   }, []);
 
-  // Handler de Búsqueda con Debounce
   const handleSearch = useCallback(
     (value: string) => {
       setSearchTerm(value);
       if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
 
       searchTimeoutRef.current = setTimeout(() => {
-        setCurrentPage(1); // Resetear a la primera página en cada nueva búsqueda
+        setCurrentPage(1);
         fetchOrders(value, 1);
       }, SEARCH_DEBOUNCE_DELAY);
     },
@@ -198,9 +196,14 @@ function useOrdersPagination() {
 
   // Montaje inicial
   useEffect(() => {
+    isMountedRef.current = true;
+
+    // Load initial data
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchOrders('', 1);
 
     return () => {
+      isMountedRef.current = false;
       if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
       abortControllerRef.current?.abort();
     };
@@ -235,6 +238,97 @@ const LoadingDots = memo(() => (
 ));
 LoadingDots.displayName = 'LoadingDots';
 
+const getAvatarColor = (name: string) => {
+  const colors = [
+    'bg-[#002d62]',
+    'bg-[#1e8e3e]',
+    'bg-[#b06000]',
+    'bg-[#5f6368]',
+    'bg-[#137333]',
+    'bg-[#9334e6]',
+    'bg-[#d93025]',
+    'bg-[#1967d2]',
+  ];
+
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+};
+
+const Avatar = memo(
+  ({
+    src,
+    firstName,
+    lastName,
+    size = 40,
+  }: {
+    src: string | null;
+    firstName: string | null;
+    lastName: string;
+    size?: number;
+  }) => {
+    const [hasError, setHasError] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const getInitials = useCallback(() => {
+      const first = firstName?.[0] || '';
+      const last = lastName?.[0] || '';
+      return `${first}${last}`.toUpperCase() || '?';
+    }, [firstName, lastName]);
+
+    const fullName = `${firstName || ''} ${lastName}`.trim();
+    const bgColor = getAvatarColor(fullName || '?');
+
+    if (!src || hasError) {
+      return (
+        <div
+          className={`${bgColor} rounded-full flex items-center justify-center text-white font-semibold border border-[#e0e3e5] cursor-help transition-colors duration-200 hover:opacity-80`}
+          style={{
+            width: size,
+            height: size,
+            fontSize: size * 0.4,
+          }}
+          title={fullName || 'Usuario'}
+        >
+          {getInitials()}
+        </div>
+      );
+    }
+
+    return (
+      <div className="relative" style={{ width: size, height: size }}>
+        <Image
+          src={src}
+          alt={fullName || 'Usuario'}
+          width={size}
+          height={size}
+          className={`rounded-full object-cover border border-[#e0e3e5] bg-[#f2f4f6] ${
+            isLoading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+          } transition-all duration-200`}
+          loading="lazy"
+          unoptimized
+          onLoadingComplete={() => setIsLoading(false)}
+          onError={() => {
+            setHasError(true);
+            setIsLoading(false);
+          }}
+        />
+        {isLoading && (
+          <div
+            className={`${bgColor} rounded-full absolute inset-0 flex items-center justify-center text-white font-semibold border border-[#e0e3e5] animate-pulse`}
+            style={{ fontSize: size * 0.4 }}
+          >
+            {getInitials()}
+          </div>
+        )}
+      </div>
+    );
+  }
+);
+Avatar.displayName = 'Avatar';
+
 const OrderRow = memo(({ order }: { order: Order }) => {
   const statusConfig = STATUS_UI[order.status];
   const StatusIcon = statusConfig.icon;
@@ -243,14 +337,11 @@ const OrderRow = memo(({ order }: { order: Order }) => {
     <tr className="border-b border-[#e0e3e5] bg-white hover:bg-[#f8fafd] transition-colors duration-150">
       <td className="px-6 py-4 font-mono text-[13px] text-[#43474f] font-semibold">{order.id}</td>
       <td className="px-6 py-4">
-        <Image
+        <Avatar
           src={order.profilepicture}
-          alt={`${order.firstname} ${order.lastname}`}
-          width={40}
-          height={40}
-          className="rounded-full object-cover border border-[#e0e3e5] bg-[#f2f4f6]"
-          loading="lazy"
-          unoptimized
+          firstName={order.firstname}
+          lastName={order.lastname}
+          size={40}
         />
       </td>
       <td className="px-6 py-4">
