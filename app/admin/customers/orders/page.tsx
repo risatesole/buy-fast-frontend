@@ -40,6 +40,7 @@ type Order = {
 
 const ITEMS_PER_PAGE = 5;
 const SEARCH_DEBOUNCE_DELAY = 400;
+const ORDERS_ENDPOINT = '/api/v1/admin/orders';
 
 const dateFormatter = new Intl.DateTimeFormat('es-DO', {
   year: 'numeric',
@@ -92,46 +93,33 @@ const STATUS_UI: Record<
 };
 
 // ============================================================================
-// MOCK DE BASE DE DATOS (Adaptado para Paginación Clásica)
+// CAPA DE ACCESO A DATOS (API REST)
 // ============================================================================
-
-const MOCK_DB: Order[] = Array.from({ length: 34 }).map((_, i) => ({
-  id: `ORD-${1000 + i}`,
-  profilepicture: `https://i.pravatar.cc/150?u=${i}`,
-  firstname: ['Miguel', 'Ana', 'Carlos', 'Wanda', 'Iker', 'Luis', 'María', 'José'][i % 8],
-  lastname: ['Méndez', 'Pérez', 'Gómez', 'Rodríguez', 'López', 'Díaz', 'Martínez', 'García'][i % 8],
-  email: `usuario${i}@uasd.edu.do`,
-  created_at: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
-  total: Math.floor(Math.random() * 15000) + 500,
-  status: ['fullfilled', 'pending', 'returned'][i % 3] as OrderStatus,
-  pickup_time: i % 4 === 0 ? null : new Date(Date.now() + Math.random() * 86400000).toISOString(),
-}));
 
 type PaginatedResponse = {
   data: Order[];
   total: number;
 };
 
-async function mockApiFetch(
+async function fetchOrdersFromApi(
   search: string,
   page: number,
-  limit: number
+  limit: number,
+  signal?: AbortSignal
 ): Promise<PaginatedResponse> {
-  await new Promise(resolve => setTimeout(resolve, 450));
+  const params = new URLSearchParams({
+    search,
+    page: String(page),
+    limit: String(limit),
+  });
 
-  const lowerSearch = search.toLowerCase();
-  const filtered = MOCK_DB.filter(
-    o =>
-      o.firstname.toLowerCase().includes(lowerSearch) ||
-      o.lastname.toLowerCase().includes(lowerSearch) ||
-      o.id.toLowerCase().includes(lowerSearch)
-  );
+  const response = await fetch(`${ORDERS_ENDPOINT}?${params.toString()}`, { signal });
 
-  const startIndex = (page - 1) * limit;
-  return {
-    data: filtered.slice(startIndex, startIndex + limit),
-    total: filtered.length,
-  };
+  if (!response.ok) {
+    throw new Error(`Error al obtener órdenes: ${response.status}`);
+  }
+
+  return response.json();
 }
 
 // ============================================================================
@@ -148,24 +136,33 @@ function useOrdersPagination() {
   const [totalItems, setTotalItems] = useState(0);
 
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const latestRequestRef = useRef<number>(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchOrders = useCallback(async (search: string, page: number) => {
-    const requestId = Date.now();
-    latestRequestRef.current = requestId;
+    // Control de concurrencia: cancelar petición previa en vuelo
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     setIsLoading(true);
 
     try {
-      const { data, total } = await mockApiFetch(search.trim(), page, ITEMS_PER_PAGE);
+      const { data, total } = await fetchOrdersFromApi(
+        search.trim(),
+        page,
+        ITEMS_PER_PAGE,
+        controller.signal
+      );
 
-      // Control de concurrencia: Descartar respuestas obsoletas
-      if (latestRequestRef.current !== requestId) return;
+      if (controller.signal.aborted) return;
 
       setOrders(data);
       setTotalItems(total);
+    } catch (error) {
+      if ((error as Error).name === 'AbortError') return;
+      console.error(error);
     } finally {
-      if (latestRequestRef.current === requestId) {
+      if (!controller.signal.aborted) {
         setIsLoading(false);
       }
     }
@@ -200,24 +197,14 @@ function useOrdersPagination() {
   );
 
   // Montaje inicial
-  // Separate the data fetching into its own effect
   useEffect(() => {
-    const loadInitialData = async () => {
-      setIsLoading(true);
-      try {
-        const { data, total } = await mockApiFetch('', 1, ITEMS_PER_PAGE);
-        setOrders(data);
-        setTotalItems(total);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadInitialData();
+    fetchOrders('', 1);
 
     return () => {
       if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+      abortControllerRef.current?.abort();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
@@ -259,11 +246,11 @@ const OrderRow = memo(({ order }: { order: Order }) => {
         <Image
           src={order.profilepicture}
           alt={`${order.firstname} ${order.lastname}`}
-          width={40} // size-10 = 40px
-          height={40} // size-10 = 40px
+          width={40}
+          height={40}
           className="rounded-full object-cover border border-[#e0e3e5] bg-[#f2f4f6]"
           loading="lazy"
-          unoptimized // Since these are external images, you might need this
+          unoptimized
         />
       </td>
       <td className="px-6 py-4">
@@ -323,7 +310,6 @@ export default function OrdersPage() {
     handlePageChange,
   } = useOrdersPagination();
 
-  // Memoización del rango de paginación para evitar recálculos en renders no relacionados
   const paginationRange = useMemo(() => {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }, [totalPages]);
@@ -418,7 +404,6 @@ export default function OrdersPage() {
         )}
       </main>
 
-      {/* Footer / Paginación Numérica Clásica */}
       {!isLoading && orders.length > 0 && (
         <footer className="flex items-center justify-between px-8 py-4 bg-white border-t border-[#e0e3e5]">
           <div className="text-[13px] font-medium text-[#747781]">

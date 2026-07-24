@@ -1,56 +1,66 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
+// ============================================================================
+// TIPOS
+// ============================================================================
+
+type OrderStatus = 'fullfilled' | 'pending' | 'returned';
+
+type Order = {
+  id: string;
+  profilepicture: string;
+  firstname: string;
+  lastname: string;
+  email: string;
+  created_at: string;
+  total: number;
+  status: OrderStatus;
+  pickup_time: string | null;
+};
+
+const MOCK_DB: Order[] = Array.from({ length: 34 }).map((_, i) => ({
+  id: `ORD-${1000 + i}`,
+  profilepicture: `https://i.pravatar.cc/150?u=${i}`,
+  firstname: ['Miguel', 'Ana', 'Carlos', 'Wanda', 'Iker', 'Luis', 'María', 'José'][i % 8],
+  lastname: ['Méndez', 'Pérez', 'Gómez', 'Rodríguez', 'López', 'Díaz', 'Martínez', 'García'][
+    i % 8
+  ],
+  email: `usuario${i}@uasd.edu.do`,
+  created_at: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
+  total: Math.floor(Math.random() * 15000) + 500,
+  status: ['fullfilled', 'pending', 'returned'][i % 3] as OrderStatus,
+  pickup_time: i % 4 === 0 ? null : new Date(Date.now() + Math.random() * 86400000).toISOString(),
+}));
+
+const DEFAULT_LIMIT = 5;
+const ARTIFICIAL_LATENCY_MS = 450;
+
+// ============================================================================
+// GET /api/v1/admin/orders?search=&page=&limit=
+// ============================================================================
 
 export async function GET(request: NextRequest) {
-  try {
-    const searchParams = request.nextUrl.searchParams;
-    const queryString = searchParams.toString();
+  // Simula latencia de red/DB, igual que el mock original.
+  await new Promise(resolve => setTimeout(resolve, ARTIFICIAL_LATENCY_MS));
 
-    const backendUrl = `${BACKEND_URL}/api/v1/admin/orders${queryString ? `?${queryString}` : ''}`;
+  const { searchParams } = new URL(request.url);
 
-    const cookieHeader = request.headers.get('cookie') || '';
+  const search = (searchParams.get('search') ?? '').trim().toLowerCase();
+  const page = Math.max(1, Number(searchParams.get('page')) || 1);
+  const limit = Math.max(1, Number(searchParams.get('limit')) || DEFAULT_LIMIT);
 
-    const response = await fetch(backendUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: cookieHeader,
-        // Forward other relevant headers if needed
-        ...(request.headers.get('authorization') && {
-          Authorization: request.headers.get('authorization') || '',
-        }),
-      },
-      cache: 'no-store',
-    });
+  const filtered = MOCK_DB.filter(
+    o =>
+      o.firstname.toLowerCase().includes(search) ||
+      o.lastname.toLowerCase().includes(search) ||
+      o.id.toLowerCase().includes(search)
+  );
 
-    const data = await response.json();
+  const startIndex = (page - 1) * limit;
+  const data = filtered.slice(startIndex, startIndex + limit);
 
-    const nextResponse = NextResponse.json(data, {
-      status: response.status,
-      statusText: response.statusText,
-    });
-
-    const setCookieHeader = response.headers.get('set-cookie');
-    if (setCookieHeader) {
-      nextResponse.headers.set('Set-Cookie', setCookieHeader);
-    }
-
-    return nextResponse;
-  } catch (error) {
-    console.error('Proxy error:', error);
-    return NextResponse.json({ error: 'Failed to fetch orders from backend' }, { status: 500 });
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function OPTIONS(request: NextRequest) {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, Cookie',
-    },
+  return NextResponse.json({
+    data,
+    total: filtered.length,
   });
 }
