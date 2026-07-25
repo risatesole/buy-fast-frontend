@@ -394,6 +394,7 @@ function PaginationControls({
 }
 
 export default function OrdersContent() {
+  const router = useRouter();
   const {
     orders,
     loading,
@@ -475,6 +476,7 @@ export default function OrdersContent() {
                   transition: 'border-color 0.15s',
                   cursor: 'pointer',
                 }}
+                onClick={() => router.push(`/account/orders/${order.id}`)}
                 onMouseEnter={e => {
                   e.currentTarget.style.borderColor = 'oklch(0.556 0 0)';
                 }}

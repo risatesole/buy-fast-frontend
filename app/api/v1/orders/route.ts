@@ -17,47 +17,117 @@ type PaginatedResponse = {
   currentPage: number;
 };
 
-const TOTAL_ORDERS = 2000;
+// --- Shape of the real Django response ---
+type BackendOrderItem = {
+  id: number;
+  name: string;
+  quantity: number;
+  price: number;
+  tax: number;
+  subtotal: number;
+};
+
+type BackendOrder = {
+  id: number;
+  profilepicture: string | null;
+  firstname: string;
+  lastname: string;
+  email: string;
+  created_at: string;
+  status: 'pending' | 'fulfilled' | 'returned';
+  pickup_time: string | null;
+  phone: string | null;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  items: BackendOrderItem[];
+  total: number;
+  shipping_method: string;
+  payment_method: string;
+  notes: string;
+};
+
+type BackendOrdersResponse = {
+  count: number;
+  orders: BackendOrder[];
+};
+
 const LIMIT = 5;
-const TOTAL_PAGES = Math.ceil(TOTAL_ORDERS / LIMIT);
 
-async function generateMockOrders(page: number): Promise<PaginatedResponse> {
-  const statuses: OrderStatus[] = ['delivered', 'shipped', 'processing', 'cancelled'];
-  const mockOrders: Order[] = [];
-  const offset = (page - 1) * LIMIT;
+const BACKEND_URL = process.env.BACKEND_URL;
 
-  for (let i = 0; i < LIMIT; i++) {
-    const id = offset + i + 1;
-    const status = statuses[Math.floor(Math.random() * statuses.length)];
-    mockOrders.push({
-      id: `ORD-${String(12345 - id).padStart(5, '0')}`,
-      date: new Date(Date.now() - id * 86400000 * 2).toISOString().split('T')[0],
-      total: Math.round((Math.random() * 200 + 10) * 100) / 100,
-      status,
-      items: Math.floor(Math.random() * 5) + 1,
-      trackingNumber:
-        status !== 'cancelled' && Math.random() > 0.3 ? `1Z999AA101234567${84 - id}` : undefined,
-    });
-  }
+// Backend has no "shipped" state today; map what exists into the frontend's vocabulary.
+const STATUS_MAP: Record<BackendOrder['status'], OrderStatus> = {
+  pending: 'processing',
+  fulfilled: 'delivered',
+  returned: 'cancelled',
+};
+
+function adaptOrder(order: BackendOrder): Order {
+  const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
 
   return {
-    orders: mockOrders,
-    totalPages: TOTAL_PAGES,
-    currentPage: page,
+    id: `ORD-${String(order.id).padStart(5, '0')}`,
+    date: order.created_at,
+    total: order.total,
+    status: STATUS_MAP[order.status] ?? 'processing',
+    items: itemCount,
+    // No tracking number available from the backend yet; leave undefined.
   };
 }
 
 export async function GET(request: NextRequest) {
   try {
+    if (!BACKEND_URL) {
+      console.error('BACKEND_URL is not configured');
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const pageParam = searchParams.get('page');
     const page = pageParam ? parseInt(pageParam, 10) : 1;
 
-    if (isNaN(page) || page < 1 || page > TOTAL_PAGES) {
+    if (isNaN(page) || page < 1) {
       return NextResponse.json({ error: 'Invalid page parameter' }, { status: 400 });
     }
 
-    const data = await generateMockOrders(page);
+    const offset = (page - 1) * LIMIT;
+
+    const cookieHeader = request.headers.get('cookie') ?? '';
+
+    const backendRes = await fetch(
+      `${BACKEND_URL}/api/v1/customers/orders/?offset=${offset}&limit=${LIMIT}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(cookieHeader ? { cookie: cookieHeader } : {}),
+        },
+        cache: 'no-store',
+      }
+    );
+
+    if (!backendRes.ok) {
+      if (backendRes.status === 401 || backendRes.status === 403) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: backendRes.status });
+      }
+      console.error('Backend orders request failed:', backendRes.status);
+      return NextResponse.json({ error: 'Internal server error' }, { status: 502 });
+    }
+
+    const backendData: BackendOrdersResponse = await backendRes.json();
+
+    const totalPages = Math.max(1, Math.ceil(backendData.count / LIMIT));
+
+    const data: PaginatedResponse = {
+      orders: backendData.orders.map(adaptOrder),
+      totalPages,
+      currentPage: page,
+    };
 
     return NextResponse.json(data);
   } catch (error) {
