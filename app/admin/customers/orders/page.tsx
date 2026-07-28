@@ -373,7 +373,7 @@ const OrderRow = memo(({ order }: { order: Order }) => {
       </td>
       <td className="px-6 py-4 text-right">
         <Link
-          href={`/admin/orders/${order.id}`}
+          href={`/admin/customers/orders/${order.id}`}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-[#c4c6d1] rounded-md text-[12px] font-semibold text-[#43474f] hover:bg-[#f2f4f6] transition-colors focus:outline-none focus:ring-2 focus:ring-[#002d62]"
         >
           <Eye className="size-3.5" /> Detalle
