@@ -47,23 +47,18 @@ async function getOrderDetails(orderId: string): Promise<OrderData | null> {
     const cookieStore = await cookies();
     const allCookies = cookieStore.getAll();
 
-    const cookieString = allCookies
-      .map((cookie) => `${cookie.name}=${cookie.value}`)
-      .join('; ');
+    const cookieString = allCookies.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-    const response = await fetch(
-      `${apiUrl}/api/v1/customers/orders/${orderId}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(cookieString && { Cookie: cookieString }),
-        },
-        cache: 'no-store',
-      }
-    );
+    const response = await fetch(`${apiUrl}/api/v1/customers/orders/${orderId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(cookieString && { Cookie: cookieString }),
+      },
+      cache: 'no-store',
+    });
 
     if (!response.ok) {
       console.error(`Failed to fetch order: ${response.status} ${response.statusText}`);
@@ -153,15 +148,17 @@ function formatCurrency(amount: number) {
 }
 
 function formatShippingMethod(method: string) {
-  return method.split('_').map(word => 
-    word.charAt(0).toUpperCase() + word.slice(1)
-  ).join(' ');
+  return method
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 }
 
 function formatPaymentMethod(method: string) {
-  return method.split('_').map(word => 
-    word.charAt(0).toUpperCase() + word.slice(1)
-  ).join(' ');
+  return method
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 }
 
 export default async function ClientOrderDetailsPage({
@@ -335,9 +332,7 @@ export default async function ClientOrderDetailsPage({
           <div style={{ fontSize: '0.75rem', color: 'oklch(0.708 0 0)' }}>
             Subtotal ({totalItems} {totalItems === 1 ? 'item' : 'items'})
           </div>
-          <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>
-            {formatCurrency(subtotal)}
-          </div>
+          <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>{formatCurrency(subtotal)}</div>
         </div>
         <div
           style={{
@@ -426,9 +421,7 @@ export default async function ClientOrderDetailsPage({
                 <div style={{ fontSize: '0.875rem', fontWeight: 500 }}>
                   {order.firstname} {order.lastname}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: 'oklch(0.708 0 0)' }}>
-                  {order.email}
-                </div>
+                <div style={{ fontSize: '0.75rem', color: 'oklch(0.708 0 0)' }}>{order.email}</div>
               </div>
             </div>
             {order.phone && (
@@ -460,20 +453,45 @@ export default async function ClientOrderDetailsPage({
           </div>
           <div style={{ padding: '1.25rem' }}>
             <div style={{ marginBottom: '0.75rem' }}>
-              <div style={{ fontSize: '0.65rem', color: 'oklch(0.708 0 0)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              <div
+                style={{
+                  fontSize: '0.65rem',
+                  color: 'oklch(0.708 0 0)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                }}
+              >
                 Shipping Method
               </div>
-              <div style={{ fontSize: '0.875rem' }}>{formatShippingMethod(order.shipping_method)}</div>
+              <div style={{ fontSize: '0.875rem' }}>
+                {formatShippingMethod(order.shipping_method)}
+              </div>
             </div>
             <div style={{ marginBottom: '0.75rem' }}>
-              <div style={{ fontSize: '0.65rem', color: 'oklch(0.708 0 0)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              <div
+                style={{
+                  fontSize: '0.65rem',
+                  color: 'oklch(0.708 0 0)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                }}
+              >
                 Payment Method
               </div>
-              <div style={{ fontSize: '0.875rem' }}>{formatPaymentMethod(order.payment_method)}</div>
+              <div style={{ fontSize: '0.875rem' }}>
+                {formatPaymentMethod(order.payment_method)}
+              </div>
             </div>
             {order.pickup_time && (
               <div>
-                <div style={{ fontSize: '0.65rem', color: 'oklch(0.708 0 0)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <div
+                  style={{
+                    fontSize: '0.65rem',
+                    color: 'oklch(0.708 0 0)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                  }}
+                >
                   Pickup Time
                 </div>
                 <div style={{ fontSize: '0.875rem' }}>{formatDateTime(order.pickup_time)}</div>
@@ -535,9 +553,7 @@ export default async function ClientOrderDetailsPage({
             Order Notes
           </div>
           <div style={{ padding: '1.25rem' }}>
-            <div style={{ fontSize: '0.875rem', color: 'oklch(0.556 0 0)' }}>
-              {order.notes}
-            </div>
+            <div style={{ fontSize: '0.875rem', color: 'oklch(0.556 0 0)' }}>{order.notes}</div>
           </div>
         </div>
       )}

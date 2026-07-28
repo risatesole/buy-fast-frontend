@@ -51,23 +51,18 @@ async function getOrderDetails(orderId: string): Promise<OrderData | null> {
     const cookieStore = await cookies();
     const allCookies = cookieStore.getAll();
 
-    const cookieString = allCookies
-      .map((cookie) => `${cookie.name}=${cookie.value}`)
-      .join('; ');
+    const cookieString = allCookies.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-    const response = await fetch(
-      `${apiUrl}/api/v1/admin/orders/${orderId}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(cookieString && { Cookie: cookieString }),
-        },
-        cache: 'no-store',
-      }
-    );
+    const response = await fetch(`${apiUrl}/api/v1/admin/orders/${orderId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(cookieString && { Cookie: cookieString }),
+      },
+      cache: 'no-store',
+    });
 
     if (!response.ok) {
       console.error(`Failed to fetch order: ${response.status} ${response.statusText}`);
@@ -134,10 +129,7 @@ export default async function AdminOrderDetailsPage({
     notFound();
   }
 
-  const totalOrderAmount = order.items.reduce(
-    (sum, item) => sum + item.subtotal,
-    0
-  );
+  const totalOrderAmount = order.items.reduce((sum, item) => sum + item.subtotal, 0);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -163,22 +155,14 @@ export default async function AdminOrderDetailsPage({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <div className="bg-white rounded-lg shadow-md p-6">
             <h3 className="text-sm font-medium text-gray-500 mb-1">Customer</h3>
-            <p className="text-lg font-semibold text-gray-900 break-all">
-              {order.customer_email}
-            </p>
+            <p className="text-lg font-semibold text-gray-900 break-all">{order.customer_email}</p>
           </div>
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">
-              Order Date
-            </h3>
-            <p className="text-lg font-semibold text-gray-900">
-              {formatDate(order.created_at)}
-            </p>
+            <h3 className="text-sm font-medium text-gray-500 mb-1">Order Date</h3>
+            <p className="text-lg font-semibold text-gray-900">{formatDate(order.created_at)}</p>
           </div>
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">
-              Pickup Time
-            </h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-1">Pickup Time</h3>
             <p className="text-lg font-semibold text-gray-900">
               {order.pickup_time ? formatDate(order.pickup_time) : 'Not set'}
             </p>
@@ -217,7 +201,7 @@ export default async function AdminOrderDetailsPage({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {order.items.map((item) => (
+                {order.items.map(item => (
                   <tr key={item.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -233,24 +217,16 @@ export default async function AdminOrderDetailsPage({
                           </div>
                         )}
                         <div>
-                          <p className="font-medium text-gray-900">
-                            {item.product.name}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {item.product.variant_name}
-                          </p>
+                          <p className="font-medium text-gray-900">{item.product.name}</p>
+                          <p className="text-sm text-gray-500">{item.product.variant_name}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {item.product.sku}
-                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{item.product.sku}</td>
                     <td className="px-6 py-4 text-sm text-gray-900">
                       {formatCurrency(item.price_per_item)}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {item.quantity}
-                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">{item.quantity}</td>
                     <td className="px-6 py-4 text-sm text-gray-900">
                       {formatCurrency(item.tax_amount)}
                     </td>
@@ -262,10 +238,7 @@ export default async function AdminOrderDetailsPage({
               </tbody>
               <tfoot className="bg-gray-50">
                 <tr>
-                  <td
-                    colSpan={5}
-                    className="px-6 py-4 text-right font-medium text-gray-900"
-                  >
+                  <td colSpan={5} className="px-6 py-4 text-right font-medium text-gray-900">
                     Total
                   </td>
                   <td className="px-6 py-4 text-lg font-bold text-gray-900">
@@ -278,31 +251,28 @@ export default async function AdminOrderDetailsPage({
         </div>
 
         {/* Product Images Gallery - Grouped by Product */}
-        {order.items.some(
-          (item) => item.product.images && item.product.images.length > 0
-        ) && (
+        {order.items.some(item => item.product.images && item.product.images.length > 0) && (
           <div className="mt-6 bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Product Images
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Product Images</h3>
             <div className="space-y-6">
-              {order.items.map((item) => {
+              {order.items.map(item => {
                 if (!item.product.images || item.product.images.length === 0) {
                   return null;
                 }
                 return (
-                  <div key={item.id} className="border-b border-gray-200 last:border-0 pb-4 last:pb-0">
+                  <div
+                    key={item.id}
+                    className="border-b border-gray-200 last:border-0 pb-4 last:pb-0"
+                  >
                     <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
                       <span>{item.product.name}</span>
                       <span className="text-sm font-normal text-gray-500">
                         ({item.product.variant_name})
                       </span>
-                      <span className="text-sm font-normal text-gray-400">
-                        × {item.quantity}
-                      </span>
+                      <span className="text-sm font-normal text-gray-400">× {item.quantity}</span>
                     </h4>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                      {item.product.images.map((image) => (
+                      {item.product.images.map(image => (
                         <div key={image.id} className="relative aspect-square">
                           <Image
                             src={image.url}
