@@ -1,751 +1,330 @@
-// app/admin/orders/[id]/page.tsx
-
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+// app/admin/customers/orders/[id]/page.tsx
+import { cookies } from 'next/headers';
+import { notFound } from 'next/navigation';
 import Image from 'next/image';
-import {
-  ArrowLeft,
-  Clock,
-  CheckCircle2,
-  Undo2,
-  User,
-  Mail,
-  DollarSign,
-  Package,
-  Truck,
-  MapPin,
-  Phone,
-} from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
 
-// ============================================================
-// TYPES
-// ============================================================
-
-type OrderStatus = 'fullfilled' | 'pending' | 'returned';
-
-type OrderItem = {
+interface ProductImage {
   id: number;
-  product_id: number;
-  product_name: string;
+  url: string;
+  type: string;
+  alt_text: string;
+  order: number;
+}
+
+interface Product {
+  id: number;
+  name: string;
+  variant_id: number;
+  variant_name: string;
+  sku: string;
+  selling_price: number;
+  tax_rate: number;
+  images: ProductImage[];
+}
+
+interface OrderItem {
+  id: number;
+  product: Product;
   quantity: number;
-  price: number;
-  image_url?: string;
-  sku?: string;
-};
+  price_per_item: number;
+  tax_amount: number;
+  subtotal: number;
+}
 
-type Address = {
-  street: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  country: string;
-};
-
-type Order = {
-  id: string | number;
-  profilepicture: string;
-  firstname: string;
-  lastname: string;
-  email: string;
-  created_at: string;
-  total: number;
-  status: OrderStatus;
+interface OrderData {
+  id: number;
+  customer_email: string;
+  status: string;
   pickup_time: string;
-  phone?: string;
-  address?: Address;
-  items?: OrderItem[];
-  shipping_method?: string;
-  payment_method?: string;
-  notes?: string;
-};
+  created_at: string;
+  items: OrderItem[];
+  total_items: number;
+}
 
-// ============================================================
-// CONSTANTS
-// ============================================================
+interface OrderResponse {
+  status: string;
+  data: OrderData;
+}
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
-const STATUS_CONFIG = {
-  pending: {
-    label: 'Pending',
-    icon: Clock,
-    className: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  },
-  fullfilled: {
-    label: 'Fulfilled',
-    icon: CheckCircle2,
-    className: 'bg-green-100 text-green-800 border-green-200',
-  },
-  returned: {
-    label: 'Returned',
-    icon: Undo2,
-    className: 'bg-red-100 text-red-800 border-red-200',
-  },
-} as const;
-
-// ============================================================
-// API SERVICE
-// ============================================================
-
-/**
- * Fetches a single order by ID from the backend API
- */
-async function fetchOrderById(id: string | number): Promise<Order | null> {
-  if (!BACKEND_URL) {
-    console.error('NEXT_PUBLIC_API_URL is not set');
-    return null;
-  }
-
-  const url = `${BACKEND_URL}/api/v1/customers/orders/${id}`;
-
+async function getOrderDetails(orderId: string): Promise<OrderData | null> {
   try {
-    const response = await fetch(url, {
-      cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const cookieStore = await cookies();
+    const allCookies = cookieStore.getAll();
+
+    const cookieString = allCookies
+      .map((cookie) => `${cookie.name}=${cookie.value}`)
+      .join('; ');
+
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+    const response = await fetch(
+      `${apiUrl}/api/v1/admin/orders/${orderId}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(cookieString && { Cookie: cookieString }),
+        },
+        cache: 'no-store',
+      }
+    );
 
     if (!response.ok) {
-      console.error('API Error:', response.status, response.statusText);
+      console.error(`Failed to fetch order: ${response.status} ${response.statusText}`);
       return null;
     }
 
-    const json = await response.json();
-    return json.data ?? null;
+    const data: OrderResponse = await response.json();
+    return data.data;
   } catch (error) {
-    console.error('Error fetching order:', error);
+    console.error('Error fetching order details:', error);
     return null;
   }
 }
 
-// ============================================================
-// CUSTOM HOOK
-// ============================================================
-
-/**
- * Hook that manages order details data fetching and state
- */
-function useOrderDetails() {
-  const params = useParams();
-  const router = useRouter();
-
-  // Safely extract the ID from params
-  const orderId = Array.isArray(params.id) ? params.id[0] : params.id;
-
-  const [order, setOrder] = useState<Order | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function loadOrder() {
-      if (!orderId) {
-        setError('Order not found');
-        setIsLoading(false);
-        return;
-      }
-
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const data = await fetchOrderById(orderId);
-
-        if (data) {
-          setOrder(data);
-        } else {
-          setError('Order not found');
-        }
-      } catch (err) {
-        console.error('Error loading order:', err);
-        setError('Order not found');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadOrder();
-  }, [orderId]);
-
-  const goBack = () => router.back();
-
-  return {
-    order,
-    isLoading,
-    error,
-    goBack,
-    orderId,
+function getStatusBadgeColor(status: string): string {
+  const statusMap: Record<string, string> = {
+    pending: 'bg-yellow-100 text-yellow-800',
+    processing: 'bg-blue-100 text-blue-800',
+    shipped: 'bg-purple-100 text-purple-800',
+    delivered: 'bg-green-100 text-green-800',
+    cancelled: 'bg-red-100 text-red-800',
+    refunded: 'bg-gray-100 text-gray-800',
   };
+  return statusMap[status.toLowerCase()] || 'bg-gray-100 text-gray-800';
 }
 
-// ============================================================
-// UI COMPONENTS
-// ============================================================
-
-/**
- * Displays an order status with appropriate icon and colors
- */
-function StatusBadge({ status }: { status: OrderStatus }) {
-  const config = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
-  const Icon = config.icon;
-
-  return (
-    <Badge
-      variant="outline"
-      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border ${config.className}`}
-    >
-      <Icon className="w-4 h-4" />
-      {config.label}
-    </Badge>
-  );
-}
-
-/**
- * Loading skeleton for the order details page
- */
-function LoadingSkeleton() {
-  return (
-    <div className="space-y-6">
-      {/* Header skeleton */}
-      <div className="flex items-center gap-4">
-        <Skeleton className="h-10 w-24" />
-        <Skeleton className="h-10 w-48" />
-      </div>
-
-      {/* Stats cards skeleton */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[1, 2, 3].map(i => (
-          <Card key={i}>
-            <CardHeader>
-              <Skeleton className="h-6 w-32" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Main content skeleton */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-6 w-48" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="flex items-center gap-4">
-                    <Skeleton className="h-16 w-16 rounded" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-48" />
-                      <Skeleton className="h-4 w-32" />
-                    </div>
-                    <Skeleton className="h-4 w-20" />
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        <div className="space-y-6">
-          {[1, 2, 3].map(i => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-6 w-32" />
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/**
- * Displays customer information including profile, contact, and address
- */
-function CustomerInfoCard({ order }: { order: Order }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <User className="w-5 h-5" />
-          Customer Information
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {/* Profile */}
-        <div className="flex items-center gap-4">
-          <Image
-            src={order.profilepicture}
-            alt={`${order.firstname} ${order.lastname}`}
-            width={48}
-            height={48}
-            className="rounded-full object-cover"
-            unoptimized // Since using external images
-          />
-
-          <div>
-            <p className="font-medium">
-              {order.firstname} {order.lastname}
-            </p>
-            <p className="text-sm text-gray-500">Customer ID: #{order.id}</p>
-          </div>
-        </div>
-
-        {/* Contact details */}
-        <div className="space-y-2 pt-2">
-          <div className="flex items-center gap-2 text-sm">
-            <Mail className="w-4 h-4 text-gray-400" />
-            <span>{order.email}</span>
-          </div>
-
-          {order.phone && (
-            <div className="flex items-center gap-2 text-sm">
-              <Phone className="w-4 h-4 text-gray-400" />
-              <span>{order.phone}</span>
-            </div>
-          )}
-
-          {order.address && (
-            <div className="flex items-start gap-2 text-sm">
-              <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
-              <div>
-                <p>{order.address.street}</p>
-                <p>
-                  {order.address.city}, {order.address.state} {order.address.zipCode}
-                </p>
-                <p>{order.address.country}</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-/**
- * Displays order summary with totals and key information
- */
-function OrderSummaryCard({ order }: { order: Order }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Package className="w-5 h-5" />
-          Order Summary
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex justify-between">
-          <span className="text-gray-500">Order ID</span>
-          <span className="font-mono text-sm">#{order.id}</span>
-        </div>
-
-        <div className="flex justify-between">
-          <span className="text-gray-500">Status</span>
-          <StatusBadge status={order.status} />
-        </div>
-
-        <div className="flex justify-between">
-          <span className="text-gray-500">Order Date</span>
-          <span>{formatDate(order.created_at)}</span>
-        </div>
-
-        <div className="flex justify-between">
-          <span className="text-gray-500">Pickup Time</span>
-          <span>{order.pickup_time ? formatDate(order.pickup_time) : '—'}</span>
-        </div>
-
-        <Separator />
-
-        <div className="flex justify-between items-center">
-          <span className="font-medium">Total Amount</span>
-          <span className="text-2xl font-bold">{formatCurrency(order.total)}</span>
-        </div>
-
-        {order.payment_method && (
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Payment Method</span>
-            <span className="capitalize">{order.payment_method.replace(/_/g, ' ')}</span>
-          </div>
-        )}
-
-        {order.shipping_method && (
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Shipping Method</span>
-            <span className="capitalize">{order.shipping_method.replace(/_/g, ' ')}</span>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-/**
- * Displays order timeline with status progression
- */
-function OrderTimelineCard({ order }: { order: Order }) {
-  const timelineSteps = [
-    {
-      label: 'Order Placed',
-      date: order.created_at,
-      status: 'completed' as const,
-    },
-    {
-      label: 'Order Processing',
-      date:
-        order.status === 'pending'
-          ? 'In progress'
-          : order.status === 'fullfilled'
-            ? 'Completed'
-            : 'Not started',
-      status:
-        order.status === 'pending'
-          ? ('in-progress' as const)
-          : order.status === 'fullfilled'
-            ? ('completed' as const)
-            : ('pending' as const),
-    },
-    {
-      label: order.status === 'returned' ? 'Order Returned' : 'Order Fulfilled',
-      date:
-        order.status === 'fullfilled'
-          ? 'Ready for pickup'
-          : order.status === 'returned'
-            ? 'Return processed'
-            : 'Pending',
-      status:
-        order.status === 'fullfilled'
-          ? ('completed' as const)
-          : order.status === 'returned'
-            ? ('error' as const)
-            : ('pending' as const),
-    },
-  ];
-
-  const getStepColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'bg-green-500 ring-green-100';
-      case 'in-progress':
-        return 'bg-yellow-500 ring-yellow-100';
-      case 'error':
-        return 'bg-red-500 ring-red-100';
-      default:
-        return 'bg-gray-300 ring-gray-100';
-    }
-  };
-
-  const getTextColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'text-green-700';
-      case 'in-progress':
-        return 'text-yellow-700';
-      case 'error':
-        return 'text-red-700';
-      default:
-        return 'text-gray-400';
-    }
-  };
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Clock className="w-5 h-5" />
-          Order Timeline
-        </CardTitle>
-        <CardDescription>Track your order progress</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {timelineSteps.map((step, index) => (
-            <div key={index} className="flex items-start gap-3">
-              <div className="relative">
-                <div
-                  className={`w-3 h-3 mt-1.5 rounded-full ring-4 ${getStepColor(step.status)}`}
-                />
-                {index < timelineSteps.length - 1 && (
-                  <div className="absolute top-5 left-1.5 w-0.5 h-12 bg-gray-200" />
-                )}
-              </div>
-              <div>
-                <p className={`font-medium ${getTextColor(step.status)}`}>{step.label}</p>
-                <p className="text-sm text-gray-500">{step.date}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-/**
- * Displays stats cards for the order
- */
-function OrderStatsCards({ order }: { order: Order }) {
-  const stats = [
-    {
-      label: 'Total Items',
-      value: order.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0,
-      icon: Package,
-    },
-    {
-      label: 'Order Total',
-      value: formatCurrency(order.total),
-      icon: DollarSign,
-    },
-    {
-      label: 'Status',
-      value: STATUS_CONFIG[order.status]?.label ?? order.status,
-      icon: STATUS_CONFIG[order.status]?.icon ?? Clock,
-    },
-  ];
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      {stats.map((stat, index) => {
-        const Icon = stat.icon;
-        return (
-          <Card key={index}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                <Icon className="w-4 h-4" />
-                {stat.label}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{stat.value}</p>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
-  );
-}
-
-/**
- * Displays a list of items in the order
- */
-function OrderItemsTable({ items = [] }: { items: OrderItem[] }) {
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  const totalAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-  if (!items.length) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Package className="w-5 h-5" />
-            Order Items
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-500 text-center py-8">No items found for this order</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Package className="w-5 h-5" />
-          Order Items ({items.length})
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {/* Items list */}
-        <div className="space-y-4">
-          {items.map(item => (
-            <div
-              key={item.id}
-              className="flex items-center gap-4 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              {/* Product image */}
-              <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                {item.image_url ? (
-                  <Image
-                    src={item.image_url}
-                    alt={item.product_name}
-                    width={64}
-                    height={64}
-                    className="w-full h-full object-cover"
-                    unoptimized
-                  />
-                ) : (
-                  <Package className="w-8 h-8 text-gray-400" />
-                )}
-              </div>
-
-              {/* Product details */}
-              <div className="flex-1">
-                <p className="font-medium">{item.product_name}</p>
-                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                  {item.sku && <span>SKU: {item.sku}</span>}
-                  <span>Qty: {item.quantity}</span>
-                  <span>Price: {formatCurrency(item.price)}</span>
-                </div>
-              </div>
-
-              {/* Subtotal */}
-              <div className="text-right">
-                <p className="font-semibold">{formatCurrency(item.price * item.quantity)}</p>
-                <p className="text-xs text-gray-500">Subtotal</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Summary */}
-        <div className="mt-6 pt-4 border-t">
-          <div className="flex justify-between items-center">
-            <span className="text-gray-500">Total Items</span>
-            <span className="font-medium">{totalItems} items</span>
-          </div>
-          <div className="flex justify-between items-center mt-2">
-            <span className="text-gray-500">Total Amount</span>
-            <span className="text-xl font-bold">{formatCurrency(totalAmount)}</span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-/**
- * Displays a simple "Order not found" message
- */
-function OrderNotFound({ onBack }: { onBack: () => void }) {
-  return (
-    <div className="container mx-auto px-4 py-10">
-      <div className="flex flex-col items-center justify-center py-20">
-        <p className="text-lg font-medium text-gray-900 mb-4">Order not found</p>
-        <button
-          onClick={onBack}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-[#002d62] rounded-md text-sm font-semibold text-white hover:bg-[#00193c] transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Go Back
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ============================================================
-// UTILITY FUNCTIONS
-// ============================================================
-
-/**
- * Formats a date string to a readable format
- */
 function formatDate(dateString: string): string {
   try {
-    return new Date(dateString).toLocaleString('en-US', {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
-      month: 'short',
+      month: 'long',
       day: 'numeric',
-      hour: 'numeric',
+      hour: '2-digit',
       minute: '2-digit',
-      hour12: true,
     });
   } catch {
-    return dateString;
+    return 'Invalid date';
   }
 }
 
-/**
- * Formats a number to USD currency
- */
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(amount);
 }
 
-// ============================================================
-// MAIN PAGE COMPONENT
-// ============================================================
+export default async function AdminOrderDetailsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
 
-export default function OrderDetailsPage() {
-  const { order, isLoading, error, goBack } = useOrderDetails();
+  const order = await getOrderDetails(id);
 
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-10">
-        <LoadingSkeleton />
-      </div>
-    );
+  if (!order) {
+    notFound();
   }
 
-  // Show simple "Order not found" error state
-  if (error || !order) {
-    return <OrderNotFound onBack={goBack} />;
-  }
+  const totalOrderAmount = order.items.reduce(
+    (sum, item) => sum + item.subtotal,
+    0
+  );
 
-  // Main content
   return (
-    <div className="container mx-auto px-4 py-10">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Order #{order.id}</h1>
-          <p className="text-gray-500 mt-1">View detailed order information</p>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Order Details</h1>
+            <p className="text-gray-600 mt-1">Order #{order.id}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span
+              className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeColor(
+                order.status
+              )}`}
+            >
+              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+            </span>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button onClick={goBack} variant="outline">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-          <Button variant="default">
-            <Truck className="w-4 h-4 mr-2" />
-            Update Status
-          </Button>
+        {/* Order Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-sm font-medium text-gray-500 mb-1">Customer</h3>
+            <p className="text-lg font-semibold text-gray-900 break-all">
+              {order.customer_email}
+            </p>
+          </div>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-sm font-medium text-gray-500 mb-1">
+              Order Date
+            </h3>
+            <p className="text-lg font-semibold text-gray-900">
+              {formatDate(order.created_at)}
+            </p>
+          </div>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-sm font-medium text-gray-500 mb-1">
+              Pickup Time
+            </h3>
+            <p className="text-lg font-semibold text-gray-900">
+              {order.pickup_time ? formatDate(order.pickup_time) : 'Not set'}
+            </p>
+          </div>
         </div>
-      </div>
 
-      {/* Stats */}
-      <OrderStatsCards order={order} />
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Items */}
-        <div className="lg:col-span-2 space-y-6">
-          <OrderItemsTable items={order.items ?? []} />
+        {/* Items Table */}
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Order Items ({order.total_items} items)
+            </h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Product
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    SKU
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Price
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Quantity
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Tax
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Subtotal
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {order.items.map((item) => (
+                  <tr key={item.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        {item.product.images && item.product.images.length > 0 && (
+                          <div className="relative w-12 h-12 flex-shrink-0">
+                            <Image
+                              src={item.product.images[0].url}
+                              alt={item.product.images[0].alt_text || item.product.name}
+                              fill
+                              className="object-cover rounded"
+                              sizes="48px"
+                            />
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {item.product.name}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {item.product.variant_name}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      {item.product.sku}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {formatCurrency(item.price_per_item)}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {item.quantity}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {formatCurrency(item.tax_amount)}
+                    </td>
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                      {formatCurrency(item.subtotal)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="bg-gray-50">
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-6 py-4 text-right font-medium text-gray-900"
+                  >
+                    Total
+                  </td>
+                  <td className="px-6 py-4 text-lg font-bold text-gray-900">
+                    {formatCurrency(totalOrderAmount)}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
         </div>
 
-        {/* Right Column - Info Cards */}
-        <div className="space-y-6">
-          <CustomerInfoCard order={order} />
-          <OrderSummaryCard order={order} />
-          <OrderTimelineCard order={order} />
-        </div>
+        {/* Product Images Gallery - Grouped by Product */}
+        {order.items.some(
+          (item) => item.product.images && item.product.images.length > 0
+        ) && (
+          <div className="mt-6 bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Product Images
+            </h3>
+            <div className="space-y-6">
+              {order.items.map((item) => {
+                if (!item.product.images || item.product.images.length === 0) {
+                  return null;
+                }
+                return (
+                  <div key={item.id} className="border-b border-gray-200 last:border-0 pb-4 last:pb-0">
+                    <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                      <span>{item.product.name}</span>
+                      <span className="text-sm font-normal text-gray-500">
+                        ({item.product.variant_name})
+                      </span>
+                      <span className="text-sm font-normal text-gray-400">
+                        × {item.quantity}
+                      </span>
+                    </h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                      {item.product.images.map((image) => (
+                        <div key={image.id} className="relative aspect-square">
+                          <Image
+                            src={image.url}
+                            alt={image.alt_text || item.product.name}
+                            fill
+                            className="object-cover rounded-lg hover:scale-105 transition-transform duration-200"
+                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                          />
+                          {image.type && (
+                            <div className="absolute bottom-1 right-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded">
+                              {image.type.toLowerCase()}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
