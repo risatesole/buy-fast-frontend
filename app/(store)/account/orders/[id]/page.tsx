@@ -1,0 +1,546 @@
+import { cookies } from 'next/headers';
+import { notFound } from 'next/navigation';
+import { SectionLabel } from '@/components/account/SectionLabel';
+import Image from 'next/image';
+
+interface Address {
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+}
+
+interface OrderItem {
+  id: number;
+  name: string;
+  quantity: number;
+  price: number;
+  tax: number;
+  subtotal: number;
+}
+
+interface OrderData {
+  id: number;
+  profilepicture: string | null;
+  firstname: string;
+  lastname: string;
+  email: string;
+  created_at: string;
+  status: string;
+  pickup_time: string;
+  phone: string | null;
+  address: Address;
+  items: OrderItem[];
+  total: number;
+  shipping_method: string;
+  payment_method: string;
+  notes: string;
+}
+
+interface OrderResponse {
+  data: OrderData;
+}
+
+async function getOrderDetails(orderId: string): Promise<OrderData | null> {
+  try {
+    const cookieStore = await cookies();
+    const allCookies = cookieStore.getAll();
+
+    const cookieString = allCookies
+      .map((cookie) => `${cookie.name}=${cookie.value}`)
+      .join('; ');
+
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+    const response = await fetch(
+      `${apiUrl}/api/v1/customers/orders/${orderId}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(cookieString && { Cookie: cookieString }),
+        },
+        cache: 'no-store',
+      }
+    );
+
+    if (!response.ok) {
+      console.error(`Failed to fetch order: ${response.status} ${response.statusText}`);
+      return null;
+    }
+
+    const data: OrderResponse = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error fetching order details:', error);
+    return null;
+  }
+}
+
+function getStatusStyle(status: string): { label: string; color: string; bg: string } {
+  const statusMap: Record<string, { label: string; color: string; bg: string }> = {
+    pending: {
+      label: 'Pending',
+      color: 'oklch(0.613 0.174 54.215)',
+      bg: 'oklch(0.956 0.073 77.302)',
+    },
+    processing: {
+      label: 'Processing',
+      color: 'oklch(0.613 0.174 54.215)',
+      bg: 'oklch(0.956 0.073 77.302)',
+    },
+    shipped: {
+      label: 'Shipped',
+      color: 'oklch(0.556 0.185 248.425)',
+      bg: 'oklch(0.928 0.046 242.384)',
+    },
+    delivered: {
+      label: 'Delivered',
+      color: 'oklch(0.446 0.162 145.188)',
+      bg: 'oklch(0.932 0.058 160.425)',
+    },
+    cancelled: {
+      label: 'Cancelled',
+      color: 'oklch(0.637 0.237 25.331)',
+      bg: 'oklch(0.956 0.067 18.472)',
+    },
+    returned: {
+      label: 'Returned',
+      color: 'oklch(0.637 0.237 25.331)',
+      bg: 'oklch(0.956 0.067 18.472)',
+    },
+  };
+  return statusMap[status.toLowerCase()] || statusMap.pending;
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const style = getStatusStyle(status);
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        padding: '0.2rem 0.6rem',
+        fontSize: '0.65rem',
+        fontWeight: 500,
+        letterSpacing: '0.04em',
+        textTransform: 'uppercase',
+        borderRadius: 4,
+        color: style.color,
+        background: style.bg,
+      }}
+    >
+      {style.label}
+    </span>
+  );
+}
+
+function formatDateTime(dateString: string) {
+  return new Date(dateString).toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function formatCurrency(amount: number) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount);
+}
+
+function formatShippingMethod(method: string) {
+  return method.split('_').map(word => 
+    word.charAt(0).toUpperCase() + word.slice(1)
+  ).join(' ');
+}
+
+function formatPaymentMethod(method: string) {
+  return method.split('_').map(word => 
+    word.charAt(0).toUpperCase() + word.slice(1)
+  ).join(' ');
+}
+
+export default async function ClientOrderDetailsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
+  const order = await getOrderDetails(id);
+
+  if (!order) {
+    notFound();
+  }
+
+  const totalItems = order.items.reduce((sum, item) => sum + item.quantity, 0);
+  const subtotal = order.items.reduce((sum, item) => sum + item.subtotal, 0);
+
+  return (
+    <div>
+      <div style={{ marginBottom: '2rem' }}>
+        <SectionLabel>Order Details</SectionLabel>
+      </div>
+
+      {/* Order Header */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          marginBottom: '2rem',
+          padding: '1.25rem',
+          border: '1px solid oklch(0.922 0 0)',
+          borderRadius: 4,
+          background: 'oklch(0.985 0 0)',
+        }}
+      >
+        <div>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              marginBottom: '0.5rem',
+              flexWrap: 'wrap',
+            }}
+          >
+            <span
+              style={{
+                fontSize: '1.1rem',
+                fontWeight: 500,
+              }}
+            >
+              Order #{order.id}
+            </span>
+            <StatusBadge status={order.status} />
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              gap: '1.5rem',
+              fontSize: '0.75rem',
+              color: 'oklch(0.708 0 0)',
+              flexWrap: 'wrap',
+            }}
+          >
+            <span>Placed on {formatDateTime(order.created_at)}</span>
+            <span>
+              {totalItems} {totalItems === 1 ? 'item' : 'items'}
+            </span>
+          </div>
+        </div>
+        <div
+          style={{
+            fontSize: '1.25rem',
+            fontWeight: 600,
+          }}
+        >
+          {formatCurrency(order.total)}
+        </div>
+      </div>
+
+      {/* Order Items */}
+      <div
+        style={{
+          marginBottom: '2rem',
+          border: '1px solid oklch(0.922 0 0)',
+          borderRadius: 4,
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            padding: '0.75rem 1.25rem',
+            background: 'oklch(0.97 0 0)',
+            borderBottom: '1px solid oklch(0.922 0 0)',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+          }}
+        >
+          Order Items
+        </div>
+        <div style={{ padding: '0.5rem 0' }}>
+          {order.items.map((item, index) => (
+            <div
+              key={item.id}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '0.75rem 1.25rem',
+                borderBottom: index < order.items.length - 1 ? '1px solid oklch(0.96 0 0)' : 'none',
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                  }}
+                >
+                  {item.name}
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.75rem',
+                    color: 'oklch(0.708 0 0)',
+                  }}
+                >
+                  Qty: {item.quantity} × {formatCurrency(item.price)}
+                </div>
+              </div>
+              <div
+                style={{
+                  textAlign: 'right',
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                  }}
+                >
+                  {formatCurrency(item.subtotal)}
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.65rem',
+                    color: 'oklch(0.708 0 0)',
+                  }}
+                >
+                  Tax: {formatCurrency(item.tax)}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Order Summary Footer */}
+        <div
+          style={{
+            padding: '0.75rem 1.25rem',
+            background: 'oklch(0.97 0 0)',
+            borderTop: '1px solid oklch(0.922 0 0)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <div style={{ fontSize: '0.75rem', color: 'oklch(0.708 0 0)' }}>
+            Subtotal ({totalItems} {totalItems === 1 ? 'item' : 'items'})
+          </div>
+          <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+            {formatCurrency(subtotal)}
+          </div>
+        </div>
+        <div
+          style={{
+            padding: '0.75rem 1.25rem',
+            background: 'oklch(0.97 0 0)',
+            borderTop: '1px solid oklch(0.922 0 0)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>Total</div>
+          <div style={{ fontSize: '1.1rem', fontWeight: 700 }}>{formatCurrency(order.total)}</div>
+        </div>
+      </div>
+
+      {/* Order Details Grid */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '1.5rem',
+          marginBottom: '2rem',
+        }}
+      >
+        {/* Customer Information */}
+        <div
+          style={{
+            border: '1px solid oklch(0.922 0 0)',
+            borderRadius: 4,
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              padding: '0.75rem 1.25rem',
+              background: 'oklch(0.97 0 0)',
+              borderBottom: '1px solid oklch(0.922 0 0)',
+              fontSize: '0.875rem',
+              fontWeight: 500,
+            }}
+          >
+            Customer Information
+          </div>
+          <div style={{ padding: '1.25rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                marginBottom: '0.75rem',
+              }}
+            >
+              {order.profilepicture ? (
+                <Image
+                  src={order.profilepicture}
+                  alt={`${order.firstname} ${order.lastname}`}
+                  width={40}
+                  height={40}
+                  style={{
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                  }}
+                  unoptimized
+                />
+              ) : (
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    background: 'oklch(0.922 0 0)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1rem',
+                    fontWeight: 500,
+                    color: 'oklch(0.556 0 0)',
+                  }}
+                >
+                  {order.firstname.charAt(0)}
+                  {order.lastname.charAt(0)}
+                </div>
+              )}
+              <div>
+                <div style={{ fontSize: '0.875rem', fontWeight: 500 }}>
+                  {order.firstname} {order.lastname}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'oklch(0.708 0 0)' }}>
+                  {order.email}
+                </div>
+              </div>
+            </div>
+            {order.phone && (
+              <div style={{ fontSize: '0.75rem', color: 'oklch(0.556 0 0)' }}>
+                Phone: {order.phone}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Shipping & Payment */}
+        <div
+          style={{
+            border: '1px solid oklch(0.922 0 0)',
+            borderRadius: 4,
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              padding: '0.75rem 1.25rem',
+              background: 'oklch(0.97 0 0)',
+              borderBottom: '1px solid oklch(0.922 0 0)',
+              fontSize: '0.875rem',
+              fontWeight: 500,
+            }}
+          >
+            Shipping & Payment
+          </div>
+          <div style={{ padding: '1.25rem' }}>
+            <div style={{ marginBottom: '0.75rem' }}>
+              <div style={{ fontSize: '0.65rem', color: 'oklch(0.708 0 0)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Shipping Method
+              </div>
+              <div style={{ fontSize: '0.875rem' }}>{formatShippingMethod(order.shipping_method)}</div>
+            </div>
+            <div style={{ marginBottom: '0.75rem' }}>
+              <div style={{ fontSize: '0.65rem', color: 'oklch(0.708 0 0)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Payment Method
+              </div>
+              <div style={{ fontSize: '0.875rem' }}>{formatPaymentMethod(order.payment_method)}</div>
+            </div>
+            {order.pickup_time && (
+              <div>
+                <div style={{ fontSize: '0.65rem', color: 'oklch(0.708 0 0)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Pickup Time
+                </div>
+                <div style={{ fontSize: '0.875rem' }}>{formatDateTime(order.pickup_time)}</div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Shipping Address */}
+      <div
+        style={{
+          border: '1px solid oklch(0.922 0 0)',
+          borderRadius: 4,
+          overflow: 'hidden',
+          marginBottom: '2rem',
+        }}
+      >
+        <div
+          style={{
+            padding: '0.75rem 1.25rem',
+            background: 'oklch(0.97 0 0)',
+            borderBottom: '1px solid oklch(0.922 0 0)',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+          }}
+        >
+          Shipping Address
+        </div>
+        <div style={{ padding: '1.25rem' }}>
+          <div style={{ fontSize: '0.875rem' }}>
+            <div>{order.address.street}</div>
+            <div>
+              {order.address.city}, {order.address.state} {order.address.zipCode}
+            </div>
+            <div>{order.address.country}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Notes */}
+      {order.notes && (
+        <div
+          style={{
+            border: '1px solid oklch(0.922 0 0)',
+            borderRadius: 4,
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              padding: '0.75rem 1.25rem',
+              background: 'oklch(0.97 0 0)',
+              borderBottom: '1px solid oklch(0.922 0 0)',
+              fontSize: '0.875rem',
+              fontWeight: 500,
+            }}
+          >
+            Order Notes
+          </div>
+          <div style={{ padding: '1.25rem' }}>
+            <div style={{ fontSize: '0.875rem', color: 'oklch(0.556 0 0)' }}>
+              {order.notes}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

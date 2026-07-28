@@ -71,7 +71,7 @@ function adaptOrder(order: BackendOrder): Order {
   const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
 
   return {
-    id: `ORD-${String(order.id).padStart(5, '0')}`,
+    id: `${order.id}`,
     date: order.created_at,
     total: order.total,
     status: STATUS_MAP[order.status] ?? 'processing',
