@@ -10,7 +10,8 @@ type CreditCard = {
   card_number: string;
   cardholder_name: string;
   cvv: string;
-  expiration_date: string;
+  expiry_month: string;
+  expiry_year: string;
 };
 
 type BillingAddress = {
@@ -29,7 +30,6 @@ type CheckoutData = {
   phone: string;
   credit_card: CreditCard;
   billing_address: BillingAddress;
-  shipping_address?: BillingAddress;
   pickuptime: string;
   items: Array<{
     product_variant_id: string;
@@ -131,8 +131,6 @@ class CheckoutService {
   }
 
   async executeCheckout(formData: CheckoutData): Promise<void> {
-    const [expiry_month, expiry_year] = formData.credit_card.expiration_date.split('/');
-
     const transformedData = {
       billing_contact: {
         firstname: formData.firstname,
@@ -150,8 +148,10 @@ class CheckoutService {
       },
       card_information: {
         card_number: formData.credit_card.card_number.replace(/\s/g, ''),
-        expiry_month: parseInt(expiry_month, 10),
-        expiry_year: parseInt(expiry_year, 10),
+        expiry_month: parseInt(formData.credit_card.expiry_month, 10),
+        // El backend espera el año en 2 dígitos (2029 -> 29), aunque el selector
+        // muestra el año completo para que no tengas que adivinar el formato.
+        expiry_year: parseInt(formData.credit_card.expiry_year, 10) % 100,
         cvv: parseInt(formData.credit_card.cvv, 10),
       },
       pickuptime: formData.pickuptime,
@@ -179,27 +179,34 @@ class CheckoutService {
 // CUSTOM HOOK: LÓGICA DE ESTADO Y NEGOCIO
 // ============================================================================
 
-type CheckoutStep = 'contact' | 'shipping' | 'payment' | 'review';
 type FormErrors = Record<string, string>;
 
+// Rango de años para el selector de expiración (año actual + 15 años)
+const CURRENT_YEAR = new Date().getFullYear();
+const EXPIRY_YEARS = Array.from({ length: 16 }, (_, i) => CURRENT_YEAR + i);
+const EXPIRY_MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
+
 function useCheckoutLogic() {
-  const [step, setStep] = useState<CheckoutStep>('contact');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [checkoutData, setCheckoutData] = useState<CheckoutPageData | null>(null);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
-  const [useShippingAsBilling, setUseShippingAsBilling] = useState(true);
 
   const [formData, setFormData] = useState<CheckoutData>({
     firstname: '',
     lastname: '',
     email: '',
     phone: '',
-    credit_card: { card_number: '', cardholder_name: '', cvv: '', expiration_date: '' },
+    credit_card: {
+      card_number: '',
+      cardholder_name: '',
+      cvv: '',
+      expiry_month: '',
+      expiry_year: '',
+    },
     billing_address: { street: '', city: '', state: '', postal_code: '', country: '' },
-    shipping_address: { street: '', city: '', state: '', postal_code: '', country: '' },
     pickuptime: '',
     items: [],
   });
@@ -247,7 +254,7 @@ function useCheckoutLogic() {
     );
   }, [checkoutData?.data.cart.items]);
 
-  const validateStep = useCallback(() => {
+  const validateAll = useCallback(() => {
     const errors: FormErrors = {};
     const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     const validatePhone = (phone: string) =>
@@ -257,48 +264,36 @@ function useCheckoutLogic() {
       return cleaned.length >= 13 && cleaned.length <= 19 && /^\d+$/.test(cleaned);
     };
 
-    if (step === 'contact') {
-      if (!formData.firstname.trim()) errors.firstname = 'El nombre es requerido';
-      if (!formData.lastname.trim()) errors.lastname = 'El apellido es requerido';
-      if (!formData.email.trim()) errors.email = 'El correo es requerido';
-      else if (!validateEmail(formData.email)) errors.email = 'El correo no es válido';
-      if (!formData.phone.trim()) errors.phone = 'Se requiere un número de teléfono';
-      else if (!validatePhone(formData.phone)) errors.phone = 'Formato de teléfono inválido';
-    }
+    if (!formData.firstname.trim()) errors.firstname = 'El nombre es requerido';
+    if (!formData.lastname.trim()) errors.lastname = 'El apellido es requerido';
+    if (!formData.email.trim()) errors.email = 'El correo es requerido';
+    else if (!validateEmail(formData.email)) errors.email = 'El correo no es válido';
+    if (!formData.phone.trim()) errors.phone = 'Se requiere un número de teléfono';
+    else if (!validatePhone(formData.phone)) errors.phone = 'Formato de teléfono inválido';
 
-    if (step === 'shipping') {
-      const checkAddress = (address: BillingAddress, prefix: string) => {
-        if (!address.street.trim()) errors[`${prefix}_street`] = 'La calle es requerida';
-        if (!address.city.trim()) errors[`${prefix}_city`] = 'La ciudad es requerida';
-        if (!address.state.trim()) errors[`${prefix}_state`] = 'El estado es requerido';
-        if (!address.postal_code.trim())
-          errors[`${prefix}_postal_code`] = 'El código postal es requerido';
-        if (!address.country.trim()) errors[`${prefix}_country`] = 'El país es requerido';
-      };
-      checkAddress(formData.billing_address, 'billing');
-      if (!useShippingAsBilling) checkAddress(formData.shipping_address!, 'shipping');
-      if (!formData.pickuptime) errors.pickuptime = 'Por favor selecciona un horario';
-    }
+    const address = formData.billing_address;
+    if (!address.street.trim()) errors.billing_street = 'La calle es requerida';
+    if (!address.city.trim()) errors.billing_city = 'La ciudad es requerida';
+    if (!address.state.trim()) errors.billing_state = 'El estado es requerido';
+    if (!address.postal_code.trim()) errors.billing_postal_code = 'El código postal es requerido';
+    if (!address.country.trim()) errors.billing_country = 'El país es requerido';
+    if (!formData.pickuptime) errors.pickuptime = 'Por favor selecciona un horario';
 
-    if (step === 'payment') {
-      if (!formData.credit_card.cardholder_name.trim())
-        errors.cardholder_name = 'El nombre del titular es requerido';
-      if (!formData.credit_card.card_number.trim())
-        errors.card_number = 'El número de tarjeta es requerido';
-      else if (!validateCard(formData.credit_card.card_number))
-        errors.card_number = 'Número de tarjeta inválido';
-      if (!formData.credit_card.expiration_date.trim())
-        errors.expiration_date = 'La fecha de vencimiento es requerida';
-      else if (!/^\d{2}\/\d{2}$/.test(formData.credit_card.expiration_date))
-        errors.expiration_date = 'Usa el formato MM/YY';
-      if (!formData.credit_card.cvv.trim()) errors.cvv = 'El CVV es requerido';
-      else if (!/^\d{3,4}$/.test(formData.credit_card.cvv))
-        errors.cvv = 'El CVV debe tener 3-4 dígitos';
-    }
+    if (!formData.credit_card.cardholder_name.trim())
+      errors.cardholder_name = 'El nombre del titular es requerido';
+    if (!formData.credit_card.card_number.trim())
+      errors.card_number = 'El número de tarjeta es requerido';
+    else if (!validateCard(formData.credit_card.card_number))
+      errors.card_number = 'Número de tarjeta inválido';
+    if (!formData.credit_card.expiry_month) errors.expiry_month = 'Selecciona el mes';
+    if (!formData.credit_card.expiry_year) errors.expiry_year = 'Selecciona el año';
+    if (!formData.credit_card.cvv.trim()) errors.cvv = 'El CVV es requerido';
+    else if (!/^\d{3,4}$/.test(formData.credit_card.cvv))
+      errors.cvv = 'El CVV debe tener 3-4 dígitos';
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
-  }, [step, formData, useShippingAsBilling]);
+  }, [formData]);
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -316,11 +311,6 @@ function useCheckoutLogic() {
             ...prev,
             billing_address: { ...prev.billing_address, [name.replace('billing_', '')]: value },
           };
-        if (name.startsWith('shipping_'))
-          return {
-            ...prev,
-            shipping_address: { ...prev.shipping_address!, [name.replace('shipping_', '')]: value },
-          };
         return { ...prev, [name]: value };
       });
 
@@ -335,25 +325,17 @@ function useCheckoutLogic() {
     [formErrors]
   );
 
-  const handleNextStep = useCallback(() => {
-    if (!validateStep()) return;
-    const steps: CheckoutStep[] = ['contact', 'shipping', 'payment', 'review'];
-    setStep(prev => steps[steps.indexOf(prev) + 1] || prev);
-  }, [validateStep]);
-
-  const handlePrevStep = useCallback(() => {
-    const steps: CheckoutStep[] = ['contact', 'shipping', 'payment', 'review'];
-    setStep(prev => steps[steps.indexOf(prev) - 1] || prev);
-  }, []);
-
   const handleSubmit = async () => {
+    if (!validateAll()) {
+      // Lleva al usuario al primer campo con error para que no tenga que buscarlo
+      const firstErrorField = document.querySelector<HTMLElement>('[data-error="true"]');
+      firstErrorField?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
     setSubmitting(true);
     try {
       const service = new CheckoutService();
-      await service.executeCheckout({
-        ...formData,
-        shipping_address: useShippingAsBilling ? undefined : formData.shipping_address,
-      });
+      await service.executeCheckout(formData);
       setSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Checkout failed');
@@ -363,7 +345,6 @@ function useCheckoutLogic() {
   };
 
   return {
-    step,
     loading,
     submitting,
     error,
@@ -371,12 +352,8 @@ function useCheckoutLogic() {
     checkoutData,
     formErrors,
     formData,
-    useShippingAsBilling,
     totalAmount,
-    setUseShippingAsBilling,
     handleInputChange,
-    handleNextStep,
-    handlePrevStep,
     handleSubmit,
   };
 }
@@ -406,6 +383,7 @@ function InputField({
   formErrors,
   onChange,
 }: InputFieldProps) {
+  const hasError = Boolean(formErrors[name]);
   return (
     <div>
       <label className="block text-sm font-medium leading-6 text-gray-900">{label}</label>
@@ -417,23 +395,45 @@ function InputField({
           onChange={onChange}
           placeholder={placeholder}
           maxLength={maxLength}
+          data-error={hasError}
           className={`block w-full rounded-xl border-0 py-2.5 px-3.5 text-gray-900 shadow-sm ring-1 ring-inset transition-all duration-200 ${
-            formErrors[name]
+            hasError
               ? 'ring-red-300 focus:ring-red-500 bg-red-50/50'
               : 'ring-gray-300 focus:ring-blue-600 hover:ring-gray-400'
           } placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6`}
         />
-        {formErrors[name] && (
-          <p className="absolute -bottom-5 left-0 text-xs text-red-600">{formErrors[name]}</p>
-        )}
+        {hasError && <p className="mt-1 text-xs text-red-600">{formErrors[name]}</p>}
       </div>
     </div>
   );
 }
 
+interface SectionCardProps {
+  step: string;
+  title: string;
+  subtitle: string;
+  children: React.ReactNode;
+}
+
+function SectionCard({ step, title, subtitle, children }: SectionCardProps) {
+  return (
+    <section className="bg-white border-2 border-blue-600 rounded-3xl shadow-sm p-6 sm:p-10">
+      <div className="mb-8 flex items-start gap-4">
+        <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white">
+          {step}
+        </div>
+        <div>
+          <h2 className="text-xl font-semibold leading-7 text-gray-900">{title}</h2>
+          <p className="mt-1 text-sm text-gray-500">{subtitle}</p>
+        </div>
+      </div>
+      {children}
+    </section>
+  );
+}
+
 export default function CheckoutPage() {
   const {
-    step,
     loading,
     submitting,
     error,
@@ -441,12 +441,8 @@ export default function CheckoutPage() {
     checkoutData,
     formErrors,
     formData,
-    useShippingAsBilling,
     totalAmount,
-    setUseShippingAsBilling,
     handleInputChange,
-    handleNextStep,
-    handlePrevStep,
     handleSubmit,
   } = useCheckoutLogic();
 
@@ -514,9 +510,7 @@ export default function CheckoutPage() {
               className="h-10 w-auto object-contain"
               priority
             />
-            {/* Separador vertical para jerarquía visual */}
             <div className="h-8 w-px bg-white/20"></div>
-            {/* Texto de Identidad */}
             <div className="flex flex-col justify-center">
               <span className="font-serif text-lg font-bold tracking-widest text-white leading-tight">
                 BUYFAST
@@ -528,458 +522,281 @@ export default function CheckoutPage() {
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">Finalizar Compra</h1>
           <p className="mt-2 text-sm text-gray-500">
-            Completa la información a continuación para procesar tu pedido.
+            Completa toda la información y confirma tu pedido para retirarlo en el económato.
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-8 gap-y-10">
-          <div className="lg:col-span-8">
-            <div className="bg-white border-2 border-blue-600 rounded-3xl shadow-sm p-6 sm:p-10">
-              {/* Stepper Moderno */}
-              <div className="mb-12">
-                <div className="flex items-center justify-between relative">
-                  <div
-                    className="absolute left-0 top-1/2 -mt-px h-0.5 w-full bg-gray-100"
-                    aria-hidden="true"
-                  />
-                  {(['contact', 'shipping', 'payment', 'review'] as const).map((s, idx) => {
-                    const isCompleted =
-                      ['contact', 'shipping', 'payment', 'review'].indexOf(s) <
-                      ['contact', 'shipping', 'payment', 'review'].indexOf(step);
-                    const isCurrent = s === step;
-                    return (
-                      <div
-                        key={s}
-                        className="relative flex items-center justify-center bg-white px-3"
-                      >
-                        <div
-                          className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-all duration-300 ${
-                            isCurrent
-                              ? 'bg-blue-600 text-white ring-4 ring-blue-50'
-                              : isCompleted
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-50 text-gray-400 ring-1 ring-inset ring-gray-200'
-                          }`}
-                        >
-                          {isCompleted ? (
-                            <svg
-                              className="h-5 w-5"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              strokeWidth="2.5"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M4.5 12.75l6 6 9-13.5"
-                              />
-                            </svg>
-                          ) : (
-                            idx + 1
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
+          <div className="lg:col-span-8 space-y-8">
+            {error && (
+              <div className="rounded-xl bg-red-50 p-4 ring-1 ring-inset ring-red-200/50">
+                <div className="flex items-center">
+                  <svg
+                    className="h-5 w-5 text-red-400 mr-3"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <h3 className="text-sm font-medium text-red-800">{error}</h3>
                 </div>
               </div>
+            )}
 
-              {error && (
-                <div className="mb-8 rounded-xl bg-red-50 p-4 ring-1 ring-inset ring-red-200/50">
-                  <div className="flex items-center">
-                    <svg
-                      className="h-5 w-5 text-red-400 mr-3"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <h3 className="text-sm font-medium text-red-800">{error}</h3>
-                  </div>
+            {/* 1. Contacto */}
+            <SectionCard
+              step="1"
+              title="Información de Contacto"
+              subtitle="Utilizaremos este correo para enviar tu recibo."
+            >
+              <div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+                <InputField
+                  label="Nombres"
+                  name="firstname"
+                  value={formData.firstname}
+                  formErrors={formErrors}
+                  onChange={handleInputChange}
+                />
+                <InputField
+                  label="Apellidos"
+                  name="lastname"
+                  value={formData.lastname}
+                  formErrors={formErrors}
+                  onChange={handleInputChange}
+                />
+                <div className="sm:col-span-2">
+                  <InputField
+                    label="Correo Electrónico"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    formErrors={formErrors}
+                    onChange={handleInputChange}
+                  />
                 </div>
-              )}
+                <div className="sm:col-span-2">
+                  <InputField
+                    label="Número de Teléfono"
+                    name="phone"
+                    type="tel"
+                    value={formData.phone}
+                    formErrors={formErrors}
+                    onChange={handleInputChange}
+                  />
+                </div>
+              </div>
+            </SectionCard>
 
-              {/* Contenido Dinámico de Pasos */}
-              <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                {step === 'contact' && (
-                  <div className="space-y-8">
+            {/* 2. Retiro y Facturación */}
+            <SectionCard
+              step="2"
+              title="Retiro en Económato"
+              subtitle="Selecciona el horario para pasar a retirar tu pedido y confirma tu dirección de facturación."
+            >
+              <div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium leading-6 text-gray-900">
+                    Horario de Recogida
+                  </label>
+                  <select
+                    name="pickuptime"
+                    value={formData.pickuptime}
+                    onChange={handleInputChange}
+                    data-error={Boolean(formErrors.pickuptime)}
+                    className={`mt-2 block w-full rounded-xl border-0 py-3 px-4 text-gray-900 shadow-sm ring-1 ring-inset ${formErrors.pickuptime ? 'ring-red-300 focus:ring-red-500' : 'ring-gray-300 focus:ring-blue-600'} focus:ring-2 sm:text-sm`}
+                  >
+                    <option value="">Selecciona un horario disponible...</option>
+                    {checkoutData?.data.pickup_times.map(slot => (
+                      <option
+                        key={`${slot.date}-${slot.time}`}
+                        value={`${slot.date} ${slot.time}`}
+                        disabled={!slot.available}
+                      >
+                        {slot.date} a las {slot.time} {!slot.available && '(No Disponible)'}
+                      </option>
+                    ))}
+                  </select>
+                  {formErrors.pickuptime && (
+                    <p className="mt-1 text-xs text-red-600">{formErrors.pickuptime}</p>
+                  )}
+                </div>
+
+                <div className="sm:col-span-2 pt-2 border-b border-gray-100 pb-2">
+                  <h3 className="text-sm font-semibold text-gray-900">Dirección de Facturación</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Solo para fines de facturación; el pedido se retira en el económato.
+                  </p>
+                </div>
+                <div className="sm:col-span-2">
+                  <InputField
+                    label="Dirección"
+                    name="billing_street"
+                    value={formData.billing_address.street}
+                    formErrors={formErrors}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <InputField
+                  label="Ciudad"
+                  name="billing_city"
+                  value={formData.billing_address.city}
+                  formErrors={formErrors}
+                  onChange={handleInputChange}
+                />
+                <InputField
+                  label="Provincia / Estado"
+                  name="billing_state"
+                  value={formData.billing_address.state}
+                  formErrors={formErrors}
+                  onChange={handleInputChange}
+                />
+                <InputField
+                  label="Código Postal"
+                  name="billing_postal_code"
+                  value={formData.billing_address.postal_code}
+                  formErrors={formErrors}
+                  onChange={handleInputChange}
+                />
+                <InputField
+                  label="País"
+                  name="billing_country"
+                  value={formData.billing_address.country}
+                  formErrors={formErrors}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </SectionCard>
+
+            {/* 3. Pago */}
+            <SectionCard
+              step="3"
+              title="Método de Pago"
+              subtitle="Tus datos de pago están encriptados de forma segura."
+            >
+              <div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <InputField
+                    label="Nombre en la tarjeta"
+                    name="card_cardholder_name"
+                    value={formData.credit_card.cardholder_name}
+                    formErrors={formErrors}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <InputField
+                    label="Número de la tarjeta"
+                    name="card_card_number"
+                    value={formData.credit_card.card_number}
+                    maxLength={19}
+                    formErrors={formErrors}
+                    onChange={handleInputChange}
+                  />
+                </div>
+
+                {/* Expiración: mes y año como selects separados, sin adivinar el formato */}
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium leading-6 text-gray-900">
+                    Fecha de expiración
+                  </label>
+                  <div className="mt-2 grid grid-cols-2 gap-3">
                     <div>
-                      <h2 className="text-xl font-semibold leading-7 text-gray-900">
-                        Información de Contacto
-                      </h2>
-                      <p className="mt-1 text-sm text-gray-500">
-                        Utilizaremos este correo para enviar tu recibo.
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">
-                      <InputField
-                        label="Nombres"
-                        name="firstname"
-                        value={formData.firstname}
-                        formErrors={formErrors}
+                      <select
+                        name="card_expiry_month"
+                        value={formData.credit_card.expiry_month}
                         onChange={handleInputChange}
-                      />
-                      <InputField
-                        label="Apellidos"
-                        name="lastname"
-                        value={formData.lastname}
-                        formErrors={formErrors}
-                        onChange={handleInputChange}
-                      />
-                      <div className="sm:col-span-2">
-                        <InputField
-                          label="Correo Electrónico"
-                          name="email"
-                          type="email"
-                          value={formData.email}
-                          formErrors={formErrors}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <InputField
-                          label="Número de Teléfono"
-                          name="phone"
-                          type="tel"
-                          value={formData.phone}
-                          formErrors={formErrors}
-                          onChange={handleInputChange}
-                        />
-                      </div>
+                        data-error={Boolean(formErrors.expiry_month)}
+                        className={`block w-full rounded-xl border-0 py-2.5 px-3.5 text-gray-900 shadow-sm ring-1 ring-inset ${
+                          formErrors.expiry_month
+                            ? 'ring-red-300 focus:ring-red-500'
+                            : 'ring-gray-300 focus:ring-blue-600'
+                        } focus:ring-2 sm:text-sm`}
+                      >
+                        <option value="">Mes</option>
+                        {EXPIRY_MONTHS.map(m => (
+                          <option key={m} value={String(m).padStart(2, '0')}>
+                            {String(m).padStart(2, '0')}
+                          </option>
+                        ))}
+                      </select>
+                      {formErrors.expiry_month && (
+                        <p className="mt-1 text-xs text-red-600">{formErrors.expiry_month}</p>
+                      )}
                     </div>
-                  </div>
-                )}
-
-                {step === 'shipping' && (
-                  <div className="space-y-8">
                     <div>
-                      <h2 className="text-xl font-semibold leading-7 text-gray-900">
-                        Envío & Recogida
-                      </h2>
-                      <p className="mt-1 text-sm text-gray-500">
-                        Selecciona el horario y la dirección de facturación.
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">
-                      <div className="sm:col-span-2">
-                        <label className="block text-sm font-medium leading-6 text-gray-900">
-                          Horario de Recogida
-                        </label>
-                        <select
-                          name="pickuptime"
-                          value={formData.pickuptime}
-                          onChange={handleInputChange}
-                          className={`mt-2 block w-full rounded-xl border-0 py-3 px-4 text-gray-900 shadow-sm ring-1 ring-inset ${formErrors.pickuptime ? 'ring-red-300 focus:ring-red-500' : 'ring-gray-300 focus:ring-blue-600'} focus:ring-2 sm:text-sm`}
-                        >
-                          <option value="">Selecciona un horario disponible...</option>
-                          {checkoutData?.data.pickup_times.map(slot => (
-                            <option
-                              key={`${slot.date}-${slot.time}`}
-                              value={`${slot.date} ${slot.time}`}
-                              disabled={!slot.available}
-                            >
-                              {slot.date} a las {slot.time} {!slot.available && '(No Disponible)'}
-                            </option>
-                          ))}
-                        </select>
-                        {formErrors.pickuptime && (
-                          <p className="mt-1 text-xs text-red-600">{formErrors.pickuptime}</p>
-                        )}
-                      </div>
-
-                      <div className="sm:col-span-2 pt-4 border-b border-gray-100 pb-2">
-                        <h3 className="text-sm font-semibold text-gray-900">
-                          Dirección de Facturación
-                        </h3>
-                      </div>
-                      <div className="sm:col-span-2">
-                        <InputField
-                          label="Dirección"
-                          name="billing_street"
-                          value={formData.billing_address.street}
-                          formErrors={formErrors}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-                      <InputField
-                        label="Ciudad"
-                        name="billing_city"
-                        value={formData.billing_address.city}
-                        formErrors={formErrors}
+                      <select
+                        name="card_expiry_year"
+                        value={formData.credit_card.expiry_year}
                         onChange={handleInputChange}
-                      />
-                      <InputField
-                        label="Provincia / Estado"
-                        name="billing_state"
-                        value={formData.billing_address.state}
-                        formErrors={formErrors}
-                        onChange={handleInputChange}
-                      />
-                      <InputField
-                        label="Código Postal"
-                        name="billing_postal_code"
-                        value={formData.billing_address.postal_code}
-                        formErrors={formErrors}
-                        onChange={handleInputChange}
-                      />
-                      <InputField
-                        label="País"
-                        name="billing_country"
-                        value={formData.billing_address.country}
-                        formErrors={formErrors}
-                        onChange={handleInputChange}
-                      />
-
-                      <div className="sm:col-span-2 pt-2">
-                        <label className="relative flex items-start cursor-pointer group">
-                          <div className="flex h-6 items-center">
-                            <input
-                              type="checkbox"
-                              checked={useShippingAsBilling}
-                              onChange={e => setUseShippingAsBilling(e.target.checked)}
-                              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600 transition-all cursor-pointer"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm leading-6">
-                            <span className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
-                              Misma dirección para envíos
-                            </span>
-                            <p className="text-gray-500">
-                              Usa la dirección de facturación proporcionada para la entrega.
-                            </p>
-                          </div>
-                        </label>
-                      </div>
-
-                      {!useShippingAsBilling && (
-                        <>
-                          <div className="sm:col-span-2 pt-4 border-b border-gray-100 pb-2">
-                            <h3 className="text-sm font-semibold text-gray-900">
-                              Dirección de Envío
-                            </h3>
-                          </div>
-                          <div className="sm:col-span-2">
-                            <InputField
-                              label="Dirección"
-                              name="shipping_street"
-                              value={formData.shipping_address?.street || ''}
-                              formErrors={formErrors}
-                              onChange={handleInputChange}
-                            />
-                          </div>
-                          <InputField
-                            label="Ciudad"
-                            name="shipping_city"
-                            value={formData.shipping_address?.city || ''}
-                            formErrors={formErrors}
-                            onChange={handleInputChange}
-                          />
-                          <InputField
-                            label="Provincia / Estado"
-                            name="shipping_state"
-                            value={formData.shipping_address?.state || ''}
-                            formErrors={formErrors}
-                            onChange={handleInputChange}
-                          />
-                          <InputField
-                            label="Código Postal"
-                            name="shipping_postal_code"
-                            value={formData.shipping_address?.postal_code || ''}
-                            formErrors={formErrors}
-                            onChange={handleInputChange}
-                          />
-                          <InputField
-                            label="País"
-                            name="shipping_country"
-                            value={formData.shipping_address?.country || ''}
-                            formErrors={formErrors}
-                            onChange={handleInputChange}
-                          />
-                        </>
+                        data-error={Boolean(formErrors.expiry_year)}
+                        className={`block w-full rounded-xl border-0 py-2.5 px-3.5 text-gray-900 shadow-sm ring-1 ring-inset ${
+                          formErrors.expiry_year
+                            ? 'ring-red-300 focus:ring-red-500'
+                            : 'ring-gray-300 focus:ring-blue-600'
+                        } focus:ring-2 sm:text-sm`}
+                      >
+                        <option value="">Año</option>
+                        {EXPIRY_YEARS.map(y => (
+                          <option key={y} value={y}>
+                            {y}
+                          </option>
+                        ))}
+                      </select>
+                      {formErrors.expiry_year && (
+                        <p className="mt-1 text-xs text-red-600">{formErrors.expiry_year}</p>
                       )}
                     </div>
                   </div>
-                )}
+                </div>
 
-                {step === 'payment' && (
-                  <div className="space-y-8">
-                    <div>
-                      <h2 className="text-xl font-semibold leading-7 text-gray-900">
-                        Método de Pago
-                      </h2>
-                      <p className="mt-1 text-sm text-gray-500">
-                        Tus datos de pago están encriptados de forma segura.
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">
-                      <div className="sm:col-span-2">
-                        <InputField
-                          label="Nombre en la tarjeta"
-                          name="card_cardholder_name"
-                          value={formData.credit_card.cardholder_name}
-                          formErrors={formErrors}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <InputField
-                          label="Número de la tarjeta"
-                          name="card_card_number"
-                          value={formData.credit_card.card_number}
-                          maxLength={19}
-                          formErrors={formErrors}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-                      <InputField
-                        label="Expiración (MM/AA)"
-                        name="card_expiration_date"
-                        value={formData.credit_card.expiration_date}
-                        placeholder="MM/AA"
-                        maxLength={5}
-                        formErrors={formErrors}
-                        onChange={handleInputChange}
-                      />
-                      <InputField
-                        label="CVC"
-                        name="card_cvv"
-                        value={formData.credit_card.cvv}
-                        maxLength={4}
-                        formErrors={formErrors}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {step === 'review' && (
-                  <div className="space-y-8">
-                    <div>
-                      <h2 className="text-xl font-semibold leading-7 text-gray-900">
-                        Revisión Final
-                      </h2>
-                      <p className="mt-1 text-sm text-gray-500">
-                        Por favor, revisa los detalles antes de completar el pedido.
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-gray-100 bg-gray-50/50 p-6 space-y-6">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                        <div>
-                          <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
-                            Contacto
-                          </h4>
-                          <p className="text-sm font-medium text-gray-900">
-                            {formData.firstname} {formData.lastname}
-                          </p>
-                          <p className="text-sm text-gray-600 mt-1">{formData.email}</p>
-                          <p className="text-sm text-gray-600">{formData.phone}</p>
-                        </div>
-                        <div>
-                          <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
-                            Horario de Recogida
-                          </h4>
-                          <p className="text-sm font-medium text-gray-900 bg-white border border-gray-200 py-1.5 px-3 rounded-lg w-fit shadow-sm">
-                            {formData.pickuptime}
-                          </p>
-                        </div>
-                        <div className="sm:col-span-2">
-                          <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
-                            Dirección de Facturación
-                          </h4>
-                          <p className="text-sm font-medium text-gray-900">
-                            {formData.billing_address.street}
-                          </p>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {formData.billing_address.city}, {formData.billing_address.state}{' '}
-                            {formData.billing_address.postal_code}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            {formData.billing_address.country}
-                          </p>
-                        </div>
-                        <div className="sm:col-span-2">
-                          <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
-                            Método de Pago
-                          </h4>
-                          <div className="flex items-center text-sm font-medium text-gray-900 bg-white border border-gray-200 py-2.5 px-4 rounded-xl w-fit shadow-sm">
-                            <svg
-                              className="w-5 h-5 mr-3 text-blue-600"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                              ></path>
-                            </svg>
-                            •••• •••• •••• {formData.credit_card.card_number.slice(-4)}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                <div className="sm:col-span-2 sm:max-w-[10rem]">
+                  <InputField
+                    label="CVC"
+                    name="card_cvv"
+                    value={formData.credit_card.cvv}
+                    maxLength={4}
+                    formErrors={formErrors}
+                    onChange={handleInputChange}
+                  />
+                </div>
               </div>
+            </SectionCard>
 
-              {/* Control de Flujo */}
-              <div className="mt-12 flex items-center justify-between border-t border-gray-100 pt-8">
-                <button
-                  type="button"
-                  onClick={handlePrevStep}
-                  disabled={step === 'contact'}
-                  className="rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all focus:ring-2 focus:ring-blue-600"
-                >
-                  Regresar
-                </button>
-
-                {step !== 'review' ? (
-                  <button
-                    type="button"
-                    onClick={handleNextStep}
-                    className="rounded-xl bg-gray-900 px-8 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 transition-all focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
+            {/* Confirmar */}
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={submitting}
+                className="rounded-xl bg-blue-600 px-8 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 disabled:opacity-60 disabled:cursor-not-allowed transition-all flex items-center focus:ring-2 focus:ring-offset-2 focus:ring-blue-600"
+              >
+                {submitting && (
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
                   >
-                    Continuar
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleSubmit}
-                    disabled={submitting}
-                    className="rounded-xl bg-blue-600 px-8 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 disabled:opacity-60 disabled:cursor-not-allowed transition-all flex items-center focus:ring-2 focus:ring-offset-2 focus:ring-blue-600"
-                  >
-                    {submitting && (
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                    )}
-                    {submitting ? 'Procesando...' : 'Confirmar Orden'}
-                  </button>
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
                 )}
-              </div>
+                {submitting ? 'Procesando...' : 'Confirmar Orden'}
+              </button>
             </div>
           </div>
 
@@ -1016,8 +833,8 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <dt className="text-gray-600">Envío</dt>
-                    <dd className="font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-md">
-                      Gratis
+                    <dd className="font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">
+                      Retiro en Económato
                     </dd>
                   </div>
                   <div className="flex items-center justify-between border-t border-gray-100 pt-4">
