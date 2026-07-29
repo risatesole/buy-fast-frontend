@@ -2,6 +2,7 @@
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
+import FulfillButton from './FulfillButton';
 
 interface ProductImage {
   id: number;
@@ -85,6 +86,7 @@ function getStatusBadgeColor(status: string): string {
     delivered: 'bg-green-100 text-green-800',
     cancelled: 'bg-red-100 text-red-800',
     refunded: 'bg-gray-100 text-gray-800',
+    fulfilled: 'bg-emerald-100 text-emerald-800',
   };
   return statusMap[status.toLowerCase()] || 'bg-gray-100 text-gray-800';
 }
@@ -137,8 +139,8 @@ export default async function AdminOrderDetailsPage({
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Order Details</h1>
-            <p className="text-gray-600 mt-1">Order #{order.id}</p>
+            <h1 className="text-3xl font-bold text-gray-900">Detalles de orden</h1>
+            <p className="text-gray-600 mt-1">Orden #{order.id}</p>
           </div>
           <div className="flex items-center gap-3">
             <span
@@ -148,21 +150,22 @@ export default async function AdminOrderDetailsPage({
             >
               {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
             </span>
+            {order.status.toLowerCase() !== 'fulfilled' && <FulfillButton orderId={order.id} />}
           </div>
         </div>
 
         {/* Order Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Customer</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-1">Cliente</h3>
             <p className="text-lg font-semibold text-gray-900 break-all">{order.customer_email}</p>
           </div>
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Order Date</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-1">Fecha de Orden</h3>
             <p className="text-lg font-semibold text-gray-900">{formatDate(order.created_at)}</p>
           </div>
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Pickup Time</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-1">Fecha y hora de recoger</h3>
             <p className="text-lg font-semibold text-gray-900">
               {order.pickup_time ? formatDate(order.pickup_time) : 'Not set'}
             </p>
@@ -173,7 +176,7 @@ export default async function AdminOrderDetailsPage({
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">
-              Order Items ({order.total_items} items)
+              Items de la orden ({order.total_items} items)
             </h2>
           </div>
           <div className="overflow-x-auto">
@@ -181,7 +184,7 @@ export default async function AdminOrderDetailsPage({
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Product
+                    producto
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     SKU
