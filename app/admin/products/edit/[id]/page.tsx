@@ -138,16 +138,22 @@ export default function PatchProductPage() {
       prev
         ? {
             ...prev,
-            variants: prev.variants.map((v, i) =>
-              i === variantIndex
-                ? {
-                    ...v,
-                    images: v.images.map((img, j) =>
-                      j === imageIndex ? { ...img, ...patch } : img
-                    ),
-                  }
-                : v
-            ),
+            variants: prev.variants.map((v, i) => {
+              if (i !== variantIndex) return v;
+
+              let images = v.images.map((img, j) =>
+                j === imageIndex ? { ...img, ...patch } : img
+              );
+
+              // Ensure only one THUMBNAIL per variant
+              if (patch.type === 'THUMBNAIL') {
+                images = images.map((img, j) =>
+                  j !== imageIndex && img.type === 'THUMBNAIL' ? { ...img, type: 'GALLERY' } : img
+                );
+              }
+
+              return { ...v, images };
+            }),
           }
         : prev
     );
@@ -482,7 +488,6 @@ export default function PatchProductPage() {
                           >
                             <option value="GALLERY">GALLERY</option>
                             <option value="HERO">HERO</option>
-                            <option value="THUMBNAIL">THUMB</option>
                             <option value="LIFESTYLE">LIFEST.</option>
                           </select>
                           <button
