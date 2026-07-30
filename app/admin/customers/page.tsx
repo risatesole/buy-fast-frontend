@@ -17,7 +17,6 @@ interface ApiUser {
   lastLoggedIn: string;
   status: boolean;
   role: string;
-  customer_profile: Record<string, unknown> | null;
 }
 
 interface ApiResponse {
