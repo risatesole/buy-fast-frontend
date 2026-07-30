@@ -17,6 +17,7 @@ interface ApiUser {
   lastLoggedIn: string;
   status: boolean;
   role: string;
+  is_active: boolean;
 }
 
 interface ApiResponse {
@@ -32,6 +33,7 @@ interface User {
   name: string;
   email: string;
   status: 'active' | 'inactive' | 'pending';
+  is_active: boolean;
   lastActive: string;
   role: 'admin' | 'user' | 'moderator' | 'customer';
 }
@@ -142,6 +144,7 @@ export default function UserListPage() {
       name: `${apiUser.firstname} ${apiUser.lastname}`,
       email: apiUser.email,
       status: apiUser.status ? 'active' : 'inactive',
+      is_active: apiUser.is_active,
       lastActive: apiUser.lastLoggedIn ? new Date(apiUser.lastLoggedIn).toLocaleString() : 'Never',
       role: apiUser.role as 'admin' | 'user' | 'moderator' | 'customer',
     };
