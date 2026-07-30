@@ -9,6 +9,7 @@ import {
   type VariantPatchInput,
   type ProductImageInput,
 } from './actions';
+import ImageUploader from '../../components/ImageUploader';
 
 interface LoadedVariant {
   id: number;
@@ -337,14 +338,11 @@ export default function PatchProductPage() {
                 />
               </div>
 
-              <div>
-                <label className={labelClass}>URL de miniatura</label>
-                <input
-                  className={inputClass}
-                  value={draft.thumbnail}
-                  onChange={e => updateProductField({ thumbnail: e.target.value })}
-                />
-              </div>
+              <ImageUploader
+                label="Miniatura del producto"
+                value={draft.thumbnail}
+                onChange={url => updateProductField({ thumbnail: url })}
+              />
 
               <div className="sm:col-span-2">
                 <label className={labelClass}>Etiquetas (separadas por coma)</label>
@@ -402,14 +400,11 @@ export default function PatchProductPage() {
                       />
                     </div>
 
-                    <div>
-                      <label className={labelClass}>Miniatura</label>
-                      <input
-                        className={inputClass}
-                        value={variant.thumbnail}
-                        onChange={e => updateVariant(vIndex, { thumbnail: e.target.value })}
-                      />
-                    </div>
+                    <ImageUploader
+                      label="Miniatura"
+                      value={variant.thumbnail}
+                      onChange={url => updateVariant(vIndex, { thumbnail: url })}
+                    />
 
                     <div>
                       <label className={labelClass}>Precio de venta</label>
@@ -472,31 +467,32 @@ export default function PatchProductPage() {
                       </button>
                     </div>
 
-                    <div className="flex flex-col gap-2">
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                       {variant.images.map((image, iIndex) => (
-                        <div key={iIndex} className="flex items-center gap-2">
-                          <input
-                            className={`${inputClass} min-w-0 flex-1 basis-0`}
+                        <div key={iIndex} className="flex flex-col gap-2">
+                          <ImageUploader
                             value={image.url}
-                            onChange={e => updateImage(vIndex, iIndex, { url: e.target.value })}
-                            placeholder="https://..."
+                            onChange={url => updateImage(vIndex, iIndex, { url })}
                           />
-                          <select
-                            className="w-[104px] shrink-0 rounded-md border border-gray-200 py-2 pl-2 pr-1 text-xs text-gray-900 outline-none transition-colors focus:border-[#002d62] focus:ring-1 focus:ring-[#002d62]"
-                            value={image.type}
-                            onChange={e => updateImage(vIndex, iIndex, { type: e.target.value })}
-                          >
-                            <option value="GALLERY">GALLERY</option>
-                            <option value="HERO">HERO</option>
-                            <option value="LIFESTYLE">LIFEST.</option>
-                          </select>
-                          <button
-                            type="button"
-                            onClick={() => removeImage(vIndex, iIndex)}
-                            className="shrink-0 text-xs font-medium text-red-600 hover:text-red-700"
-                          >
-                            Quitar
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <select
+                              className="w-full rounded-md border border-gray-200 py-1.5 px-2 text-xs text-gray-900 outline-none transition-colors focus:border-[#002d62] focus:ring-1 focus:ring-[#002d62]"
+                              value={image.type}
+                              onChange={e => updateImage(vIndex, iIndex, { type: e.target.value })}
+                            >
+                              <option value="GALLERY">GALLERY</option>
+                              <option value="HERO">HERO</option>
+                              <option value="THUMBNAIL">THUMB</option>
+                              <option value="LIFESTYLE">LIFEST.</option>
+                            </select>
+                            <button
+                              type="button"
+                              onClick={() => removeImage(vIndex, iIndex)}
+                              className="shrink-0 text-xs font-medium text-red-600 hover:text-red-700"
+                            >
+                              Quitar
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
