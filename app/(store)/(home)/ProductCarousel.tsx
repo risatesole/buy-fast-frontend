@@ -1,150 +1,163 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
-// ── Interfaces ──────────────────────────────────────────────────
-
-export interface CarouselSlide {
-  id: string;
+type Slide = {
+  id: string | number;
   image: string;
   title: string;
-  description?: string;
-  buttonText?: string;
+  description: string;
+  buttonText: string;
   buttonLink: string;
-}
+};
 
-interface CarouselProps {
-  slides: CarouselSlide[];
-  autoPlay?: boolean;
-  interval?: number;
-}
+const MAX_WAIT_MS = 8000; // don't block forever if an image stalls/fails
 
-// ── Component ───────────────────────────────────────────────────
+export default function Carousel({ slides }: { slides: Slide[] }) {
+  const [active, setActive] = useState(0);
+  const total = slides?.length ?? 0;
 
-export default function Carousel({ slides, autoPlay = true, interval = 5000 }: CarouselProps) {
-  const [current, setCurrent] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+  const [loadedCount, setLoadedCount] = useState(0);
+  const [timedOut, setTimedOut] = useState(false);
 
-  const goToNext = useCallback(() => {
-    setCurrent(prev => (prev + 1) % slides.length);
-  }, [slides.length]);
+  // Derived, not synced via effect: ready the moment every image has
+  // settled (loaded or errored), or once the safety timer fires.
+  const ready = total === 0 || loadedCount >= total || timedOut;
 
-  const goToPrevious = useCallback(() => {
-    setCurrent(prev => (prev - 1 + slides.length) % slides.length);
-  }, [slides.length]);
-
-  const goToSlide = (index: number) => {
-    setCurrent(index);
-  };
-
-  useEffect(() => {
-    if (!autoPlay || slides.length === 0 || isPaused) return;
-    const timer = setInterval(goToNext, interval);
-    return () => clearInterval(timer);
-  }, [autoPlay, interval, slides.length, isPaused, goToNext]);
-
-  if (!slides || slides.length === 0) {
-    return (
-      <div className="flex min-h-[50vh] w-full items-center justify-center bg-[#f2f4f6]">
-        <span className="text-sm font-medium text-[#747781]">No hay imágenes disponibles</span>
-      </div>
-    );
+  function handleImageSettled() {
+    setLoadedCount(c => c + 1);
   }
 
-  const slide = slides[current];
+  // Safety net: reveal anyway if images take too long. The setState call
+  // lives inside the timer callback (an external system), not the effect
+  // body itself, so this doesn't trigger cascading renders.
+  useEffect(() => {
+    if (total === 0) return;
+    const timer = setTimeout(() => setTimedOut(true), MAX_WAIT_MS);
+    return () => clearTimeout(timer);
+  }, [total]);
+
+  function goTo(index: number) {
+    if (!slides?.length) return;
+    setActive(((index % slides.length) + slides.length) % slides.length);
+  }
+
+  // Autoplay — functional update avoids needing `active` as a dependency
+  useEffect(() => {
+    if (!slides || slides.length <= 1) return;
+    const timer = setInterval(() => {
+      setActive(prev => (prev + 1) % slides.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [slides]);
+
+  if (!slides || slides.length === 0) return null;
 
   return (
-    <div
-      className="group relative w-full overflow-hidden bg-[#091a2d]"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-    >
-      <div className="relative flex w-full aspect-[4/3] sm:aspect-[16/7] xl:aspect-[21/7] max-h-[850px]">
-        {slide.image ? (
-          <Image
-            src={slide.image}
-            alt={slide.title}
-            fill
-            sizes="100vw"
-            className="object-cover object-center"
-            priority={current === 0}
-            quality={90}
-          />
-        ) : (
-          <div className="h-full w-full bg-[#f2f4f6]" />
-        )}
+    <>
+      {/* Blocks the whole viewport (and everything under it) until images are ready */}
+      {!ready && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-4 bg-white">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#e2e8f0] border-t-[#002d62]" />
+          <p className="text-sm font-medium tracking-wide text-[#747781]">Cargando…</p>
+        </div>
+      )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-[#091a2d]/95 via-[#091a2d]/40 to-transparent" />
+      <div className="relative h-[360px] w-full overflow-hidden sm:h-[440px] lg:h-[520px]">
+        {slides.map((slide, i) => (
+          <div
+            key={slide.id}
+            className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+              i === active ? 'z-10 opacity-100' : 'z-0 opacity-0'
+            }`}
+            aria-hidden={i !== active}
+          >
+            <Image
+              src={slide.image}
+              alt={slide.title}
+              fill
+              unoptimized
+              priority={i === 0}
+              className="object-cover"
+              onLoad={handleImageSettled}
+              onError={handleImageSettled}
+            />
 
-        <div className="absolute inset-0 mx-auto flex w-full max-w-7xl flex-col justify-end px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16 pointer-events-none">
-          <div className="max-w-2xl pointer-events-auto">
-            <h3 className="mb-3 font-serif text-3xl font-bold leading-tight text-white sm:text-4xl md:text-5xl drop-shadow-md">
-              {slide.title}
-            </h3>
-            {slide.description && (
-              <p className="mb-6 line-clamp-3 text-base text-[#eff1f3] sm:text-lg drop-shadow-sm">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#002d62]/80 via-[#002d62]/30 to-transparent" />
+
+            <div className="relative z-10 flex h-full max-w-7xl flex-col items-start justify-center px-6 mx-auto sm:px-10">
+              <h2 className="font-serif text-3xl font-bold text-white sm:text-5xl">
+                {slide.title}
+              </h2>
+              <p className="mt-3 max-w-md text-base text-white/90 sm:text-lg">
                 {slide.description}
               </p>
-            )}
-            <Link href={slide.buttonLink} prefetch={false}>
-              <button className="inline-flex items-center gap-2 rounded-none bg-[#115cb9] px-8 py-3.5 text-sm font-bold tracking-wide text-white transition-all duration-200 hover:bg-[#002d62] active:scale-95 shadow-lg">
-                {slide.buttonText || 'Ver Detalles'}
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2.5}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </button>
-            </Link>
+              <Link
+                href={`/${slide.buttonLink}`}
+                className="mt-6 inline-flex items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-bold tracking-wide text-[#002d62] shadow-sm transition-all duration-200 hover:bg-[#f7f9fb] active:scale-95"
+              >
+                {slide.buttonText}
+              </Link>
+            </div>
           </div>
-        </div>
+        ))}
 
-        {/* ── Controles de Navegación Refactorizados ── */}
-        <button
-          onClick={goToPrevious}
-          className="absolute left-4 sm:left-8 lg:left-12 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/20 text-white shadow-lg backdrop-blur-md transition-all duration-300 hover:scale-105 hover:bg-white hover:text-[#002d62] active:scale-95 opacity-100 md:opacity-0 md:group-hover:opacity-100"
-          aria-label="Diapositiva anterior"
-        >
-          <svg className="h-6 w-6 pr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2.5}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-        </button>
+        {/* Dots */}
+        {slides.length > 1 && (
+          <div className="absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 gap-2">
+            {slides.map((slide, i) => (
+              <button
+                key={slide.id}
+                type="button"
+                onClick={() => goTo(i)}
+                aria-label={`Ir al slide ${i + 1}`}
+                aria-current={i === active}
+                className={`h-2.5 rounded-full transition-all duration-300 ${
+                  i === active ? 'w-6 bg-white' : 'w-2.5 bg-white/50 hover:bg-white/75'
+                }`}
+              />
+            ))}
+          </div>
+        )}
 
-        <button
-          onClick={goToNext}
-          className="absolute right-4 sm:right-8 lg:right-12 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/20 text-white shadow-lg backdrop-blur-md transition-all duration-300 hover:scale-105 hover:bg-white hover:text-[#002d62] active:scale-95 opacity-100 md:opacity-0 md:group-hover:opacity-100"
-          aria-label="Siguiente diapositiva"
-        >
-          <svg className="h-6 w-6 pl-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-
-        {/* Indicadores Base */}
-        <div className="absolute bottom-6 left-0 right-0 z-10 flex justify-center gap-3">
-          {slides.map((_, index) => (
+        {/* Prev / Next controls */}
+        {slides.length > 1 && (
+          <>
             <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className={`h-1.5 rounded-none transition-all duration-300 ${
-                index === current ? 'w-10 bg-white' : 'w-5 bg-white/40 hover:bg-white/70'
-              }`}
-              aria-label={`Ir a la diapositiva ${index + 1}`}
-              aria-current={index === current}
-            />
-          ))}
-        </div>
+              type="button"
+              onClick={() => goTo(active - 1)}
+              aria-label="Slide anterior"
+              className="absolute left-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition-colors hover:bg-white/30"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={() => goTo(active + 1)}
+              aria-label="Siguiente slide"
+              className="absolute right-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition-colors hover:bg-white/30"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </button>
+          </>
+        )}
       </div>
-    </div>
+    </>
   );
 }

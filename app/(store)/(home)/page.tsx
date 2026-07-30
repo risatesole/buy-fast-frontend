@@ -2,37 +2,6 @@ import Link from 'next/link';
 import Carousel from './ProductCarousel';
 import ProductList from './productList';
 
-import calculadorasImg from './img/calculadoras.png';
-import manualesLab from './img/manualeslab.png';
-import econoDigital from './img/econodigital.jpeg';
-
-const CAROUSEL_SLIDES = [
-  {
-    id: '1',
-    image: calculadorasImg.src,
-    title: 'Calculadoras',
-    description: 'Descubre la que va con tu estilo',
-    buttonText: 'Comprar Ahora',
-    buttonLink: '#',
-  },
-  {
-    id: '2',
-    image: manualesLab.src,
-    title: 'Ya Disponibles',
-    description: 'No pierdas tiempo ahora es más rápido',
-    buttonText: 'Ver Todos',
-    buttonLink: '#',
-  },
-  {
-    id: '3',
-    image: econoDigital.src,
-    title: 'BuyFast',
-    description: 'El mismo ecónomato, pero digital',
-    buttonText: 'Ver todas las categorias',
-    buttonLink: '#',
-  },
-];
-
 const IMAGE_PRIORITIES: { [key: string]: number } = {
   THUMBNAIL: 100,
   HERO: 90,
@@ -44,6 +13,34 @@ const IMAGE_PRIORITIES: { [key: string]: number } = {
   SIZE: 30,
   OTHER: 20,
 };
+
+async function getCarouselSlides() {
+  const baseUrl = process.env.BACKEND_URL;
+
+  if (!baseUrl) {
+    console.error('[Config Error] process.env.BACKEND_URL no está definida.');
+    return [];
+  }
+
+  try {
+    const url = new URL('/api/v1/ui/carrousel', baseUrl).toString();
+    const response = await fetch(url, {
+      next: { revalidate: 3600 }, // Revalidate every hour
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    });
+
+    if (!response.ok) {
+      console.error(`[API Error] Failed to fetch carousel: ${response.status}`);
+      return [];
+    }
+
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error('[Network Error] Fallo en la conexión DRF para carousel:', error);
+    return [];
+  }
+}
 
 async function getProducts() {
   const baseUrl = process.env.BACKEND_URL;
@@ -140,7 +137,9 @@ function extractBestImageUrl(
 }
 
 export default async function Page() {
-  const products = await getProducts();
+  // Fetch both carousel slides and products in parallel
+  const [carouselSlides, products] = await Promise.all([getCarouselSlides(), getProducts()]);
+
   const baseUrl = process.env.BACKEND_URL || '';
 
   const mappedProducts = products.map(
@@ -174,7 +173,7 @@ export default async function Page() {
 
   return (
     <main className="min-h-screen bg-white">
-      <Carousel slides={CAROUSEL_SLIDES} />
+      <Carousel slides={carouselSlides} />
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="mb-12 flex items-center justify-center">
