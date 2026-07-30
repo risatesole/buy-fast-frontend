@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { createProduct, type ProductInput, type ProductVariantInput } from './actions';
+import { fetchCategories, type Category } from './get-categories';
 import ImageUploader from '../components/ImageUploader';
 
 interface ImageDraft {
@@ -60,8 +61,31 @@ export default function NewProductPage() {
   const [tagsInput, setTagsInput] = useState('');
   const [variants, setVariants] = useState<VariantDraft[]>([emptyVariant(1)]);
 
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchCategories()
+      .then(data => {
+        if (!cancelled) setCategories(data);
+      })
+      .catch(() => {
+        if (!cancelled) setCategoriesError('No se pudieron cargar las categorías.');
+      })
+      .finally(() => {
+        if (!cancelled) setCategoriesLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function updateVariant(index: number, patch: Partial<VariantDraft>) {
     setVariants(prev => prev.map((v, i) => (i === index ? { ...v, ...patch } : v)));
@@ -210,13 +234,23 @@ export default function NewProductPage() {
               <label className={labelClass} htmlFor="category">
                 Categoría
               </label>
-              <input
+              <select
                 id="category"
-                className={inputClass}
+                className={`${inputClass} appearance-none`}
                 value={category}
                 onChange={e => setCategory(e.target.value)}
-                placeholder="Ej. calzado"
-              />
+                disabled={categoriesLoading}
+              >
+                <option value="">
+                  {categoriesLoading ? 'Cargando categorías...' : 'Selecciona una categoría'}
+                </option>
+                {categories.map(cat => (
+                  <option key={cat.slug} value={cat.slug}>
+                    {cat.label}
+                  </option>
+                ))}
+              </select>
+              {categoriesError && <p className="mt-1.5 text-xs text-red-600">{categoriesError}</p>}
             </div>
 
             <div>

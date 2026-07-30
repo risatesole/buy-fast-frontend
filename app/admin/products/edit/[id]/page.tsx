@@ -10,6 +10,7 @@ import {
   type ProductImageInput,
 } from './actions';
 import ImageUploader from '../../components/ImageUploader';
+import { fetchCategories, type Category } from './get-categories';
 
 interface LoadedVariant {
   id: number;
@@ -80,6 +81,10 @@ export default function PatchProductPage() {
   const [draft, setDraft] = useState<LoadedProduct | null>(null);
   const [tagsInput, setTagsInput] = useState('');
 
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+
   const [loadError, setLoadError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -104,6 +109,25 @@ export default function PatchProductPage() {
       setTagsInput(normalized.tags.join(', '));
     });
   }, [productId]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchCategories()
+      .then(data => {
+        if (!cancelled) setCategories(data);
+      })
+      .catch(() => {
+        if (!cancelled) setCategoriesError('No se pudieron cargar las categorías.');
+      })
+      .finally(() => {
+        if (!cancelled) setCategoriesLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function updateProductField(patch: Partial<LoadedProduct>) {
     setDraft(prev => (prev ? { ...prev, ...patch } : prev));
@@ -322,11 +346,29 @@ export default function PatchProductPage() {
 
               <div>
                 <label className={labelClass}>Categoría</label>
-                <input
-                  className={inputClass}
+                <select
+                  className={`${inputClass} appearance-none`}
                   value={draft.category}
                   onChange={e => updateProductField({ category: e.target.value })}
-                />
+                  disabled={categoriesLoading}
+                >
+                  <option value="">
+                    {categoriesLoading ? 'Cargando categorías...' : 'Selecciona una categoría'}
+                  </option>
+                  {/* Guarantees the product's current category still shows up even if it
+                      hasn't loaded into `categories` yet or was removed from the backend list. */}
+                  {draft.category && !categories.some(cat => cat.slug === draft.category) && (
+                    <option value={draft.category}>{draft.category}</option>
+                  )}
+                  {categories.map(cat => (
+                    <option key={cat.slug} value={cat.slug}>
+                      {cat.label}
+                    </option>
+                  ))}
+                </select>
+                {categoriesError && (
+                  <p className="mt-1.5 text-xs text-red-600">{categoriesError}</p>
+                )}
               </div>
 
               <div>
