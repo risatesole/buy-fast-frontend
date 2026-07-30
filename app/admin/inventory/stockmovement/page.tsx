@@ -10,6 +10,7 @@ import {
   Package,
   ArrowDown,
   ArrowUp,
+  Plus, // Added Plus icon
 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
@@ -363,6 +364,11 @@ export default function StockMovementPage() {
     console.log('Desplegando panel de filtros avanzados');
   }, []);
 
+  // Handler for the new "Insertar Producto" button
+  const handleInsertProduct = useCallback(() => {
+    router.push('/admin/inventory/stockmovement/insert');
+  }, [router]);
+
   const paginationRange = useMemo(() => {
     const pages: number[] = [];
     const maxVisible = 5;
@@ -424,6 +430,15 @@ export default function StockMovementPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          {/* Added the "Insertar Producto" button */}
+          <button
+            onClick={handleInsertProduct}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#002d62] text-white rounded-md text-[13px] font-semibold hover:bg-[#00193c] transition-colors focus:outline-none focus:ring-2 focus:ring-[#002d62] focus:ring-offset-2 shadow-sm"
+          >
+            <Plus className="size-4" />
+            Ingresar producto a inventario
+          </button>
+
           <div className="flex items-center gap-2 text-[13px] text-[#747781] bg-[#f2f4f6] px-3 py-1.5 rounded-md">
             <Package className="size-4" />
             <span className="font-semibold text-[#191c1e]">{totalMovements}</span>
