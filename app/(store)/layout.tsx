@@ -48,7 +48,7 @@ interface CartItemRaw {
   id: number | string; // ID del CartItem
   variant_id: number | string; // ID real de ProductVariant
   product_name: string;
-  variant_name?: string; // Nombre de la variante
+  variant_name: string; // Nombre de la variante
   product_slug?: string;
   selling_price: number | string;
   quantity: number;
@@ -114,7 +114,7 @@ async function getCartItems(): Promise<NavbarCartItem[]> {
     productId: Number(item.variant_id),
 
     // Mostrar producto + variante si existe variant_name
-    name: item.variant_name ? `${item.variant_name}` : item.product_name,
+    name: `${item.product_name} - ${item.variant_name}`,
 
     price: Number(item.selling_price),
     quantity: item.quantity,
