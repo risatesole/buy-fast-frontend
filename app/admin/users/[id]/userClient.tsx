@@ -94,10 +94,10 @@ export default function UserDetailsClient({ initialUser }: UserDetailsClientProp
       <header className="flex items-center justify-between px-8 py-6 bg-white border-b border-[#e0e3e5]">
         <div>
           <Link
-            href="/admin/users"
+            href="/admin"
             className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#747781] hover:text-[#002d62] transition-colors mb-2"
           >
-            <ArrowLeft className="size-3.5" /> Volver a Usuarios
+            <ArrowLeft className="size-3.5" /> Volver a Panel admin
           </Link>
           <h1 className="text-2xl font-serif font-bold text-[#00193c] tracking-tight">
             {getFullName(user)}
