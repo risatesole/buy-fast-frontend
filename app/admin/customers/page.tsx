@@ -256,7 +256,7 @@ export default function UserListPage() {
   // Handler para ver información del usuario
   const handleViewInfo = useCallback(
     (userId: string) => {
-      router.push(`/admin/customers/info/${userId}`);
+      router.push(`/admin/users/${userId}`);
     },
     [router]
   );
