@@ -51,7 +51,7 @@ async function getProducts() {
   }
 
   try {
-    const url = new URL('/api/v1/products/?ordering=-created_at&limit=3', baseUrl).toString();
+    const url = new URL('/api/v1/products/?ordering=-created_at&limit=6', baseUrl).toString();
     const response = await fetch(url, {
       next: { revalidate: 0 },
       headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
@@ -156,7 +156,7 @@ export default async function Page() {
 
       return {
         id: product.id,
-        name: firstVariant?.name || product.name,
+        name: product.name || firstVariant?.name,
         slug: firstVariant?.slug || product.slug || '',
         categoryName:
           typeof product.category === 'string'
