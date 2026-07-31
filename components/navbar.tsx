@@ -40,7 +40,6 @@ const NAV_LINKS = [
   { href: '/', label: 'INICIO' },
   { href: '/categories', label: 'CATEGORÍAS' },
   { href: '/catalog', label: 'CATÁLOGO' },
-  { href: '/bundles', label: 'COMBOS Y OFERTAS' },
   { href: '/contact', label: 'CONTACTO' },
 ] as const;
 
@@ -461,13 +460,6 @@ export function Navbar({
             >
               <User className="h-5 w-5" />
             </button>
-            <Link
-              href="/wishlist"
-              className={`hidden sm:block ${interactiveClasses.iconBtn}`}
-              aria-label="Ver lista de deseos"
-            >
-              <Heart className="h-5 w-5" />
-            </Link>
 
             <button
               onClick={() => toggleDrawer('cart')}
