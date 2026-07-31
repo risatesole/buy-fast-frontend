@@ -22,7 +22,8 @@ import {
 
 const HERO_IMAGE = {
   src: 'https://zdnhvnvrngxvxedrvuon.supabase.co/storage/v1/object/public/bucket1/nextjs/Economato-univ-2048x1144.jpg',
-  fallback: 'https://zdnhvnvrngxvxedrvuon.supabase.co/storage/v1/object/public/bucket1/nextjs/Economato-univ-2048x1144.jpg',
+  fallback:
+    'https://zdnhvnvrngxvxedrvuon.supabase.co/storage/v1/object/public/bucket1/nextjs/Economato-univ-2048x1144.jpg',
   alt: 'Fachada del Economato Universitario de la UASD',
 };
 
