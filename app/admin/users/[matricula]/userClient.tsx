@@ -13,6 +13,7 @@ import {
   Mail,
   Clock,
   KeyRound,
+  Hash,
 } from 'lucide-react';
 import {
   User,
@@ -59,7 +60,8 @@ export default function UserDetailsClient({ initialUser }: UserDetailsClientProp
       setErrorMessage(null);
 
       try {
-        const response = await fetch(`/api/v1/users/${user.id}`, {
+        const response = await fetch(`/api/v1/users/${user.matricula}`, {
+          // ← CAMBIADO: user.id → user.matricula
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ [field]: value }),
@@ -78,7 +80,7 @@ export default function UserDetailsClient({ initialUser }: UserDetailsClientProp
         setUpdatingField(null);
       }
     },
-    [user.id]
+    [user.matricula] // ← CAMBIADO: user.id → user.matricula
   );
 
   const toggleActive = useCallback(() => {
@@ -94,10 +96,10 @@ export default function UserDetailsClient({ initialUser }: UserDetailsClientProp
       <header className="flex items-center justify-between px-8 py-6 bg-white border-b border-[#e0e3e5]">
         <div>
           <Link
-            href="/admin"
+            href="/admin/users" // ← CAMBIADO: /admin → /admin/users
             className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#747781] hover:text-[#002d62] transition-colors mb-2"
           >
-            <ArrowLeft className="size-3.5" /> Volver a Panel admin
+            <ArrowLeft className="size-3.5" /> Volver a Usuarios
           </Link>
           <h1 className="text-2xl font-serif font-bold text-[#00193c] tracking-tight">
             {getFullName(user)}
@@ -131,6 +133,13 @@ export default function UserDetailsClient({ initialUser }: UserDetailsClientProp
                 <div className="flex items-center gap-2.5 text-[13px] text-[#43474f]">
                   <Mail className="size-4 text-[#747781] shrink-0" />
                   <span className="truncate">{user.email}</span>
+                </div>
+                {/* ← AÑADIDO: Mostrar matrícula */}
+                <div className="flex items-center gap-2.5 text-[13px] text-[#43474f]">
+                  <Hash className="size-4 text-[#747781] shrink-0" />
+                  <span className="font-mono font-semibold text-[#002d62]">
+                    Matrícula: {user.matricula || 'Sin asignar'}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2.5 text-[13px] text-[#43474f]">
                   <Clock className="size-4 text-[#747781] shrink-0" />

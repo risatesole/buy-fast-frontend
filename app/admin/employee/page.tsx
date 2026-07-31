@@ -15,6 +15,7 @@ interface ApiUser {
   lastname: string;
   email: string;
   lastLoggedIn: string;
+  matricula: string; // ← AÑADIDO
   status: boolean;
   role: string;
   employee_profile: Record<string, unknown> | null;
@@ -30,6 +31,7 @@ interface ApiResponse {
 
 interface User {
   id: string;
+  matricula: string; // ← AÑADIDO
   name: string;
   email: string;
   status: 'active' | 'inactive' | 'pending';
@@ -66,7 +68,7 @@ interface UserTableRowProps {
   user: User;
   isSelected: boolean;
   onToggleSelect: (id: string) => void;
-  onViewInfo: (userId: string) => void;
+  onViewInfo: (matricula: string) => void; // ← CAMBIADO: userId → matricula
 }
 
 const UserTableRow = memo(({ user, isSelected, onToggleSelect, onViewInfo }: UserTableRowProps) => {
@@ -88,6 +90,10 @@ const UserTableRow = memo(({ user, isSelected, onToggleSelect, onViewInfo }: Use
             {user.name}
           </span>
           <span className="text-[12px] text-[#747781] mt-0.5">{user.email}</span>
+          {/* ← AÑADIDO: Mostrar matrícula */}
+          <span className="text-[11px] text-[#002d62] font-mono mt-0.5 bg-[#e8f0fe] px-2 py-0.5 rounded">
+            Matrícula: {user.matricula || 'Sin asignar'}
+          </span>
         </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
@@ -110,7 +116,7 @@ const UserTableRow = memo(({ user, isSelected, onToggleSelect, onViewInfo }: Use
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-right">
         <button
-          onClick={() => onViewInfo(user.id)}
+          onClick={() => onViewInfo(user.matricula)} // ← CAMBIADO: user.id → user.matricula
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium text-[#002d62] bg-[#e8f0fe] hover:bg-[#d2e3fc] border border-transparent hover:border-[#002d62] transition-all focus:outline-none focus:ring-2 focus:ring-[#002d62] focus:ring-offset-1"
         >
           <Info className="size-3.5" />
@@ -140,6 +146,7 @@ export default function UserListPage() {
   const convertApiUserToUIUser = (apiUser: ApiUser): User => {
     return {
       id: apiUser.id.toString(),
+      matricula: apiUser.matricula, // ← AÑADIDO
       name: `${apiUser.firstname} ${apiUser.lastname}`,
       email: apiUser.email,
       status: apiUser.status ? 'active' : 'inactive',
@@ -209,7 +216,8 @@ export default function UserListPage() {
     return users.filter(
       user =>
         user.name.toLowerCase().includes(lowerQuery) ||
-        user.email.toLowerCase().includes(lowerQuery)
+        user.email.toLowerCase().includes(lowerQuery) ||
+        user.matricula.toLowerCase().includes(lowerQuery) // ← AÑADIDO: Buscar por matrícula
     );
   }, [deferredSearchQuery, users]);
 
@@ -251,10 +259,10 @@ export default function UserListPage() {
     });
   }, [isCurrentPageAllSelected, usersDisplayedOnCurrentPage]);
 
-  // Handler para ver información del usuario
+  // Handler para ver información del usuario - ahora usa matricula
   const handleViewInfo = useCallback(
-    (userId: string) => {
-      router.push(`/admin/users/${userId}`);
+    (matricula: string) => {
+      router.push(`/admin/users/${matricula}`); // ← CAMBIADO: userId → matricula
     },
     [router]
   );
@@ -334,7 +342,7 @@ export default function UserListPage() {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#747781] pointer-events-none" />
           <input
             type="text"
-            placeholder="Buscar por nombre o credencial..."
+            placeholder="Buscar por nombre, email o matrícula..."
             value={searchQueryString}
             onChange={e => {
               setSearchQueryString(e.target.value);

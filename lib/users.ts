@@ -1,5 +1,6 @@
 export type User = {
   id: number;
+  matricula: string; // ← AÑADIDO
   profilepicture: string | null;
   firstname: string;
   lastname: string;
@@ -25,11 +26,12 @@ const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
  * cookie header along so the backend recognizes the session.
  */
 export async function fetchUserFromBackend(
-  id: string | number,
+  matricula: string, // ← CAMBIADO: id → matricula
   cookieHeader?: string
 ): Promise<User | null> {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/v1/users/${id}/`, {
+    const response = await fetch(`${BACKEND_URL}/api/v1/users/${matricula}/`, {
+      // ← CAMBIADO: id → matricula
       headers: cookieHeader ? { Cookie: cookieHeader } : {},
       cache: 'no-store',
     });

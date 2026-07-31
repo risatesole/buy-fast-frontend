@@ -4,17 +4,17 @@ import UserDetailsClient from './userClient';
 import { fetchUserFromBackend } from '@/lib/users';
 
 type UserDetailsPageProps = {
-  params: Promise<{ id: string }>;
+  params: Promise<{ matricula: string }>; // ← CAMBIADO: id → matricula
 };
 
 export default async function UserDetailsPage({ params }: UserDetailsPageProps) {
-  const { id } = await params;
+  const { matricula } = await params; // ← CAMBIADO: id → matricula
 
   // Server-to-server call, so there's no CORS issue going straight to the
   // backend. We forward the session cookie so the Django "employee only"
   // check succeeds.
   const cookieStore = await cookies();
-  const user = await fetchUserFromBackend(id, cookieStore.toString());
+  const user = await fetchUserFromBackend(matricula, cookieStore.toString());
 
   if (!user) {
     notFound();
