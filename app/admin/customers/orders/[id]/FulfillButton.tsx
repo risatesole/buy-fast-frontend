@@ -73,7 +73,7 @@ export default function FulfillButton({ orderId }: FulfillButtonProps) {
             Fulfilling...
           </>
         ) : (
-          'Fulfill Order'
+          'Completar orden'
         )}
       </button>
       {error && <p className="text-sm text-red-600 mt-1">{error}</p>}
