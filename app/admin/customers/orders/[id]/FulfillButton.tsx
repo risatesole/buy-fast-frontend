@@ -3,6 +3,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { fulfillOrder } from './fulfillOrder';
 
 interface FulfillButtonProps {
   orderId: number;
@@ -16,29 +17,22 @@ export default function FulfillButton({ orderId }: FulfillButtonProps) {
   const handleFulfill = async () => {
     setError(null);
 
-    try {
-      const response = await fetch(`/api/v1/admin/orders/${orderId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'fulfill',
-        }),
-      });
+    startTransition(async () => {
+      try {
+        const result = await fulfillOrder(orderId);
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Failed to fulfill order: ${response.status}`);
-      }
+        if (!result.ok) {
+          throw new Error(result.message);
+        }
 
-      // Refresh the page to show updated status
-      startTransition(() => {
+        // Refresh the page to show updated status
         router.refresh();
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while fulfilling the order');
-    }
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'An error occurred while fulfilling the order'
+        );
+      }
+    });
   };
 
   return (
@@ -70,7 +64,7 @@ export default function FulfillButton({ orderId }: FulfillButtonProps) {
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
-            Fulfilling...
+            Completando...
           </>
         ) : (
           'Completar orden'

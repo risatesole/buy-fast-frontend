@@ -54,7 +54,7 @@ async function getOrderDetails(orderId: string): Promise<OrderData | null> {
 
     const cookieString = allCookies.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const apiUrl = process.env.BACKEND_URL || 'http://localhost:8000';
 
     const response = await fetch(`${apiUrl}/api/v1/admin/orders/${orderId}`, {
       method: 'GET',
@@ -63,6 +63,9 @@ async function getOrderDetails(orderId: string): Promise<OrderData | null> {
         ...(cookieString && { Cookie: cookieString }),
       },
       cache: 'no-store',
+      next: {
+        tags: [`order-${orderId}`],
+      },
     });
 
     if (!response.ok) {
