@@ -43,11 +43,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
+  const cookieHeader = request.headers.get('cookie') ?? '';
+  const csrfToken = cookieHeader
+    .split('; ')
+    .find(row => row.startsWith('csrftoken='))
+    ?.split('=')[1];
+
   const res = await fetch(`${BACKEND_URL}/api/v1/checkout/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      cookie: request.headers.get('cookie') ?? '',
+      cookie: cookieHeader,
+      ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+      Referer: process.env.FRONTEND_URL!,
     },
     body: JSON.stringify(body),
   });
