@@ -337,7 +337,7 @@ export function Navbar({
                 onClick={closeOverlays}
                 className={`${interactiveClasses.drawerLinkBase} ${pathname.startsWith('/account') ? 'border-[#abc7ff] bg-[#f2f4f6] text-[#115cb9]' : 'text-[#43474f]'}`}
               >
-                <User className="h-4 w-4" /> Mi perfil
+                <User className="h-4 w-4" /> Mi Cuenta
               </Link>
               {user.role === 'employee' && (
                 <Link
