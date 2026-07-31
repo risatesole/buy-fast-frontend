@@ -144,7 +144,7 @@ export async function GET(request: NextRequest) {
     const queryString = buildQueryParams(searchParams);
 
     // Build the backend API URL
-    const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:8000';
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000';
     const url = `${backendUrl}/api/v1/admin/inventory/products/?${queryString}`;
 
     // Fetch data from backend
