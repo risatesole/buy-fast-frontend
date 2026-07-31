@@ -12,7 +12,7 @@ export async function uploadImage(formData: FormData): Promise<UploadResult> {
   if (!process.env.BACKEND_URL) {
     return {
       ok: false,
-      message: 'BACKEND_URL no está configurado en el entorno del servidor.',
+      message: 'BACKEND_URL no est├í configurado en el entorno del servidor.',
     };
   }
 
@@ -27,17 +27,17 @@ export async function uploadImage(formData: FormData): Promise<UploadResult> {
     return {
       ok: false,
       message:
-        'No se encontró el token CSRF (cookie "csrftoken"). Asegúrate de haber iniciado sesión.',
+        'No se encontr├│ el token CSRF (cookie "csrftoken"). Aseg├║rate de haber iniciado sesi├│n.',
     };
   }
 
   const file = formData.get('file');
   if (!(file instanceof File)) {
-    return { ok: false, message: 'No se seleccionó ningún archivo.' };
+    return { ok: false, message: 'No se seleccion├│ ning├║n archivo.' };
   }
 
   // Re-wrap in a fresh FormData for the outbound request. Do NOT set a
-  // Content-Type header manually — fetch will add the correct multipart
+  // Content-Type header manually ΓÇö fetch will add the correct multipart
   // boundary automatically.
   const upstreamForm = new FormData();
   upstreamForm.append('file', file, file.name);
@@ -48,6 +48,7 @@ export async function uploadImage(formData: FormData): Promise<UploadResult> {
       headers: {
         Cookie: cookieHeader,
         'X-CSRFToken': csrfToken,
+        Referer: process.env.FRONTEND_URL!,
       },
       body: upstreamForm,
       cache: 'no-store',
@@ -66,7 +67,7 @@ export async function uploadImage(formData: FormData): Promise<UploadResult> {
     const url = extractField(json, 'url');
 
     if (!url) {
-      return { ok: false, message: 'La respuesta del servidor no incluyó una URL.' };
+      return { ok: false, message: 'La respuesta del servidor no incluy├│ una URL.' };
     }
 
     return { ok: true, url, message: 'Archivo subido correctamente' };

@@ -53,7 +53,7 @@ export async function getProduct(productId: string): Promise<ActionResult> {
     return {
       ok: false,
       status: 500,
-      message: 'BACKEND_URL no está configurado en el entorno del servidor.',
+      message: 'BACKEND_URL no est├í configurado en el entorno del servidor.',
     };
   }
 
@@ -64,7 +64,7 @@ export async function getProduct(productId: string): Promise<ActionResult> {
       ok: false,
       status: 403,
       message:
-        'No se encontró el token CSRF (cookie "csrftoken"). Asegúrate de haber iniciado sesión.',
+        'No se encontr├│ el token CSRF (cookie "csrftoken"). Aseg├║rate de haber iniciado sesi├│n.',
     };
   }
 
@@ -108,7 +108,7 @@ export async function updateProduct(
       ok: false,
       status: 403,
       message:
-        'No se encontró el token CSRF (cookie "csrftoken"). Asegúrate de haber iniciado sesión.',
+        'No se encontr├│ el token CSRF (cookie "csrftoken"). Aseg├║rate de haber iniciado sesi├│n.',
     };
   }
 
@@ -116,7 +116,7 @@ export async function updateProduct(
     return {
       ok: false,
       status: 500,
-      message: 'BACKEND_URL no está configurado en el entorno del servidor.',
+      message: 'BACKEND_URL no est├í configurado en el entorno del servidor.',
     };
   }
 
@@ -127,6 +127,7 @@ export async function updateProduct(
         'Content-Type': 'application/json',
         Cookie: cookieHeader,
         'X-CSRFToken': csrfToken,
+        Referer: process.env.FRONTEND_URL!,
       },
       body: JSON.stringify({ data: patch }),
       cache: 'no-store',

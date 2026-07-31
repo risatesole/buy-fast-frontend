@@ -32,7 +32,7 @@ export async function createStockMovement(
       ok: false,
       status: 403,
       message:
-        'No se encontró el token CSRF (cookie "csrftoken"). Asegúrate de haber iniciado sesión.',
+        'No se encontrΓö£Γöé el token CSRF (cookie "csrftoken"). AsegΓö£Γòærate de haber iniciado sesiΓö£Γöén.',
     };
   }
 
@@ -40,7 +40,7 @@ export async function createStockMovement(
     return {
       ok: false,
       status: 500,
-      message: 'BACKEND_URL no está configurado en el entorno del servidor.',
+      message: 'BACKEND_URL no estΓö£├¡ configurado en el entorno del servidor.',
     };
   }
 
@@ -53,6 +53,7 @@ export async function createStockMovement(
           'Content-Type': 'application/json',
           Cookie: cookieHeader,
           'X-CSRFToken': csrfToken,
+          Referer: process.env.FRONTEND_URL!,
         },
         body: JSON.stringify(input),
         cache: 'no-store',
