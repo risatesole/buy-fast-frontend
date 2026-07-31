@@ -21,8 +21,8 @@ import {
 // sea fácil de leer, reutilizar y actualizar sin tocar el markup.
 
 const HERO_IMAGE = {
-  src: 'https://uasd.edu.do/wp-content/uploads/2021/04/Economato-univ-scaled.jpg',
-  fallback: 'https://example.com/image.jpg',
+  src: 'https://zdnhvnvrngxvxedrvuon.supabase.co/storage/v1/object/public/bucket1/nextjs/Economato-univ-2048x1144.jpg',
+  fallback: 'https://zdnhvnvrngxvxedrvuon.supabase.co/storage/v1/object/public/bucket1/nextjs/Economato-univ-2048x1144.jpg',
   alt: 'Fachada del Economato Universitario de la UASD',
 };
 
