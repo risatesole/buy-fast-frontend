@@ -35,6 +35,7 @@ interface CreateEmployeePayload {
   email: string;
   password: string;
   position: Position;
+  matricula?: string;
 }
 
 interface CreateEmployeeResponseData {
@@ -42,6 +43,7 @@ interface CreateEmployeeResponseData {
   email: string;
   first_name: string;
   last_name: string;
+  matricula: string | null;
   position: string;
   hired_at: string;
 }
@@ -76,6 +78,7 @@ export default function CreateEmployeePage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [position, setPosition] = useState<Position>('store_manager');
+  const [matricula, setMatricula] = useState('');
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -121,6 +124,7 @@ export default function CreateEmployeePage() {
       email: email.trim(),
       password,
       position,
+      ...(matricula.trim() ? { matricula: matricula.trim() } : {}),
     };
 
     startTransition(async () => {
@@ -268,6 +272,20 @@ export default function CreateEmployeePage() {
                       </option>
                     ))}
                   </select>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className={labelClass} htmlFor="matricula">
+                    Matrícula <span className="normal-case font-normal">(opcional)</span>
+                  </label>
+                  <input
+                    id="matricula"
+                    className={inputClass}
+                    value={matricula}
+                    onChange={e => setMatricula(e.target.value)}
+                    placeholder="Ej. EMP-00123"
+                    autoComplete="off"
+                  />
                 </div>
               </div>
             </section>
