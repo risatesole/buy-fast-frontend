@@ -190,11 +190,22 @@ export default async function CatalogPage({
           <div className="flex flex-col items-center justify-center rounded-none border border-[#e2e8f0] bg-white px-6 py-20 text-center shadow-sm">
             <PackageSearch className="mb-4 size-12 text-[#c4c6d1]" strokeWidth={1.5} />
             <h2 className="font-serif text-2xl font-semibold text-[#002d62]">
-              No encontramos productos
+              {currentPage > 1 ? 'No hay más productos en esta página' : 'No encontramos productos'}
             </h2>
             <p className="mt-2 max-w-md text-sm leading-6 text-[#43474f]">
-              Prueba con otro término de búsqueda o vuelve más tarde para ver nuevas incorporaciones
-              al catálogo.
+              {currentPage > 1 ? (
+                <>
+                  Regresa al catálogo principal para ver más productos.{' '}
+                  <Link
+                    href="/catalog"
+                    className="font-semibold text-[#002d62] underline-offset-2 hover:underline"
+                  >
+                    Click aquí
+                  </Link>
+                </>
+              ) : (
+                'Prueba con otro término de búsqueda o vuelve más tarde para ver nuevas incorporaciones al catálogo.'
+              )}
             </p>
           </div>
         ) : (
