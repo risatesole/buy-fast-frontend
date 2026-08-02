@@ -11,7 +11,6 @@ import {
   CheckCircle,
   AlertCircle,
   Eye,
-  Edit,
   Plus,
 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -92,10 +91,9 @@ const STATUS_CONFIG: Record<
 interface InventoryRowProps {
   item: ProductInventoryItem;
   onView: (variantId: number) => void;
-  onEdit: (variantId: number) => void;
 }
 
-const InventoryRow = ({ item, onView, onEdit }: InventoryRowProps) => {
+const InventoryRow = ({ item, onView }: InventoryRowProps) => {
   const statusConfig = STATUS_CONFIG[item.inventory_status] || STATUS_CONFIG['out_of_stock'];
 
   // Determine if quantity is low (less than 20) for red styling
@@ -169,18 +167,11 @@ const InventoryRow = ({ item, onView, onEdit }: InventoryRowProps) => {
       <td className="px-6 py-4 whitespace-nowrap text-right">
         <div className="flex items-center justify-end gap-2">
           <button
-            onClick={() => onView(item.variant_id)}
+            onClick={() => onView(item.product_id)}
             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-[13px] font-medium text-[#002d62] bg-[#e8f0fe] hover:bg-[#d2e3fc] border border-transparent hover:border-[#002d62] transition-all focus:outline-none focus:ring-2 focus:ring-[#002d62] focus:ring-offset-1"
           >
             <Eye className="size-3.5" />
-            Ver
-          </button>
-          <button
-            onClick={() => onEdit(item.product_id)}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-[13px] font-medium text-[#43474f] bg-[#f2f4f6] hover:bg-[#e8eaed] border border-transparent hover:border-[#c4c6d1] transition-all focus:outline-none focus:ring-2 focus:ring-[#002d62] focus:ring-offset-1"
-          >
-            <Edit className="size-3.5" />
-            Editar
+            Info
           </button>
         </div>
       </td>
@@ -337,15 +328,8 @@ export default function InventoryPage() {
   const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
 
   const handleViewDetails = useCallback(
-    (variantId: number) => {
-      router.push(`/admin/inventory/${variantId}`);
-    },
-    [router]
-  );
-
-  const handleEditVariant = useCallback(
     (productId: number) => {
-      router.push(`/admin/products/edit/${productId}`);
+      router.push(`/admin/products/info/${productId}`);
     },
     [router]
   );
@@ -562,12 +546,7 @@ export default function InventoryPage() {
             </thead>
             <tbody className="divide-y divide-[#e0e3e5]">
               {inventoryItems.map(item => (
-                <InventoryRow
-                  key={item.variant_id}
-                  item={item}
-                  onView={handleViewDetails}
-                  onEdit={handleEditVariant}
-                />
+                <InventoryRow key={item.variant_id} item={item} onView={handleViewDetails} />
               ))}
             </tbody>
           </table>
