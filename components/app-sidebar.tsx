@@ -71,7 +71,6 @@ const PLATFORM_ITEMS: NavigationItem[] = [
     sub: [
       { title: 'Estado Actual', url: '/admin/inventory' },
       { title: 'Movimientos', url: '/admin/inventory/stockmovement' },
-      { title: 'Gestión', url: '/admin/inventory/manage' },
     ],
   },
 ];
