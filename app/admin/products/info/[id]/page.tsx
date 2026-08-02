@@ -16,6 +16,7 @@ import {
   XCircle,
   AlertCircle,
   LucideIcon,
+  ShoppingCart,
 } from 'lucide-react';
 
 const currencyFormatter = new Intl.NumberFormat('es-DO', {
@@ -79,6 +80,25 @@ type Product = {
   status?: string;
 };
 
+type InventoryData = {
+  variant_id: number;
+  product_id: number;
+  product_name: string;
+  thumbnail: string | null;
+  quantity: number;
+  inventory_status: string;
+  images: string[];
+  sku: string;
+  variantnumber: number;
+  status: boolean;
+  selling_price: string;
+};
+
+type VariantWithStock = Variant & {
+  stock: number | null;
+  inventoryStatus: string | null;
+};
+
 function isProductAvailable(product: Product): boolean {
   return product.variants.some(variant => variant.status !== false);
 }
@@ -86,6 +106,20 @@ function isProductAvailable(product: Product): boolean {
 function getDisplayPrice(product: Product): number {
   const mainVariant = product.variants[0];
   return mainVariant?.selling_price || 0;
+}
+
+function getStockStatusClass(stock: number | null): string {
+  if (stock === null) return 'text-[#747781]';
+  if (stock <= 0) return 'text-[#ba1a1a]';
+  if (stock <= 5) return 'text-[#b76e00]';
+  return 'text-[#137333]';
+}
+
+function getStockStatusLabel(stock: number | null): string {
+  if (stock === null) return 'Sin inventario';
+  if (stock <= 0) return 'Agotado';
+  if (stock <= 5) return 'Bajo stock';
+  return 'En stock';
 }
 
 type ProductInfoPageProps = {
@@ -99,18 +133,64 @@ export default function ProductInfoPage({ params }: ProductInfoPageProps) {
   const { id } = use(params);
   //   const router = useRouter();
   const [product, setProduct] = useState<Product | null>(null);
+  const [variantsWithStock, setVariantsWithStock] = useState<VariantWithStock[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [stockErrors, setStockErrors] = useState<Record<number, string>>({});
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchProductAndStock = async () => {
       try {
-        const response = await fetch(`/api/v1/products/${id}`);
-        if (!response.ok) {
+        // Fetch product details
+        const productResponse = await fetch(`/api/v1/products/${id}`);
+        if (!productResponse.ok) {
           throw new Error('Producto no encontrado');
         }
-        const data = await response.json();
-        setProduct(data);
+        const productData = await productResponse.json();
+        setProduct(productData);
+
+        // Fetch stock for each variant using the new API route
+        const stockPromises = productData.variants.map(async (variant: Variant) => {
+          try {
+            const stockResponse = await fetch(
+              `/api/admin/inventory/products/${variant.id}`,
+              {
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                credentials: 'include', // This ensures cookies are sent
+              }
+            );
+            
+            if (!stockResponse.ok) {
+              const errorData = await stockResponse.json().catch(() => ({}));
+              throw new Error(errorData.error || `Failed to fetch stock for variant ${variant.id}`);
+            }
+            
+            const stockData: InventoryData = await stockResponse.json();
+            return {
+              ...variant,
+              stock: stockData.quantity,
+              inventoryStatus: stockData.inventory_status,
+            };
+          } catch (stockError) {
+            const errorMessage = stockError instanceof Error ? stockError.message : 'Unknown error';
+            console.error(`Error fetching stock for variant ${variant.id}:`, errorMessage);
+            setStockErrors(prev => ({
+              ...prev,
+              [variant.id]: errorMessage
+            }));
+            return {
+              ...variant,
+              stock: null,
+              inventoryStatus: null,
+            };
+          }
+        });
+
+        const stockResults = await Promise.all(stockPromises);
+        setVariantsWithStock(stockResults);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error al cargar el producto');
       } finally {
@@ -118,7 +198,7 @@ export default function ProductInfoPage({ params }: ProductInfoPageProps) {
       }
     };
 
-    fetchProduct();
+    fetchProductAndStock();
   }, [id]);
 
   if (isLoading) {
@@ -175,6 +255,11 @@ export default function ProductInfoPage({ params }: ProductInfoPageProps) {
   const statusInfo = STATUS_LABELS[product.status || 'active'] || STATUS_LABELS.active;
   const StatusIcon = statusInfo.icon;
 
+  // Calculate total stock
+  const totalStock = variantsWithStock.reduce((sum, variant) => sum + (variant.stock || 0), 0);
+  const variantsWithStockCount = variantsWithStock.filter(v => (v.stock || 0) > 0).length;
+  const hasStockErrors = Object.keys(stockErrors).length > 0;
+
   return (
     <div className="flex flex-col h-full bg-[#f7f9fb]">
       {/* Header */}
@@ -210,6 +295,30 @@ export default function ProductInfoPage({ params }: ProductInfoPageProps) {
       {/* Content */}
       <main className="flex-1 overflow-y-auto p-8 custom-scrollbar">
         <div className="max-w-4xl mx-auto space-y-6">
+          {/* Error Alert for Stock Issues */}
+          {hasStockErrors && (
+            <div className="bg-[#ffdad6] border border-[#ffb4ab] rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="size-5 text-[#93000a] flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-[13px] font-bold text-[#93000a]">
+                    Problemas al cargar el inventario
+                  </h4>
+                  <p className="text-[12px] text-[#93000a] mt-1">
+                    No se pudo obtener el stock para algunas variantes. Los datos pueden estar incompletos.
+                  </p>
+                  <div className="mt-2 text-[11px] text-[#93000a]">
+                    {Object.entries(stockErrors).map(([variantId, error]) => (
+                      <div key={variantId} className="mt-1">
+                        Variante #{variantId}: {error}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Product Overview Card */}
           <div className="bg-white rounded-lg border border-[#e0e3e5] overflow-hidden">
             <div className="p-6 border-b border-[#e0e3e5] bg-[#f8fafd]">
@@ -267,7 +376,7 @@ export default function ProductInfoPage({ params }: ProductInfoPageProps) {
           </div>
 
           {/* Details Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Pricing Card */}
             <div className="bg-white rounded-lg border border-[#e0e3e5] overflow-hidden">
               <div className="p-4 border-b border-[#e0e3e5] bg-[#f8fafd]">
@@ -301,6 +410,35 @@ export default function ProductInfoPage({ params }: ProductInfoPageProps) {
               </div>
             </div>
 
+            {/* Stock Card */}
+            <div className="bg-white rounded-lg border border-[#e0e3e5] overflow-hidden">
+              <div className="p-4 border-b border-[#e0e3e5] bg-[#f8fafd]">
+                <h3 className="text-[13px] font-bold text-[#191c1e] flex items-center gap-2">
+                  <ShoppingCart className="size-4" /> Inventario
+                </h3>
+              </div>
+              <div className="p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-[13px] text-[#747781]">Stock total</span>
+                  <span className={`text-[18px] font-bold ${getStockStatusClass(totalStock)}`}>
+                    {totalStock}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center pt-3 border-t border-[#e0e3e5]">
+                  <span className="text-[13px] text-[#747781]">Estado del inventario</span>
+                  <span className={`text-[13px] font-semibold ${getStockStatusClass(totalStock)}`}>
+                    {getStockStatusLabel(totalStock)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[13px] text-[#747781]">Variantes con stock</span>
+                  <span className="text-[13px] font-medium text-[#43474f]">
+                    {variantsWithStockCount} / {variantsWithStock.length}
+                  </span>
+                </div>
+              </div>
+            </div>
+
             {/* Status Card */}
             <div className="bg-white rounded-lg border border-[#e0e3e5] overflow-hidden">
               <div className="p-4 border-b border-[#e0e3e5] bg-[#f8fafd]">
@@ -331,7 +469,7 @@ export default function ProductInfoPage({ params }: ProductInfoPageProps) {
             </div>
           </div>
 
-          {/* Variants Card */}
+          {/* Variants Card with Stock */}
           {product.variants.length > 0 && (
             <div className="bg-white rounded-lg border border-[#e0e3e5] overflow-hidden">
               <div className="p-4 border-b border-[#e0e3e5] bg-[#f8fafd] flex items-center justify-between">
@@ -356,45 +494,73 @@ export default function ProductInfoPage({ params }: ProductInfoPageProps) {
                         Precio
                       </th>
                       <th className="px-4 py-3 text-[11px] font-bold text-[#747781] uppercase tracking-wider text-right">
+                        Stock
+                      </th>
+                      <th className="px-4 py-3 text-[11px] font-bold text-[#747781] uppercase tracking-wider text-right">
                         Estado
                       </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {product.variants.map((variant, index) => (
-                      <tr
-                        key={variant.id || index}
-                        className="border-b border-[#e0e3e5] last:border-0 hover:bg-[#f8fafd] transition-colors"
-                      >
-                        <td className="px-4 py-3 text-[13px] font-mono text-[#43474f]">
-                          {variant.sku}
-                        </td>
-                        <td className="px-4 py-3 text-[13px] text-[#191c1e]">
-                          {variant.name || `Variante ${variant.variantnumber || index + 1}`}
-                        </td>
-                        <td className="px-4 py-3 text-[13px] font-semibold text-[#191c1e] text-right">
-                          {variant.selling_price
-                            ? formatCurrency(variant.selling_price)
-                            : formatCurrency(price)}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${
-                              variant.status !== false
-                                ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]'
-                                : 'bg-[#ffdad6] text-[#93000a] border-[#ffb4ab]'
-                            }`}
-                          >
+                    {variantsWithStock.map((variant, index) => {
+                      const variantStock = variant.stock ?? 0;
+                      const stockStatusClass = getStockStatusClass(variant.stock);
+                      const stockStatusLabel = getStockStatusLabel(variant.stock);
+                      const hasError = stockErrors[variant.id];
+                      
+                      return (
+                        <tr
+                          key={variant.id || index}
+                          className="border-b border-[#e0e3e5] last:border-0 hover:bg-[#f8fafd] transition-colors"
+                        >
+                          <td className="px-4 py-3 text-[13px] font-mono text-[#43474f]">
+                            {variant.sku}
+                          </td>
+                          <td className="px-4 py-3 text-[13px] text-[#191c1e]">
+                            {variant.name || `Variante ${variant.variantnumber || index + 1}`}
+                          </td>
+                          <td className="px-4 py-3 text-[13px] font-semibold text-[#191c1e] text-right">
+                            {variant.selling_price
+                              ? formatCurrency(variant.selling_price)
+                              : formatCurrency(price)}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            {hasError ? (
+                              <span className="text-[11px] text-[#ba1a1a] font-medium">
+                                Error
+                              </span>
+                            ) : (
+                              <div className="flex items-center justify-end gap-2">
+                                <span className={`text-[13px] font-semibold ${stockStatusClass}`}>
+                                  {variant.stock !== null ? variant.stock : 'N/A'}
+                                </span>
+                                {variant.stock !== null && (
+                                  <span className={`text-[10px] font-medium ${stockStatusClass}`}>
+                                    ({stockStatusLabel})
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-right">
                             <span
-                              className={`size-1.5 rounded-full ${variant.status !== false ? 'bg-[#1e8e3e]' : 'bg-[#ba1a1a]'}`}
-                            />
-                            <span className="text-[11px] font-bold">
-                              {variant.status !== false ? 'Activo' : 'Inactivo'}
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${
+                                variant.status !== false
+                                  ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]'
+                                  : 'bg-[#ffdad6] text-[#93000a] border-[#ffb4ab]'
+                              }`}
+                            >
+                              <span
+                                className={`size-1.5 rounded-full ${variant.status !== false ? 'bg-[#1e8e3e]' : 'bg-[#ba1a1a]'}`}
+                              />
+                              <span className="text-[11px] font-bold">
+                                {variant.status !== false ? 'Activo' : 'Inactivo'}
+                              </span>
                             </span>
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

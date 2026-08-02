@@ -3,24 +3,13 @@
 import { useState, useEffect, useCallback, useRef, memo, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import {
-  Clock,
-  CheckCircle2,
-  Undo2,
-  Search,
-  X,
-  Eye,
-  FileText,
-  Plus,
-  ChevronLeft,
-  ChevronRight,
-} from 'lucide-react';
+import { Search, X, Eye, FileText, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { formatCurrency, formatDate } from '@/lib/format';
+import { STATUS_UI, type OrderStatus } from '@/lib/order-status';
 
 // ============================================================================
 // CAPA DE DOMINIO Y TIPOS ESTRICTOS
 // ============================================================================
-
-type OrderStatus = 'fulfilled' | 'pending' | 'returned';
 
 type Order = {
   id: number;
@@ -41,56 +30,6 @@ type Order = {
 const ITEMS_PER_PAGE = 5;
 const SEARCH_DEBOUNCE_DELAY = 400;
 const ORDERS_ENDPOINT = '/api/v1/admin/orders';
-
-const dateFormatter = new Intl.DateTimeFormat('es-DO', {
-  year: 'numeric',
-  month: 'short',
-  day: 'numeric',
-  hour: 'numeric',
-  minute: '2-digit',
-  hour12: true,
-});
-
-const currencyFormatter = new Intl.NumberFormat('es-DO', {
-  style: 'currency',
-  currency: 'DOP',
-});
-
-function formatDate(dateString: string): string {
-  try {
-    return dateFormatter.format(new Date(dateString));
-  } catch {
-    return dateString;
-  }
-}
-
-function formatCurrency(amount: number): string {
-  return currencyFormatter.format(amount);
-}
-
-const STATUS_UI: Record<
-  OrderStatus,
-  { badge: string; dot: string; label: string; icon: React.ElementType }
-> = {
-  pending: {
-    badge: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]',
-    dot: 'bg-[#f9ab00]',
-    label: 'Pendiente',
-    icon: Clock,
-  },
-  fulfilled: {
-    badge: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]',
-    dot: 'bg-[#1e8e3e]',
-    label: 'Completada',
-    icon: CheckCircle2,
-  },
-  returned: {
-    badge: 'bg-[#f1f3f4] text-[#5f6368] border-[#e8eaed]',
-    dot: 'bg-[#9aa0a6]',
-    label: 'Devuelta',
-    icon: Undo2,
-  },
-};
 
 // ============================================================================
 // CAPA DE ACCESO A DATOS (API REST)
