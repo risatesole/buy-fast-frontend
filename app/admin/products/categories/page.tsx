@@ -1,246 +1,109 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, memo, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef, useTransition, memo, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, X, Edit2, FolderOpen, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Search,
+  X,
+  Edit2,
+  FolderOpen,
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+  Trash2,
+} from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { fetchCategories, deleteCategory, type Category } from './actions';
 
 // ============================================================================
-// CAPA DE DOMINIO Y TIPOS ESTRICTOS
-// ============================================================================
-
-export type Category = {
-  id: number;
-  name: string;
-  slug: string;
-  description: string | null;
-  image: string | null;
-  status: boolean;
-  created_at: string;
-};
-
-// ============================================================================
-// CONSTANTES Y UTILIDADES GLOBALES O(1)
+// CONSTANTES Y UTILIDADES
 // ============================================================================
 
 const ITEMS_PER_PAGE = 5;
 const SEARCH_DEBOUNCE_DELAY = 400;
 
-// Instancia global para evitar overhead de Garbage Collection en el ciclo de render
-const dateFormatter = new Intl.DateTimeFormat('es-DO', {
-  year: 'numeric',
-  month: 'short',
-  day: 'numeric',
-});
-
-function formatDate(dateString: string): string {
-  try {
-    return dateFormatter.format(new Date(dateString));
-  } catch {
-    return dateString;
-  }
-}
-
 // ============================================================================
-// MOCK DE BASE DE DATOS (Simulación Paginada Server-Side)
-// ============================================================================
-
-const MOCK_DB: Category[] = [
-  {
-    id: 1,
-    name: 'Libros de Texto',
-    slug: 'libros-texto',
-    description: 'Material bibliográfico oficial y recursos académicos.',
-    image: 'https://picsum.photos/seed/cat1/150/150',
-    status: true,
-    created_at: '2025-01-15T10:00:00Z',
-  },
-  {
-    id: 2,
-    name: 'Uniformes',
-    slug: 'uniformes',
-    description: 'Indumentaria institucional para estudiantes y docentes.',
-    image: 'https://picsum.photos/seed/cat2/150/150',
-    status: true,
-    created_at: '2025-01-16T11:30:00Z',
-  },
-  {
-    id: 3,
-    name: 'Material Gastable',
-    slug: 'material-gastable',
-    description: 'Suministros de oficina y papelería general.',
-    image: 'https://picsum.photos/seed/cat3/150/150',
-    status: true,
-    created_at: '2025-02-01T09:15:00Z',
-  },
-  {
-    id: 4,
-    name: 'Equipos de Laboratorio',
-    slug: 'equipos-laboratorio',
-    description: 'Instrumental científico y de investigación.',
-    image: null,
-    status: true,
-    created_at: '2025-02-10T14:20:00Z',
-  },
-  {
-    id: 5,
-    name: 'Electrónica',
-    slug: 'electronica',
-    description: 'Dispositivos, calculadoras y componentes informáticos.',
-    image: 'https://picsum.photos/seed/cat5/150/150',
-    status: true,
-    created_at: '2025-03-05T08:45:00Z',
-  },
-  {
-    id: 6,
-    name: 'Souvenirs Institucionales',
-    slug: 'souvenirs',
-    description: 'Artículos promocionales y regalos oficiales.',
-    image: 'https://picsum.photos/seed/cat6/150/150',
-    status: true,
-    created_at: '2025-04-12T16:10:00Z',
-  },
-  {
-    id: 7,
-    name: 'Alimentos y Bebidas',
-    slug: 'alimentos-bebidas',
-    description: 'Snacks y bebidas no perecederas.',
-    image: 'https://picsum.photos/seed/cat7/150/150',
-    status: false,
-    created_at: '2025-05-20T10:05:00Z',
-  },
-  {
-    id: 8,
-    name: 'Mobiliario Estudiantil',
-    slug: 'mobiliario',
-    description: 'Sillas, pupitres y tableros de dibujo.',
-    image: null,
-    status: true,
-    created_at: '2025-06-11T13:40:00Z',
-  },
-];
-
-type PaginatedResponse = {
-  data: Category[];
-  total: number;
-};
-
-async function mockApiFetch(
-  search: string,
-  page: number,
-  limit: number
-): Promise<PaginatedResponse> {
-  await new Promise(resolve => setTimeout(resolve, 300)); // Latencia inyectada
-
-  const lowerSearch = search.toLowerCase();
-  const filtered = MOCK_DB.filter(
-    c =>
-      c.name.toLowerCase().includes(lowerSearch) ||
-      c.slug.toLowerCase().includes(lowerSearch) ||
-      (c.description && c.description.toLowerCase().includes(lowerSearch))
-  );
-
-  const startIndex = (page - 1) * limit;
-  return {
-    data: filtered.slice(startIndex, startIndex + limit),
-    total: filtered.length,
-  };
-}
-
-// ============================================================================
-// CUSTOM HOOK: Gestión de Estado y Paginación
+// CUSTOM HOOK: Carga y paginación client-side sobre los datos reales
 // ============================================================================
 
 function useCategoriesPagination() {
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
 
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const latestRequestRef = useRef<number>(0);
 
-  const fetchCategories = useCallback(async (search: string, page: number) => {
-    const requestId = Date.now();
-    latestRequestRef.current = requestId;
-
+  const loadCategories = useCallback(async () => {
     setIsLoading(true);
-
+    setLoadError(null);
     try {
-      const { data, total } = await mockApiFetch(search.trim(), page, ITEMS_PER_PAGE);
-
-      // Thread-safety simulado: Descarta promesas resueltas a destiempo
-      if (latestRequestRef.current !== requestId) return;
-
-      setCategories(data);
-      setTotalItems(total);
+      const data = await fetchCategories();
+      setAllCategories(data);
+    } catch {
+      setLoadError('No se pudieron cargar las categorías.');
     } finally {
-      if (latestRequestRef.current === requestId) {
-        setIsLoading(false);
-      }
+      setIsLoading(false);
     }
   }, []);
 
-  const handleSearch = useCallback(
-    (value: string) => {
-      setSearchTerm(value);
-      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-
-      searchTimeoutRef.current = setTimeout(() => {
-        setCurrentPage(1);
-        fetchCategories(value, 1);
-      }, SEARCH_DEBOUNCE_DELAY);
-    },
-    [fetchCategories]
-  );
-
-  const clearSearch = useCallback(() => {
-    setSearchTerm('');
-    setCurrentPage(1);
-    fetchCategories('', 1);
-  }, [fetchCategories]);
-
-  const handlePageChange = useCallback(
-    (newPage: number) => {
-      setCurrentPage(newPage);
-      fetchCategories(searchTerm, newPage);
-    },
-    [searchTerm, fetchCategories]
-  );
-
   useEffect(() => {
-    const loadInitialData = async () => {
-      setIsLoading(true);
-      try {
-        const { data, total } = await mockApiFetch('', 1, ITEMS_PER_PAGE);
-        setCategories(data);
-        setTotalItems(total);
-      } finally {
-        setIsLoading(false);
-      }
+    const loadData = async () => {
+      await loadCategories();
     };
-
-    loadInitialData();
+    loadData();
 
     return () => {
       if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     };
+  }, [loadCategories]);
+
+  const handleSearch = useCallback((value: string) => {
+    setSearchTerm(value);
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+
+    searchTimeoutRef.current = setTimeout(() => {
+      setCurrentPage(1);
+    }, SEARCH_DEBOUNCE_DELAY);
   }, []);
 
-  const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
+  const clearSearch = useCallback(() => {
+    setSearchTerm('');
+    setCurrentPage(1);
+  }, []);
+
+  const filtered = useMemo(() => {
+    const lowerSearch = searchTerm.trim().toLowerCase();
+    if (!lowerSearch) return allCategories;
+    return allCategories.filter(
+      c =>
+        c.label.toLowerCase().includes(lowerSearch) ||
+        c.slug.toLowerCase().includes(lowerSearch) ||
+        c.description.toLowerCase().includes(lowerSearch)
+    );
+  }, [allCategories, searchTerm]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const currentPageClamped = Math.min(currentPage, totalPages);
+  const categories = filtered.slice(
+    (currentPageClamped - 1) * ITEMS_PER_PAGE,
+    currentPageClamped * ITEMS_PER_PAGE
+  );
 
   return {
     categories,
     isLoading,
+    loadError,
     searchTerm,
     handleSearch,
     clearSearch,
-    currentPage,
+    currentPage: currentPageClamped,
     totalPages,
-    totalItems,
-    handlePageChange,
+    totalItems: filtered.length,
+    setCurrentPage,
+    reload: loadCategories,
   };
 }
 
@@ -257,73 +120,76 @@ const LoadingDots = memo(() => (
 ));
 LoadingDots.displayName = 'LoadingDots';
 
-const CategoryRow = memo(({ category }: { category: Category }) => {
-  return (
-    <tr className="border-b border-[#e0e3e5] bg-white hover:bg-[#f8fafd] transition-colors duration-150">
-      <td className="px-6 py-4 font-mono text-[13px] text-[#43474f] font-semibold">
-        {category.id}
-      </td>
-      <td className="px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div className="size-10 rounded-md border border-[#e0e3e5] bg-[#f2f4f6] flex items-center justify-center overflow-hidden shrink-0">
-            {category.image ? (
-              <Image
-                src={category.image}
-                alt={category.name}
-                width={40}
-                height={40}
-                className="size-full object-cover"
-                loading="lazy"
-                unoptimized // Since using picsum.photos external images
-              />
-            ) : (
-              <FolderOpen className="size-4 text-[#c4c6d1]" />
-            )}
+const CategoryRow = memo(
+  ({
+    category,
+    onDelete,
+    isDeleting,
+  }: {
+    category: Category;
+    onDelete: (category: Category) => void;
+    isDeleting: boolean;
+  }) => {
+    return (
+      <tr className="border-b border-[#e0e3e5] bg-white hover:bg-[#f8fafd] transition-colors duration-150">
+        <td className="px-6 py-4 font-mono text-[13px] text-[#43474f] font-semibold">
+          {category.id}
+        </td>
+        <td className="px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="size-10 rounded-md border border-[#e0e3e5] bg-[#f2f4f6] flex items-center justify-center overflow-hidden shrink-0">
+              {category.images.default ? (
+                <Image
+                  src={category.images.default}
+                  alt={category.label}
+                  width={40}
+                  height={40}
+                  className="size-full object-cover"
+                  loading="lazy"
+                  unoptimized
+                />
+              ) : (
+                <FolderOpen className="size-4 text-[#c4c6d1]" />
+              )}
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[14px] font-semibold text-[#191c1e] tracking-tight">
+                {category.label}
+              </span>
+              <span className="text-[12px] text-[#747781] mt-0.5 font-mono">/{category.slug}</span>
+            </div>
           </div>
-          <div className="flex flex-col">
-            <span className="text-[14px] font-semibold text-[#191c1e] tracking-tight">
-              {category.name}
-            </span>
-            <span className="text-[12px] text-[#747781] mt-0.5 font-mono">/{category.slug}</span>
+        </td>
+        <td className="px-6 py-4">
+          <p className="text-[13px] text-[#43474f] truncate max-w-xs">
+            {category.description || '—'}
+          </p>
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap">
+          <span className="text-[13px] font-semibold text-[#43474f]">{category.priority}</span>
+        </td>
+        <td className="px-6 py-4 text-right">
+          <div className="flex items-center justify-end gap-2">
+            <Link
+              href={`/admin/products/categories/edit/${category.id}`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-[#c4c6d1] rounded-md text-[12px] font-semibold text-[#43474f] hover:bg-[#f2f4f6] transition-colors focus:outline-none focus:ring-2 focus:ring-[#002d62]"
+            >
+              <Edit2 className="size-3.5" /> Editar
+            </Link>
+            <button
+              type="button"
+              onClick={() => onDelete(category)}
+              disabled={isDeleting}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-red-200 rounded-md text-[12px] font-semibold text-red-600 hover:bg-red-50 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 disabled:opacity-50 disabled:pointer-events-none"
+            >
+              <Trash2 className="size-3.5" /> {isDeleting ? 'Eliminando...' : 'Eliminar'}
+            </button>
           </div>
-        </div>
-      </td>
-      <td className="px-6 py-4">
-        <p className="text-[13px] text-[#43474f] truncate max-w-xs">
-          {category.description || '—'}
-        </p>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <div
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${
-            category.status
-              ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]'
-              : 'bg-[#f1f3f4] text-[#5f6368] border-[#e8eaed]'
-          }`}
-        >
-          <span
-            className={`size-1.5 rounded-full ${category.status ? 'bg-[#1e8e3e]' : 'bg-[#9aa0a6]'}`}
-            aria-hidden="true"
-          />
-          <span className="text-[11px] font-bold uppercase tracking-wider">
-            {category.status ? 'Activa' : 'Inactiva'}
-          </span>
-        </div>
-      </td>
-      <td className="px-6 py-4 text-[13px] text-[#43474f] whitespace-nowrap">
-        {formatDate(category.created_at)}
-      </td>
-      <td className="px-6 py-4 text-right">
-        <Link
-          href={`/admin/products/categories/edit/${category.id}`}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-[#c4c6d1] rounded-md text-[12px] font-semibold text-[#43474f] hover:bg-[#f2f4f6] transition-colors focus:outline-none focus:ring-2 focus:ring-[#002d62]"
-        >
-          <Edit2 className="size-3.5" /> Editar
-        </Link>
-      </td>
-    </tr>
-  );
-});
+        </td>
+      </tr>
+    );
+  }
+);
 CategoryRow.displayName = 'CategoryRow';
 
 // ============================================================================
@@ -331,21 +197,51 @@ CategoryRow.displayName = 'CategoryRow';
 // ============================================================================
 
 export default function CategoriesPage() {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
   const {
     categories,
     isLoading,
+    loadError,
     searchTerm,
     handleSearch,
     clearSearch,
     currentPage,
     totalPages,
     totalItems,
-    handlePageChange,
+    setCurrentPage,
+    reload,
   } = useCategoriesPagination();
 
   const paginationRange = useMemo(() => {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }, [totalPages]);
+
+  function handleDelete(category: Category) {
+    const confirmed = window.confirm(
+      `¿Eliminar la categoría "${category.label}"? Esta acción no se puede deshacer.`
+    );
+    if (!confirmed) return;
+
+    setActionError(null);
+    setDeletingId(category.id);
+
+    startTransition(async () => {
+      const result = await deleteCategory(String(category.id));
+      setDeletingId(null);
+
+      if (!result.ok) {
+        setActionError(result.message);
+        return;
+      }
+
+      await reload();
+      router.refresh();
+    });
+  }
 
   return (
     <div className="flex flex-col h-full bg-[#f7f9fb]">
@@ -389,12 +285,17 @@ export default function CategoriesPage() {
             </button>
           )}
         </div>
+        {actionError && <p className="mt-3 text-xs font-medium text-red-600">{actionError}</p>}
       </section>
 
       {/* Main Content */}
       <main className="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar bg-white">
         {isLoading ? (
           <LoadingDots />
+        ) : loadError ? (
+          <div className="flex flex-col items-center justify-center py-24 text-[#747781]">
+            <p className="text-[14px] font-semibold text-red-600">{loadError}</p>
+          </div>
         ) : categories.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-[#747781]">
             <FolderOpen className="size-12 mb-4 text-[#c4c6d1]" />
@@ -418,10 +319,7 @@ export default function CategoriesPage() {
                   Descripción
                 </th>
                 <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">
-                  Estado
-                </th>
-                <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">
-                  Creación
+                  Prioridad
                 </th>
                 <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider text-right">
                   Acción
@@ -430,7 +328,12 @@ export default function CategoriesPage() {
             </thead>
             <tbody className="divide-y divide-[#e0e3e5]">
               {categories.map(category => (
-                <CategoryRow key={category.id} category={category} />
+                <CategoryRow
+                  key={category.id}
+                  category={category}
+                  onDelete={handleDelete}
+                  isDeleting={isPending && deletingId === category.id}
+                />
               ))}
             </tbody>
           </table>
@@ -438,7 +341,7 @@ export default function CategoriesPage() {
       </main>
 
       {/* Footer / Paginación Numérica Clásica */}
-      {!isLoading && categories.length > 0 && (
+      {!isLoading && !loadError && categories.length > 0 && (
         <footer className="flex items-center justify-between px-8 py-4 bg-white border-t border-[#e0e3e5]">
           <div className="text-[13px] font-medium text-[#747781]">
             Mostrando{' '}
@@ -454,7 +357,7 @@ export default function CategoriesPage() {
 
           <div className="flex items-center gap-1.5">
             <button
-              onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
               className="inline-flex items-center justify-center size-8 rounded-md border border-[#c4c6d1] text-[#43474f] hover:bg-[#f2f4f6] disabled:opacity-40 disabled:pointer-events-none transition-colors"
               aria-label="Página anterior"
@@ -466,7 +369,7 @@ export default function CategoriesPage() {
               {paginationRange.map(page => (
                 <button
                   key={page}
-                  onClick={() => handlePageChange(page)}
+                  onClick={() => setCurrentPage(page)}
                   className={`inline-flex items-center justify-center size-8 rounded-md text-[13px] font-semibold transition-all ${
                     currentPage === page
                       ? 'bg-[#002d62] text-white border border-[#002d62] shadow-sm'
@@ -479,7 +382,7 @@ export default function CategoriesPage() {
             </div>
 
             <button
-              onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
               className="inline-flex items-center justify-center size-8 rounded-md border border-[#c4c6d1] text-[#43474f] hover:bg-[#f2f4f6] disabled:opacity-40 disabled:pointer-events-none transition-colors"
               aria-label="Página siguiente"
