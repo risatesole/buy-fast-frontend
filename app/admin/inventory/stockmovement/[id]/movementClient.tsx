@@ -205,7 +205,9 @@ export default function StockMovementDetailsClient({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h2 className="text-[18px] font-bold text-[#191c1e]">{product.name}</h2>
+                      <Link href={`/admin/products/info/${product.id}`}>
+                        <h2 className="text-[18px] font-bold text-[#191c1e]">{product.name}</h2>
+                      </Link>
                       <p className="text-[14px] text-[#43474f] mt-0.5">{variant.name}</p>
                     </div>
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#e8f0fe] text-[#002d62] text-[11px] font-bold">
