@@ -176,7 +176,7 @@ const InventoryRow = ({ item, onView, onEdit }: InventoryRowProps) => {
             Ver
           </button>
           <button
-            onClick={() => onEdit(item.variant_id)}
+            onClick={() => onEdit(item.product_id)}
             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-[13px] font-medium text-[#43474f] bg-[#f2f4f6] hover:bg-[#e8eaed] border border-transparent hover:border-[#c4c6d1] transition-all focus:outline-none focus:ring-2 focus:ring-[#002d62] focus:ring-offset-1"
           >
             <Edit className="size-3.5" />
@@ -344,8 +344,8 @@ export default function InventoryPage() {
   );
 
   const handleEditVariant = useCallback(
-    (variantId: number) => {
-      router.push(`/admin/inventory/${variantId}/edit`);
+    (productId: number) => {
+      router.push(`/admin/products/edit/${productId}`);
     },
     [router]
   );
