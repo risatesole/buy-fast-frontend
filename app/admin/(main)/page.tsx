@@ -188,9 +188,7 @@ function StatCard({
   return (
     <div className="bg-[#f8fafd] rounded-lg p-4 border border-[#e0e3e5] flex items-start justify-between gap-3">
       <div>
-        <p className="text-[11px] font-semibold text-[#747781] uppercase tracking-wider">
-          {label}
-        </p>
+        <p className="text-[11px] font-semibold text-[#747781] uppercase tracking-wider">{label}</p>
         <p className={`text-2xl font-bold mt-1 ${valueColor}`}>{value}</p>
       </div>
       <div className="text-[#c4c6d1]">{icon}</div>
@@ -283,9 +281,7 @@ export default function AdminDashboardPage() {
         <h1 className="text-2xl font-serif font-bold text-[#00193c] tracking-tight">
           Panel de Control
         </h1>
-        <p className="text-[13px] text-[#747781] mt-1">
-          Resumen operativo del Económato UASD.
-        </p>
+        <p className="text-[13px] text-[#747781] mt-1">Resumen operativo del Económato UASD.</p>
       </header>
 
       {/* KPI cards */}

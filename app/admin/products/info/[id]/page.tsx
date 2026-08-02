@@ -152,22 +152,19 @@ export default function ProductInfoPage({ params }: ProductInfoPageProps) {
         // Fetch stock for each variant using the new API route
         const stockPromises = productData.variants.map(async (variant: Variant) => {
           try {
-            const stockResponse = await fetch(
-              `/api/admin/inventory/products/${variant.id}`,
-              {
-                method: 'GET',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                credentials: 'include', // This ensures cookies are sent
-              }
-            );
-            
+            const stockResponse = await fetch(`/api/admin/inventory/products/${variant.id}`, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              credentials: 'include', // This ensures cookies are sent
+            });
+
             if (!stockResponse.ok) {
               const errorData = await stockResponse.json().catch(() => ({}));
               throw new Error(errorData.error || `Failed to fetch stock for variant ${variant.id}`);
             }
-            
+
             const stockData: InventoryData = await stockResponse.json();
             return {
               ...variant,
@@ -179,7 +176,7 @@ export default function ProductInfoPage({ params }: ProductInfoPageProps) {
             console.error(`Error fetching stock for variant ${variant.id}:`, errorMessage);
             setStockErrors(prev => ({
               ...prev,
-              [variant.id]: errorMessage
+              [variant.id]: errorMessage,
             }));
             return {
               ...variant,
@@ -305,7 +302,8 @@ export default function ProductInfoPage({ params }: ProductInfoPageProps) {
                     Problemas al cargar el inventario
                   </h4>
                   <p className="text-[12px] text-[#93000a] mt-1">
-                    No se pudo obtener el stock para algunas variantes. Los datos pueden estar incompletos.
+                    No se pudo obtener el stock para algunas variantes. Los datos pueden estar
+                    incompletos.
                   </p>
                   <div className="mt-2 text-[11px] text-[#93000a]">
                     {Object.entries(stockErrors).map(([variantId, error]) => (
@@ -506,7 +504,7 @@ export default function ProductInfoPage({ params }: ProductInfoPageProps) {
                       const stockStatusClass = getStockStatusClass(variant.stock);
                       const stockStatusLabel = getStockStatusLabel(variant.stock);
                       const hasError = stockErrors[variant.id];
-                      
+
                       return (
                         <tr
                           key={variant.id || index}
@@ -525,9 +523,7 @@ export default function ProductInfoPage({ params }: ProductInfoPageProps) {
                           </td>
                           <td className="px-4 py-3 text-right">
                             {hasError ? (
-                              <span className="text-[11px] text-[#ba1a1a] font-medium">
-                                Error
-                              </span>
+                              <span className="text-[11px] text-[#ba1a1a] font-medium">Error</span>
                             ) : (
                               <div className="flex items-center justify-end gap-2">
                                 <span className={`text-[13px] font-semibold ${stockStatusClass}`}>
