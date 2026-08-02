@@ -9,23 +9,26 @@ const inputClass =
 
 const labelClass = 'mb-1.5 block text-xs font-semibold tracking-wide text-gray-500 uppercase';
 
+// Variant shape returned by the inventory API
+type VariantInfo = {
+  variant_id: number;
+  product_name: string;
+  thumbnail: string | null;
+  quantity: number;
+  inventory_status: string;
+  sku: string;
+  selling_price: number;
+};
+
 export default function NewStockEntryPage() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   const [sku, setSku] = useState('');
   const [isChecking, setIsChecking] = useState(false);
-  const [checkedVariant, setCheckedVariant] = useState<{
-    variant_id: number;
-    product_name: string;
-    thumbnail: string | null;
-    quantity: number;
-    inventory_status: string;
-    sku: string;
-    selling_price: number;
-  } | null>(null);
+  const [checkedVariant, setCheckedVariant] = useState<VariantInfo | null>(null);
   const [checkError, setCheckError] = useState<string | null>(null);
-  const [candidateVariant, setCandidateVariant] = useState<typeof checkedVariant>(null);
+  const [candidateVariant, setCandidateVariant] = useState<VariantInfo | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [quantity, setQuantity] = useState('');
   const [documentReference, setDocumentReference] = useState('');
@@ -68,7 +71,7 @@ export default function NewStockEntryPage() {
       }
 
       // Ask the user to confirm via modal before accepting the match
-      setCandidateVariant(first as any);
+      setCandidateVariant(first as VariantInfo);
       setShowConfirmModal(true);
       setCheckError(null);
     } catch (e) {

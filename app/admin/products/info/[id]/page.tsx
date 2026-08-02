@@ -503,7 +503,6 @@ export default function ProductInfoPage({ params }: ProductInfoPageProps) {
                   </thead>
                   <tbody>
                     {variantsWithStock.map((variant, index) => {
-                      const variantStock = variant.stock ?? 0;
                       const stockStatusClass = getStockStatusClass(variant.stock);
                       const stockStatusLabel = getStockStatusLabel(variant.stock);
                       const hasError = stockErrors[variant.id];
