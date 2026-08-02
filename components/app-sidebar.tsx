@@ -75,10 +75,7 @@ const PLATFORM_ITEMS: NavigationItem[] = [
   },
 ];
 
-const HELP_ITEMS: NavigationSubItem[] = [
-  { title: 'Primeros Pasos', url: '/admin/help/gettingstarted' },
-  { title: 'Manual Operativo', url: '/admin/help/manual' },
-];
+const HELP_ITEMS: NavigationSubItem[] = [{ title: 'Manual Operativo', url: '/admin/help/manual' }];
 
 // ─── Componentes Puros Memotizados ──────────────────────────────────────────
 
