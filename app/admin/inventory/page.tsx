@@ -462,7 +462,7 @@ export default function InventoryPage() {
       <div className="grid grid-cols-4 gap-4 px-8 py-4 bg-white border-b border-[#e0e3e5]">
         <div className="bg-[#f8fafd] rounded-lg p-4 border border-[#e0e3e5]">
           <p className="text-[11px] font-semibold text-[#747781] uppercase tracking-wider">
-            Total en Stock
+            Cantidad Total de Productos
           </p>
           <p className="text-2xl font-bold text-[#00193c] mt-1">{summary.totalItems}</p>
         </div>
