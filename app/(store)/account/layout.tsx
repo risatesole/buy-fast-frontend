@@ -6,8 +6,8 @@ import { usePathname } from 'next/navigation';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 const SECTIONS = [
-  { id: 'account', label: 'Account', href: '/account/account' },
-  { id: 'orders', label: 'Orders', href: '/account/orders' },
+  { id: 'account', label: 'Cuenta', href: '/account/account' },
+  { id: 'orders', label: 'Órdenes', href: '/account/orders' },
 ];
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
@@ -36,18 +36,19 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
             fontWeight: 400,
             fontSize: isMobile ? '1.25rem' : '1.65rem',
             marginBottom: isMobile ? '0.25rem' : '0.5rem',
+            color: '#002d62',
           }}
         >
-          account
+          Cuenta
         </h1>
         <p
           style={{
             fontSize: isMobile ? '0.75rem' : '0.875rem',
-            color: 'oklch(0.708 0 0)',
+            color: '#43474f',
             marginBottom: isMobile ? '1.5rem' : '3rem',
           }}
         >
-          Manage your profile, security, and preferences.
+          Administra tu perfil, seguridad y preferencias.
         </p>
 
         {!isMobile ? (
@@ -69,7 +70,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
               }}
             >
               {SECTIONS.map(s => {
-                const isActive = pathname === s.href;
+                    const isActive = pathname === s.href;
                 return (
                   <Link
                     key={s.id}
@@ -81,10 +82,10 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
                       padding: '0.5rem 0.75rem',
                       fontSize: '0.875rem',
                       fontWeight: isActive ? 500 : 400,
-                      color: isActive ? 'oklch(0.145 0 0)' : 'oklch(0.556 0 0)',
-                      background: isActive ? 'oklch(0.97 0 0)' : 'transparent',
+                      color: isActive ? '#002d62' : '#43474f',
+                      background: isActive ? '#f2f4f6' : 'transparent',
                       border: 'none',
-                      borderLeft: isActive ? '3px solid oklch(0.145 0 0)' : '3px solid transparent',
+                      borderLeft: isActive ? '3px solid #115cb9' : '3px solid transparent',
                       borderRadius: 4,
                       cursor: 'pointer',
                       fontFamily: 'var(--font-geist-sans), sans-serif',

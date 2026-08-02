@@ -40,26 +40,10 @@ export async function getOrders(page: number): Promise<PaginatedResponse> {
 }
 
 const statusStyles: Record<OrderStatus, { label: string; color: string; bg: string }> = {
-  delivered: {
-    label: 'Delivered',
-    color: 'oklch(0.446 0.162 145.188)',
-    bg: 'oklch(0.932 0.058 160.425)',
-  },
-  shipped: {
-    label: 'Shipped',
-    color: 'oklch(0.556 0.185 248.425)',
-    bg: 'oklch(0.928 0.046 242.384)',
-  },
-  processing: {
-    label: 'Processing',
-    color: 'oklch(0.613 0.174 54.215)',
-    bg: 'oklch(0.956 0.073 77.302)',
-  },
-  cancelled: {
-    label: 'Cancelled',
-    color: 'oklch(0.637 0.237 25.331)',
-    bg: 'oklch(0.956 0.067 18.472)',
-  },
+  delivered: { label: 'Entregado', color: '#2a5a7a', bg: '#e8f5ff' },
+  shipped: { label: 'Enviado', color: '#1a67b3', bg: '#eaf4ff' },
+  processing: { label: 'En proceso', color: '#7a5a2a', bg: '#fff7e8' },
+  cancelled: { label: 'Cancelado', color: '#cc3b3b', bg: '#fff0f0' },
 };
 
 function StatusBadge({ status }: { status: OrderStatus }) {
@@ -84,7 +68,7 @@ function StatusBadge({ status }: { status: OrderStatus }) {
 }
 
 function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString('en-US', {
+  return new Date(dateString).toLocaleDateString('es-DO', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -92,9 +76,9 @@ function formatDate(dateString: string) {
 }
 
 function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('es-DO', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'DOP',
   }).format(amount);
 }
 function useOrdersPagination() {
@@ -234,33 +218,33 @@ function useOrdersPagination() {
 function BouncingDots() {
   return (
     <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-      <div
-        style={{
-          width: 12,
-          height: 12,
-          borderRadius: '50%',
-          background: 'oklch(0.556 0 0)',
-          animation: 'bounce 1s ease-in-out infinite',
-        }}
-      />
-      <div
-        style={{
-          width: 12,
-          height: 12,
-          borderRadius: '50%',
-          background: 'oklch(0.556 0 0)',
-          animation: 'bounce 1s ease-in-out infinite 0.2s',
-        }}
-      />
-      <div
-        style={{
-          width: 12,
-          height: 12,
-          borderRadius: '50%',
-          background: 'oklch(0.556 0 0)',
-          animation: 'bounce 1s ease-in-out infinite 0.4s',
-        }}
-      />
+        <div
+          style={{
+            width: 12,
+            height: 12,
+            borderRadius: '50%',
+            background: '#002d62',
+            animation: 'bounce 1s ease-in-out infinite',
+          }}
+        />
+        <div
+          style={{
+            width: 12,
+            height: 12,
+            borderRadius: '50%',
+            background: '#002d62',
+            animation: 'bounce 1s ease-in-out infinite 0.2s',
+          }}
+        />
+        <div
+          style={{
+            width: 12,
+            height: 12,
+            borderRadius: '50%',
+            background: '#002d62',
+            animation: 'bounce 1s ease-in-out infinite 0.4s',
+          }}
+        />
       <style>{`
         @keyframes bounce {
           0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
@@ -277,11 +261,11 @@ function EmptyState() {
       style={{
         textAlign: 'center',
         padding: '4rem 1rem',
-        color: 'oklch(0.708 0 0)',
+        color: '#747781',
       }}
     >
-      <p style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>No orders yet</p>
-      <p style={{ fontSize: '0.875rem' }}>When you make a purchase, it will appear here.</p>
+      <p style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Aún no hay órdenes</p>
+      <p style={{ fontSize: '0.875rem' }}>Cuando realices una compra, aparecerá aquí.</p>
     </div>
   );
 }
@@ -291,15 +275,15 @@ function ErrorBanner({ message, onRetry }: { message: string; onRetry: () => voi
     <div
       style={{
         padding: '1rem',
-        border: '1px solid oklch(0.637 0.237 25.331)',
+        border: '1px solid #cc3b3b',
         borderRadius: 4,
-        background: 'oklch(0.956 0.067 18.472)',
+        background: '#fff0f0',
         marginBottom: '1rem',
       }}
     >
-      <p style={{ color: 'oklch(0.637 0.237 25.331)', marginBottom: '0.5rem' }}>{message}</p>
+      <p style={{ color: '#cc3b3b', marginBottom: '0.5rem' }}>{message}</p>
       <Button variant="outline" size="sm" onClick={onRetry}>
-        Retry
+        Reintentar
       </Button>
     </div>
   );
@@ -341,11 +325,11 @@ function PaginationControls({
         size="sm"
         style={{ fontSize: '0.75rem' }}
       >
-        ⏮ First
+        ⏮ Primero
       </Button>
 
       <Button onClick={onPrevPage} disabled={currentPage === 1} variant="outline" size="sm">
-        ← Previous
+        ← Anterior
       </Button>
 
       <div style={{ display: 'flex', gap: '0.25rem' }}>
@@ -356,10 +340,9 @@ function PaginationControls({
             style={{
               padding: '0.4rem 0.6rem',
               borderRadius: 4,
-              border:
-                page === currentPage ? '2px solid oklch(0.556 0 0)' : '1px solid oklch(0.922 0 0)',
-              background: page === currentPage ? 'oklch(0.928 0.046 242.384)' : 'transparent',
-              color: page === currentPage ? 'oklch(0.556 0 0)' : 'oklch(0.556 0 0)',
+              border: page === currentPage ? '2px solid #115cb9' : '1px solid #e0e3e5',
+              background: page === currentPage ? '#e8f0ff' : 'transparent',
+              color: page === currentPage ? '#115cb9' : '#43474f',
               fontWeight: page === currentPage ? 600 : 500,
               fontSize: '0.875rem',
               cursor: 'pointer',
@@ -377,7 +360,7 @@ function PaginationControls({
         variant="outline"
         size="sm"
       >
-        Next →
+        Siguiente →
       </Button>
 
       <Button
@@ -387,7 +370,7 @@ function PaginationControls({
         size="sm"
         style={{ fontSize: '0.75rem' }}
       >
-        Last ⏭
+        Último ⏭
       </Button>
     </div>
   );

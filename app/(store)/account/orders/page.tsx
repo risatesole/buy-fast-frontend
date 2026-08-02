@@ -5,9 +5,9 @@ import { SectionLabel } from '@/components/account/SectionLabel';
 function OrdersFallback() {
   return (
     <div>
-      <SectionLabel>Orders</SectionLabel>
-      <div style={{ padding: '3rem', textAlign: 'center', color: 'oklch(0.556 0 0)' }}>
-        Loading orders...
+      <SectionLabel>Órdenes</SectionLabel>
+      <div style={{ padding: '3rem', textAlign: 'center', color: '#43474f' }}>
+        Cargando órdenes...
       </div>
     </div>
   );

@@ -7,8 +7,8 @@ export function SaveButton({ onClick, saved }: { onClick: () => void; saved: boo
         fontSize: '0.8rem',
         letterSpacing: '0.06em',
         textTransform: 'uppercase',
-        background: saved ? 'oklch(0.922 0 0)' : 'oklch(0.145 0 0)',
-        color: saved ? 'oklch(0.556 0 0)' : 'white',
+        background: saved ? '#115cb9' : '#002d62',
+        color: saved ? 'white' : 'white',
         border: 'none',
         borderRadius: 4,
         cursor: 'pointer',
@@ -16,7 +16,7 @@ export function SaveButton({ onClick, saved }: { onClick: () => void; saved: boo
         fontFamily: 'var(--font-geist-sans), sans-serif',
       }}
     >
-      {saved ? 'Saved ✓' : 'Save changes'}
+      {saved ? 'Guardado ✓' : 'Guardar cambios'}
     </button>
   );
 }

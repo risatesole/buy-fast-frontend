@@ -20,7 +20,7 @@ export function FieldRow({
         gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
         gap: isMobile ? '0.5rem' : '1rem',
         paddingBlock: '1.25rem',
-        borderBottom: '1px solid oklch(0.922 0 0)',
+        borderBottom: '1px solid #e0e3e5',
         alignItems: 'start',
       }}
     >
@@ -38,7 +38,7 @@ export function FieldRow({
           <p
             style={{
               fontSize: isMobile ? '0.7rem' : '0.75rem',
-              color: 'oklch(0.708 0 0)',
+              color: '#747781',
               lineHeight: 1.5,
             }}
           >

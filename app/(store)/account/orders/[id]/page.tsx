@@ -75,36 +75,13 @@ async function getOrderDetails(orderId: string): Promise<OrderData | null> {
 
 function getStatusStyle(status: string): { label: string; color: string; bg: string } {
   const statusMap: Record<string, { label: string; color: string; bg: string }> = {
-    pending: {
-      label: 'Pending',
-      color: 'oklch(0.613 0.174 54.215)',
-      bg: 'oklch(0.956 0.073 77.302)',
-    },
-    processing: {
-      label: 'Processing',
-      color: 'oklch(0.613 0.174 54.215)',
-      bg: 'oklch(0.956 0.073 77.302)',
-    },
-    shipped: {
-      label: 'Shipped',
-      color: 'oklch(0.556 0.185 248.425)',
-      bg: 'oklch(0.928 0.046 242.384)',
-    },
-    delivered: {
-      label: 'Delivered',
-      color: 'oklch(0.446 0.162 145.188)',
-      bg: 'oklch(0.932 0.058 160.425)',
-    },
-    cancelled: {
-      label: 'Cancelled',
-      color: 'oklch(0.637 0.237 25.331)',
-      bg: 'oklch(0.956 0.067 18.472)',
-    },
-    returned: {
-      label: 'Returned',
-      color: 'oklch(0.637 0.237 25.331)',
-      bg: 'oklch(0.956 0.067 18.472)',
-    },
+    pending: { label: 'Pendiente', color: '#7a5a2a', bg: '#fff7e8' },
+    processing: { label: 'En proceso', color: '#7a5a2a', bg: '#fff7e8' },
+    shipped: { label: 'Enviado', color: '#1a67b3', bg: '#eaf4ff' },
+    delivered: { label: 'Entregado', color: '#2a5a7a', bg: '#e8f5ff' },
+    fulfilled: { label: 'Entregado', color: '#2a5a7a', bg: '#e8f5ff' },
+    cancelled: { label: 'Cancelado', color: '#cc3b3b', bg: '#fff0f0' },
+    returned: { label: 'Devuelto', color: '#cc3b3b', bg: '#fff0f0' },
   };
   return statusMap[status.toLowerCase()] || statusMap.pending;
 }
@@ -131,7 +108,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function formatDateTime(dateString: string) {
-  return new Date(dateString).toLocaleString('en-US', {
+  return new Date(dateString).toLocaleString('es-DO', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -141,9 +118,9 @@ function formatDateTime(dateString: string) {
 }
 
 function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('es-DO', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'DOP',
   }).format(amount);
 }
 
@@ -180,7 +157,7 @@ export default async function ClientOrderDetailsPage({
   return (
     <div>
       <div style={{ marginBottom: '2rem' }}>
-        <SectionLabel>Order Details</SectionLabel>
+        <SectionLabel>Detalles de la orden</SectionLabel>
       </div>
 
       {/* Order Header */}
@@ -255,14 +232,14 @@ export default async function ClientOrderDetailsPage({
         <div
           style={{
             padding: '0.75rem 1.25rem',
-            background: 'oklch(0.97 0 0)',
-            borderBottom: '1px solid oklch(0.922 0 0)',
+            background: '#f2f4f6',
+            borderBottom: '1px solid #e0e3e5',
             fontSize: '0.875rem',
             fontWeight: 500,
           }}
-        >
-          Order Items
-        </div>
+          >
+            Artículos de la orden
+          </div>
         <div style={{ padding: '0.5rem 0' }}>
           {order.items.map((item, index) => (
             <div
@@ -287,10 +264,10 @@ export default async function ClientOrderDetailsPage({
                 <div
                   style={{
                     fontSize: '0.75rem',
-                    color: 'oklch(0.708 0 0)',
+                    color: '#747781',
                   }}
                 >
-                  Qty: {item.quantity} × {formatCurrency(item.price)}
+                  Cantidad: {item.quantity} × {formatCurrency(item.price)}
                 </div>
               </div>
               <div
@@ -309,10 +286,10 @@ export default async function ClientOrderDetailsPage({
                 <div
                   style={{
                     fontSize: '0.65rem',
-                    color: 'oklch(0.708 0 0)',
+                    color: '#747781',
                   }}
                 >
-                  Tax: {formatCurrency(item.tax)}
+                  Impuesto: {formatCurrency(item.tax)}
                 </div>
               </div>
             </div>
@@ -322,23 +299,23 @@ export default async function ClientOrderDetailsPage({
         <div
           style={{
             padding: '0.75rem 1.25rem',
-            background: 'oklch(0.97 0 0)',
-            borderTop: '1px solid oklch(0.922 0 0)',
+            background: '#f2f4f6',
+            borderTop: '1px solid #e0e3e5',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
           }}
         >
-          <div style={{ fontSize: '0.75rem', color: 'oklch(0.708 0 0)' }}>
-            Subtotal ({totalItems} {totalItems === 1 ? 'item' : 'items'})
+          <div style={{ fontSize: '0.75rem', color: '#747781' }}>
+            Subtotal ({totalItems} {totalItems === 1 ? 'artículo' : 'artículos'})
           </div>
           <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>{formatCurrency(subtotal)}</div>
         </div>
         <div
           style={{
             padding: '0.75rem 1.25rem',
-            background: 'oklch(0.97 0 0)',
-            borderTop: '1px solid oklch(0.922 0 0)',
+            background: '#f2f4f6',
+            borderTop: '1px solid #e0e3e5',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -361,7 +338,7 @@ export default async function ClientOrderDetailsPage({
         {/* Customer Information */}
         <div
           style={{
-            border: '1px solid oklch(0.922 0 0)',
+            border: '1px solid #e0e3e5',
             borderRadius: 4,
             overflow: 'hidden',
           }}
@@ -369,13 +346,13 @@ export default async function ClientOrderDetailsPage({
           <div
             style={{
               padding: '0.75rem 1.25rem',
-              background: 'oklch(0.97 0 0)',
-              borderBottom: '1px solid oklch(0.922 0 0)',
+              background: '#f2f4f6',
+              borderBottom: '1px solid #e0e3e5',
               fontSize: '0.875rem',
               fontWeight: 500,
             }}
           >
-            Customer Information
+            Información del cliente
           </div>
           <div style={{ padding: '1.25rem' }}>
             <div
@@ -425,9 +402,9 @@ export default async function ClientOrderDetailsPage({
               </div>
             </div>
             {order.phone && (
-              <div style={{ fontSize: '0.75rem', color: 'oklch(0.556 0 0)' }}>
-                Phone: {order.phone}
-              </div>
+              <div style={{ fontSize: '0.75rem', color: '#43474f' }}>
+                  Teléfono: {order.phone}
+                </div>
             )}
           </div>
         </div>
@@ -435,7 +412,7 @@ export default async function ClientOrderDetailsPage({
         {/* Shipping & Payment */}
         <div
           style={{
-            border: '1px solid oklch(0.922 0 0)',
+            border: '1px solid #e0e3e5',
             borderRadius: 4,
             overflow: 'hidden',
           }}
@@ -443,40 +420,40 @@ export default async function ClientOrderDetailsPage({
           <div
             style={{
               padding: '0.75rem 1.25rem',
-              background: 'oklch(0.97 0 0)',
-              borderBottom: '1px solid oklch(0.922 0 0)',
+              background: '#f2f4f6',
+              borderBottom: '1px solid #e0e3e5',
               fontSize: '0.875rem',
               fontWeight: 500,
             }}
           >
-            Shipping & Payment
+            Envío y Pago
           </div>
           <div style={{ padding: '1.25rem' }}>
             <div style={{ marginBottom: '0.75rem' }}>
-              <div
-                style={{
-                  fontSize: '0.65rem',
-                  color: 'oklch(0.708 0 0)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                }}
+                <div
+                  style={{
+                    fontSize: '0.65rem',
+                    color: '#747781',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                  }}
               >
-                Shipping Method
+                Método de envío
               </div>
               <div style={{ fontSize: '0.875rem' }}>
                 {formatShippingMethod(order.shipping_method)}
               </div>
             </div>
             <div style={{ marginBottom: '0.75rem' }}>
-              <div
-                style={{
-                  fontSize: '0.65rem',
-                  color: 'oklch(0.708 0 0)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                }}
+                <div
+                  style={{
+                    fontSize: '0.65rem',
+                    color: '#747781',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                  }}
               >
-                Payment Method
+                Método de pago
               </div>
               <div style={{ fontSize: '0.875rem' }}>
                 {formatPaymentMethod(order.payment_method)}
@@ -487,12 +464,12 @@ export default async function ClientOrderDetailsPage({
                 <div
                   style={{
                     fontSize: '0.65rem',
-                    color: 'oklch(0.708 0 0)',
+                    color: '#747781',
                     textTransform: 'uppercase',
                     letterSpacing: '0.04em',
                   }}
                 >
-                  Pickup Time
+                  Hora de recogida
                 </div>
                 <div style={{ fontSize: '0.875rem' }}>{formatDateTime(order.pickup_time)}</div>
               </div>

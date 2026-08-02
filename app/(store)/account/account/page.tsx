@@ -57,13 +57,13 @@ export default function AccountPage() {
   }
 
   if (loading) {
-    return <p style={{ fontSize: '0.875rem', color: 'oklch(0.708 0 0)' }}>Loading…</p>;
+    return <p style={{ fontSize: '0.875rem', color: '#43474f' }}>Cargando…</p>;
   }
 
   if (error || !user) {
     return (
-      <p style={{ fontSize: '0.875rem', color: 'oklch(0.637 0.237 25.331)' }}>
-        {error || 'Failed to load user data'}
+      <p style={{ fontSize: '0.875rem', color: '#cc3b3b' }}>
+        {error || 'No se pudo cargar la información del usuario'}
       </p>
     );
   }
@@ -71,51 +71,51 @@ export default function AccountPage() {
   return (
     <div>
       {/* Profile Section */}
-      <SectionLabel>Profile</SectionLabel>
-      <FieldRow label="First name">
+      <SectionLabel>Perfil</SectionLabel>
+      <FieldRow label="Nombre">
         <Input
           value={firstName}
           onChange={e => setFirstName(e.target.value)}
-          placeholder="First name"
+          placeholder="Nombre"
         />
       </FieldRow>
-      <FieldRow label="Last name">
+      <FieldRow label="Apellido">
         <Input
           value={lastName}
           onChange={e => setLastName(e.target.value)}
-          placeholder="Last name"
+          placeholder="Apellido"
         />
       </FieldRow>
-      <FieldRow label="Email" hint="Address associated with your account.">
+      <FieldRow label="Correo Electrónico" hint="Dirección asociada a tu cuenta.">
         <Input
           value={email}
           onChange={e => setEmail(e.target.value)}
           type="email"
-          placeholder="you@example.com"
+          placeholder="tu@correo.edu.do"
         />
       </FieldRow>
-      <FieldRow label="Bio" hint="A short description shown on your public profile.">
+      <FieldRow label="Biografía" hint="Una breve descripción que se muestra en tu perfil público.">
         <textarea
           value={bio}
           onChange={e => setBio(e.target.value)}
-          placeholder="Tell us a little about yourself…"
+          placeholder="Cuéntanos un poco sobre ti…"
           rows={3}
           style={{
             width: '100%',
             padding: '0.5rem 0.75rem',
             fontSize: '0.875rem',
-            border: '1px solid oklch(0.922 0 0)',
+            border: '1px solid #e0e3e5',
             borderRadius: 4,
-            background: 'oklch(0.985 0 0)',
-            color: 'oklch(0.145 0 0)',
+            background: '#ffffff',
+            color: '#191c1e',
             outline: 'none',
             resize: 'vertical',
             boxSizing: 'border-box',
             fontFamily: 'var(--font-geist-sans), sans-serif',
             lineHeight: 1.6,
           }}
-          onFocus={e => (e.currentTarget.style.borderColor = 'oklch(0.556 0 0)')}
-          onBlur={e => (e.currentTarget.style.borderColor = 'oklch(0.922 0 0)')}
+          onFocus={e => (e.currentTarget.style.borderColor = '#115cb9')}
+          onBlur={e => (e.currentTarget.style.borderColor = '#e0e3e5')}
         />
       </FieldRow>
       <div style={{ paddingTop: '1.5rem' }}>
@@ -124,29 +124,29 @@ export default function AccountPage() {
 
       {/* Account Section - Password */}
       <div style={{ marginTop: '3rem' }}>
-        <SectionLabel>Security</SectionLabel>
-        <FieldRow label="Current password">
+        <SectionLabel>Seguridad</SectionLabel>
+          <FieldRow label="Contraseña actual">
           <Input
             type="password"
             value={currentPassword}
             onChange={e => setCurrentPassword(e.target.value)}
-            placeholder="••••••••"
+              placeholder="••••••••"
           />
         </FieldRow>
-        <FieldRow label="New password" hint="Minimum 8 characters.">
+          <FieldRow label="Nueva contraseña" hint="Mínimo 8 caracteres.">
           <Input
             type="password"
             value={newPassword}
             onChange={e => setNewPassword(e.target.value)}
-            placeholder="••••••••"
+              placeholder="••••••••"
           />
         </FieldRow>
-        <FieldRow label="Confirm new password">
+          <FieldRow label="Confirmar nueva contraseña">
           <Input
             type="password"
             value={confirmPassword}
             onChange={e => setConfirmPassword(e.target.value)}
-            placeholder="••••••••"
+              placeholder="••••••••"
           />
         </FieldRow>
         <div style={{ paddingTop: '1.5rem' }}>
@@ -159,7 +159,7 @@ export default function AccountPage() {
         style={{
           marginTop: '3rem',
           paddingTop: '2rem',
-          borderTop: '1px solid oklch(0.922 0 0)',
+          borderTop: '1px solid #e0e3e5',
         }}
       >
         <p
@@ -167,11 +167,11 @@ export default function AccountPage() {
             fontSize: '0.68rem',
             letterSpacing: '0.12em',
             textTransform: 'uppercase',
-            color: 'oklch(0.637 0.237 25.331)',
+            color: '#cc3b3b',
             marginBottom: '1rem',
           }}
         >
-          Danger zone
+          Zona peligrosa
         </p>
         <div
           style={{
@@ -191,27 +191,27 @@ export default function AccountPage() {
                 marginBottom: '0.25rem',
               }}
             >
-              Delete account
+              Eliminar cuenta
             </p>
-            <p style={{ fontSize: '0.75rem', color: 'oklch(0.708 0 0)' }}>
-              Permanently remove your account and all data.
+            <p style={{ fontSize: '0.75rem', color: '#747781' }}>
+              Eliminar permanentemente tu cuenta y todos los datos.
             </p>
           </div>
           {deleteConfirm ? (
             <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button
+                <button
                 onClick={() => setDeleteConfirm(false)}
                 style={{
                   padding: '0.4rem 0.9rem',
                   fontSize: '0.75rem',
-                  border: '1px solid oklch(0.922 0 0)',
+                  border: '1px solid #e0e3e5',
                   borderRadius: 4,
                   background: 'white',
                   cursor: 'pointer',
                   fontFamily: 'var(--font-geist-sans), sans-serif',
                 }}
               >
-                Cancel
+                Cancelar
               </button>
               <button
                 style={{
@@ -219,13 +219,13 @@ export default function AccountPage() {
                   fontSize: '0.75rem',
                   border: 'none',
                   borderRadius: 4,
-                  background: 'oklch(0.637 0.237 25.331)',
+                  background: '#cc3b3b',
                   color: 'white',
                   cursor: 'pointer',
                   fontFamily: 'var(--font-geist-sans), sans-serif',
                 }}
               >
-                Confirm delete
+                Confirmar eliminación
               </button>
             </div>
           ) : (
@@ -234,15 +234,15 @@ export default function AccountPage() {
               style={{
                 padding: '0.4rem 0.9rem',
                 fontSize: '0.75rem',
-                border: '1px solid oklch(0.922 0 0)',
+                border: '1px solid #e0e3e5',
                 borderRadius: 4,
                 background: 'white',
-                color: 'oklch(0.637 0.237 25.331)',
+                color: '#cc3b3b',
                 cursor: 'pointer',
                 fontFamily: 'var(--font-geist-sans), sans-serif',
               }}
             >
-              Delete
+              Eliminar
             </button>
           )}
         </div>
