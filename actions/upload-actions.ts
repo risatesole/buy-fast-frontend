@@ -8,7 +8,7 @@ export interface UploadResult {
   message: string;
 }
 
-export async function uploadImage(formData: FormData): Promise<UploadResult> {
+async function uploadFileTo(formData: FormData, path: string): Promise<UploadResult> {
   if (!process.env.BACKEND_URL) {
     return {
       ok: false,
@@ -43,7 +43,7 @@ export async function uploadImage(formData: FormData): Promise<UploadResult> {
   upstreamForm.append('file', file, file.name);
 
   try {
-    const response = await fetch(`${process.env.BACKEND_URL}/api/v1/upload/`, {
+    const response = await fetch(`${process.env.BACKEND_URL}${path}`, {
       method: 'POST',
       headers: {
         Cookie: cookieHeader,
@@ -78,6 +78,14 @@ export async function uploadImage(formData: FormData): Promise<UploadResult> {
       message: 'No se pudo conectar con el servidor. Intenta nuevamente.',
     };
   }
+}
+
+export async function uploadImage(formData: FormData): Promise<UploadResult> {
+  return uploadFileTo(formData, '/api/v1/upload/');
+}
+
+export async function uploadAvatar(formData: FormData): Promise<UploadResult> {
+  return uploadFileTo(formData, '/api/v1/me/avatar/');
 }
 
 /**

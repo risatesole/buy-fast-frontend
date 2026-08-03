@@ -1,7 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
+import ImageUploader from '@/components/ImageUploader';
+import { uploadAvatar } from '@/actions/upload-actions';
+import { updateProfile, changePassword, deleteAccount } from '@/actions/account-actions';
 import type { UserDetails } from '@/services/user/getUserDetails';
 import { getUserDetails } from '@/services/user/getUserDetails';
 import { SectionLabel } from '@/components/account/SectionLabel';
@@ -9,21 +13,34 @@ import { FieldRow } from '@/components/account/FieldRow';
 import { SaveButton } from '@/components/account/SaveButton';
 
 export default function AccountPage() {
+  const router = useRouter();
+
   // Profile state
   const [user, setUser] = useState<UserDetails | null>(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
-  const [bio, setBio] = useState('');
+  const [profilePicture, setProfilePicture] = useState('');
+  const [institutionMember, setInstitutionMember] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Account state
+  const [isSavingProfile, startSaveProfile] = useTransition();
+  const [profileSaved, setProfileSaved] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
+
+  // Security state
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [saved, setSaved] = useState(false);
+  const [isSavingPassword, startSavePassword] = useTransition();
+  const [passwordSaved, setPasswordSaved] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  // Danger zone state
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [isDeleting, startDelete] = useTransition();
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadUser() {
@@ -36,7 +53,8 @@ export default function AccountPage() {
           setFirstName(userData.firstName ?? '');
           setLastName(userData.lastName ?? '');
           setEmail(userData.email ?? '');
-          setBio(userData.bio ?? '');
+          setProfilePicture(userData.profilePicture ?? '');
+          setInstitutionMember(userData.institutionMember ?? false);
         } else {
           setError('User data not found');
         }
@@ -50,10 +68,63 @@ export default function AccountPage() {
     loadUser();
   }, []);
 
-  function handleSave() {
-    // TODO: wire to your API
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  function handleSaveProfile() {
+    setProfileError(null);
+    startSaveProfile(async () => {
+      const result = await updateProfile({ first_name: firstName, last_name: lastName, email });
+
+      if (!result.ok) {
+        setProfileError(result.message);
+        return;
+      }
+
+      setProfileSaved(true);
+      setTimeout(() => setProfileSaved(false), 2000);
+    });
+  }
+
+  function handleSavePassword() {
+    setPasswordError(null);
+
+    if (newPassword.length < 8) {
+      setPasswordError('La nueva contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Las contraseñas no coinciden.');
+      return;
+    }
+
+    startSavePassword(async () => {
+      const result = await changePassword(currentPassword, newPassword);
+
+      if (!result.ok) {
+        setPasswordError(result.message);
+        return;
+      }
+
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setPasswordSaved(true);
+      setTimeout(() => setPasswordSaved(false), 2000);
+    });
+  }
+
+  function handleDeleteAccount() {
+    setDeleteError(null);
+    startDelete(async () => {
+      const result = await deleteAccount();
+
+      if (!result.ok) {
+        setDeleteError(result.message);
+        return;
+      }
+
+      await fetch('/api/v1/signout/', { method: 'POST', credentials: 'include' });
+      router.push('/signin');
+    });
   }
 
   if (loading) {
@@ -72,6 +143,13 @@ export default function AccountPage() {
     <div>
       {/* Profile Section */}
       <SectionLabel>Perfil</SectionLabel>
+      <FieldRow label="Foto de perfil" hint="Se guarda automáticamente al subir una imagen.">
+        <ImageUploader
+          value={profilePicture}
+          onChange={setProfilePicture}
+          uploadFn={uploadAvatar}
+        />
+      </FieldRow>
       <FieldRow label="Nombre">
         <Input
           value={firstName}
@@ -94,32 +172,46 @@ export default function AccountPage() {
           placeholder="tu@correo.edu.do"
         />
       </FieldRow>
-      <FieldRow label="Biografía" hint="Una breve descripción que se muestra en tu perfil público.">
-        <textarea
-          value={bio}
-          onChange={e => setBio(e.target.value)}
-          placeholder="Cuéntanos un poco sobre ti…"
-          rows={3}
+      <FieldRow label="Miembro UASD" hint="Solo el personal puede verificar y asignar este estado.">
+        <span
           style={{
-            width: '100%',
-            padding: '0.5rem 0.75rem',
-            fontSize: '0.875rem',
-            border: '1px solid #e0e3e5',
-            borderRadius: 4,
-            background: '#ffffff',
-            color: '#191c1e',
-            outline: 'none',
-            resize: 'vertical',
-            boxSizing: 'border-box',
-            fontFamily: 'var(--font-geist-sans), sans-serif',
-            lineHeight: 1.6,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            padding: '0.3rem 0.7rem',
+            borderRadius: 999,
+            fontSize: '0.7rem',
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            background: institutionMember ? '#e6f4ea' : '#f2f4f6',
+            color: institutionMember ? '#137333' : '#747781',
+            border: `1px solid ${institutionMember ? '#ceead6' : '#e0e3e5'}`,
           }}
-          onFocus={e => (e.currentTarget.style.borderColor = '#115cb9')}
-          onBlur={e => (e.currentTarget.style.borderColor = '#e0e3e5')}
-        />
+        >
+          <span
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              background: institutionMember ? '#1e8e3e' : '#c4c6d1',
+            }}
+          />
+          {institutionMember ? 'Miembro' : 'No Miembro'}
+        </span>
       </FieldRow>
+      {profileError && (
+        <p style={{ fontSize: '0.75rem', color: '#cc3b3b', marginTop: '0.75rem' }}>
+          {profileError}
+        </p>
+      )}
       <div style={{ paddingTop: '1.5rem' }}>
-        <SaveButton onClick={handleSave} saved={saved} />
+        <SaveButton onClick={handleSaveProfile} saved={profileSaved} />
+        {isSavingProfile && (
+          <span style={{ marginLeft: '0.75rem', fontSize: '0.75rem', color: '#747781' }}>
+            Guardando…
+          </span>
+        )}
       </div>
 
       {/* Account Section - Password */}
@@ -149,8 +241,18 @@ export default function AccountPage() {
             placeholder="••••••••"
           />
         </FieldRow>
+        {passwordError && (
+          <p style={{ fontSize: '0.75rem', color: '#cc3b3b', marginTop: '0.75rem' }}>
+            {passwordError}
+          </p>
+        )}
         <div style={{ paddingTop: '1.5rem' }}>
-          <SaveButton onClick={handleSave} saved={saved} />
+          <SaveButton onClick={handleSavePassword} saved={passwordSaved} />
+          {isSavingPassword && (
+            <span style={{ marginLeft: '0.75rem', fontSize: '0.75rem', color: '#747781' }}>
+              Guardando…
+            </span>
+          )}
         </div>
       </div>
 
@@ -201,6 +303,7 @@ export default function AccountPage() {
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button
                 onClick={() => setDeleteConfirm(false)}
+                disabled={isDeleting}
                 style={{
                   padding: '0.4rem 0.9rem',
                   fontSize: '0.75rem',
@@ -214,6 +317,8 @@ export default function AccountPage() {
                 Cancelar
               </button>
               <button
+                onClick={handleDeleteAccount}
+                disabled={isDeleting}
                 style={{
                   padding: '0.4rem 0.9rem',
                   fontSize: '0.75rem',
@@ -223,9 +328,10 @@ export default function AccountPage() {
                   color: 'white',
                   cursor: 'pointer',
                   fontFamily: 'var(--font-geist-sans), sans-serif',
+                  opacity: isDeleting ? 0.6 : 1,
                 }}
               >
-                Confirmar eliminación
+                {isDeleting ? 'Eliminando…' : 'Confirmar eliminación'}
               </button>
             </div>
           ) : (
@@ -246,6 +352,11 @@ export default function AccountPage() {
             </button>
           )}
         </div>
+        {deleteError && (
+          <p style={{ fontSize: '0.75rem', color: '#cc3b3b', marginTop: '0.75rem' }}>
+            {deleteError}
+          </p>
+        )}
       </div>
     </div>
   );

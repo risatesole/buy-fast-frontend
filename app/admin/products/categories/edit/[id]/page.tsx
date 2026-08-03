@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getCategory, updateCategory, type Category, type CategoryPatchInput } from '../../actions';
-import ImageUploader from '../../../components/ImageUploader';
+import ImageUploader from '@/components/ImageUploader';
 
 const inputClass =
   'w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none transition-colors focus:border-[#002d62] focus:ring-1 focus:ring-[#002d62]';

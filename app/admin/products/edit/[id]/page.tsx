@@ -9,7 +9,7 @@ import {
   type VariantPatchInput,
   type ProductImageInput,
 } from './actions';
-import ImageUploader from '../../components/ImageUploader';
+import ImageUploader from '@/components/ImageUploader';
 import { fetchCategories, type Category } from './get-categories';
 
 interface LoadedVariant {

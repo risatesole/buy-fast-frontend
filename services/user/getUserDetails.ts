@@ -4,7 +4,7 @@ export type UserDetails = {
   firstName?: string;
   lastName?: string;
   email?: string;
-  bio?: string;
+  institutionMember?: boolean;
 };
 
 type MeResponse = {
@@ -18,6 +18,7 @@ type MeResponse = {
       email: string;
       role: string;
       profilepicture: string | null;
+      institutionMember: boolean | null;
     } | null;
   };
 };
@@ -40,5 +41,9 @@ export async function getUserDetails(): Promise<UserDetails | null> {
   return {
     name: data.data.user.firstname,
     profilePicture: data.data.user.profilepicture ?? 'https://i.pravatar.cc/150?img=12',
+    firstName: data.data.user.firstname,
+    lastName: data.data.user.lastname,
+    email: data.data.user.email,
+    institutionMember: data.data.user.institutionMember ?? false,
   };
 }

@@ -1,16 +1,23 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { uploadImage } from '@/actions/upload-actions';
+import { uploadImage, type UploadResult } from '@/actions/upload-actions';
 
 interface ImageUploaderProps {
   value: string;
   onChange: (url: string) => void;
   label?: string;
   className?: string;
+  uploadFn?: (formData: FormData) => Promise<UploadResult>;
 }
 
-export default function ImageUploader({ value, onChange, label, className }: ImageUploaderProps) {
+export default function ImageUploader({
+  value,
+  onChange,
+  label,
+  className,
+  uploadFn = uploadImage,
+}: ImageUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -28,7 +35,7 @@ export default function ImageUploader({ value, onChange, label, className }: Ima
     const formData = new FormData();
     formData.append('file', file);
 
-    const result = await uploadImage(formData);
+    const result = await uploadFn(formData);
 
     setIsUploading(false);
 

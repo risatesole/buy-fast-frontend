@@ -4,7 +4,7 @@ import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { createProduct, type ProductInput, type ProductVariantInput } from './actions';
 import { fetchCategories, type Category } from './get-categories';
-import ImageUploader from '../components/ImageUploader';
+import ImageUploader from '@/components/ImageUploader';
 
 interface ImageDraft {
   type: string;
