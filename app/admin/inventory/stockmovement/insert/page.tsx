@@ -290,7 +290,7 @@ export default function NewStockEntryPage() {
 
             <div>
               <label className={labelClass} htmlFor="document_reference">
-                Documento de referencia
+                Motivo
               </label>
               <input
                 id="document_reference"

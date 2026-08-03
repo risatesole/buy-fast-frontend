@@ -311,7 +311,7 @@ export default function StockMovementDetailsClient({
                     </div>
                     <div>
                       <p className="text-[11px] font-semibold text-[#747781] uppercase tracking-wider">
-                        Documento de Referencia
+                        Motivo
                       </p>
                       <p className="text-[13px] font-mono font-medium text-[#191c1e]">
                         {movement.document_reference || '—'}
