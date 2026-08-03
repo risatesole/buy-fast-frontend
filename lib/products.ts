@@ -40,9 +40,12 @@ export function isProductAvailable(product: Product): boolean {
   return product.variants.every(variant => variant.status === true);
 }
 
-// Price shown in the table is always the first variant's price.
+// Price shown in the table is always the first variant's total price
+// (selling price plus its tax amount), matching what the storefront charges.
 export function getDisplayPrice(product: Product): number {
-  return product.variants[0]?.selling_price ?? 0;
+  const variant = product.variants[0];
+  if (!variant) return 0;
+  return variant.selling_price * (1 + variant.tax_rate);
 }
 
 type FetchProductsParams = {
