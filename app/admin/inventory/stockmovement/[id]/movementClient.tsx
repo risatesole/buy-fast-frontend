@@ -14,6 +14,7 @@ import {
   ArrowDown,
   Box,
   ShoppingBag,
+  Minus,
 } from 'lucide-react';
 
 // ============================================================================
@@ -99,6 +100,12 @@ const MOVEMENT_TYPE_UI: Record<
     color: 'text-[#b06000]',
     bg: 'bg-[#fef7e0] border-[#feefc3]',
     label: 'Inventario Inicial',
+  },
+  manual_decrease: {
+    icon: <Minus className="size-4" />,
+    color: 'text-[#ba1a1a]',
+    bg: 'bg-[#ffdad6] border-[#ffb4ab]',
+    label: 'Salida Manual',
   },
 };
 

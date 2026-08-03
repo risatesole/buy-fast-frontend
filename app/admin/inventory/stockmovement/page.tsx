@@ -11,6 +11,7 @@ import {
   ArrowDown,
   ArrowUp,
   Plus, // Added Plus icon
+  Minus,
 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
@@ -103,6 +104,11 @@ const MOVEMENT_TYPE_UI: Record<string, { icon: React.ReactNode; color: string; b
     icon: <Package className="size-3.5" />,
     color: 'text-[#b06000]',
     bg: 'bg-[#fef7e0] border-[#feefc3]',
+  },
+  manual_decrease: {
+    icon: <Minus className="size-3.5" />,
+    color: 'text-[#ba1a1a]',
+    bg: 'bg-[#ffdad6] border-[#ffb4ab]',
   },
 };
 
@@ -369,6 +375,11 @@ export default function StockMovementPage() {
     router.push('/admin/inventory/stockmovement/insert');
   }, [router]);
 
+  // Handler for the "Retirar Producto" button
+  const handleDecreaseProduct = useCallback(() => {
+    router.push('/admin/inventory/stockmovement/decrease');
+  }, [router]);
+
   const paginationRange = useMemo(() => {
     const pages: number[] = [];
     const maxVisible = 5;
@@ -437,6 +448,14 @@ export default function StockMovementPage() {
           >
             <Plus className="size-4" />
             Ingresar producto a inventario
+          </button>
+
+          <button
+            onClick={handleDecreaseProduct}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#ba1a1a] text-white rounded-md text-[13px] font-semibold hover:bg-[#93000a] transition-colors focus:outline-none focus:ring-2 focus:ring-[#ba1a1a] focus:ring-offset-2 shadow-sm"
+          >
+            <Minus className="size-4" />
+            Retirar producto de inventario
           </button>
 
           <div className="flex items-center gap-2 text-[13px] text-[#747781] bg-[#f2f4f6] px-3 py-1.5 rounded-md">
