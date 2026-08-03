@@ -125,28 +125,28 @@ export default function AccountPage() {
       {/* Account Section - Password */}
       <div style={{ marginTop: '3rem' }}>
         <SectionLabel>Seguridad</SectionLabel>
-          <FieldRow label="Contraseña actual">
+        <FieldRow label="Contraseña actual">
           <Input
             type="password"
             value={currentPassword}
             onChange={e => setCurrentPassword(e.target.value)}
-              placeholder="••••••••"
+            placeholder="••••••••"
           />
         </FieldRow>
-          <FieldRow label="Nueva contraseña" hint="Mínimo 8 caracteres.">
+        <FieldRow label="Nueva contraseña" hint="Mínimo 8 caracteres.">
           <Input
             type="password"
             value={newPassword}
             onChange={e => setNewPassword(e.target.value)}
-              placeholder="••••••••"
+            placeholder="••••••••"
           />
         </FieldRow>
-          <FieldRow label="Confirmar nueva contraseña">
+        <FieldRow label="Confirmar nueva contraseña">
           <Input
             type="password"
             value={confirmPassword}
             onChange={e => setConfirmPassword(e.target.value)}
-              placeholder="••••••••"
+            placeholder="••••••••"
           />
         </FieldRow>
         <div style={{ paddingTop: '1.5rem' }}>
@@ -199,7 +199,7 @@ export default function AccountPage() {
           </div>
           {deleteConfirm ? (
             <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button
+              <button
                 onClick={() => setDeleteConfirm(false)}
                 style={{
                   padding: '0.4rem 0.9rem',

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 // ============================================================================
 // CAPA DE DOMINIO Y TIPOS
@@ -501,7 +502,10 @@ export default function CheckoutPage() {
       <div className="mx-auto max-w-7xl">
         {/* Header con Inyección de Logo Institucional y Brand Text */}
         <div className="mb-10 max-w-3xl">
-          <div className="mb-6 inline-flex items-center justify-center gap-5 rounded-2xl bg-[#002d62] px-6 py-4 shadow-sm">
+          <Link
+            href="/"
+            className="mb-6 inline-flex items-center justify-center gap-5 rounded-2xl bg-[#002d62] px-6 py-4 shadow-sm transition-opacity hover:opacity-90"
+          >
             <Image
               src="/image/logo_uasd.svg"
               alt="UASD Logo"
@@ -519,7 +523,7 @@ export default function CheckoutPage() {
                 ECONÓMATO
               </span>
             </div>
-          </div>
+          </Link>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">Finalizar Compra</h1>
           <p className="mt-2 text-sm text-gray-500">
             Completa toda la información y confirma tu pedido para retirarlo en el económato.

@@ -218,33 +218,33 @@ function useOrdersPagination() {
 function BouncingDots() {
   return (
     <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-        <div
-          style={{
-            width: 12,
-            height: 12,
-            borderRadius: '50%',
-            background: '#002d62',
-            animation: 'bounce 1s ease-in-out infinite',
-          }}
-        />
-        <div
-          style={{
-            width: 12,
-            height: 12,
-            borderRadius: '50%',
-            background: '#002d62',
-            animation: 'bounce 1s ease-in-out infinite 0.2s',
-          }}
-        />
-        <div
-          style={{
-            width: 12,
-            height: 12,
-            borderRadius: '50%',
-            background: '#002d62',
-            animation: 'bounce 1s ease-in-out infinite 0.4s',
-          }}
-        />
+      <div
+        style={{
+          width: 12,
+          height: 12,
+          borderRadius: '50%',
+          background: '#002d62',
+          animation: 'bounce 1s ease-in-out infinite',
+        }}
+      />
+      <div
+        style={{
+          width: 12,
+          height: 12,
+          borderRadius: '50%',
+          background: '#002d62',
+          animation: 'bounce 1s ease-in-out infinite 0.2s',
+        }}
+      />
+      <div
+        style={{
+          width: 12,
+          height: 12,
+          borderRadius: '50%',
+          background: '#002d62',
+          animation: 'bounce 1s ease-in-out infinite 0.4s',
+        }}
+      />
       <style>{`
         @keyframes bounce {
           0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }

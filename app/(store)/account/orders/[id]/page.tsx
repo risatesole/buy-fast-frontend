@@ -237,9 +237,9 @@ export default async function ClientOrderDetailsPage({
             fontSize: '0.875rem',
             fontWeight: 500,
           }}
-          >
-            Artículos de la orden
-          </div>
+        >
+          Artículos de la orden
+        </div>
         <div style={{ padding: '0.5rem 0' }}>
           {order.items.map((item, index) => (
             <div
@@ -402,9 +402,7 @@ export default async function ClientOrderDetailsPage({
               </div>
             </div>
             {order.phone && (
-              <div style={{ fontSize: '0.75rem', color: '#43474f' }}>
-                  Teléfono: {order.phone}
-                </div>
+              <div style={{ fontSize: '0.75rem', color: '#43474f' }}>Teléfono: {order.phone}</div>
             )}
           </div>
         </div>
@@ -430,13 +428,13 @@ export default async function ClientOrderDetailsPage({
           </div>
           <div style={{ padding: '1.25rem' }}>
             <div style={{ marginBottom: '0.75rem' }}>
-                <div
-                  style={{
-                    fontSize: '0.65rem',
-                    color: '#747781',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.04em',
-                  }}
+              <div
+                style={{
+                  fontSize: '0.65rem',
+                  color: '#747781',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                }}
               >
                 Método de envío
               </div>
@@ -445,13 +443,13 @@ export default async function ClientOrderDetailsPage({
               </div>
             </div>
             <div style={{ marginBottom: '0.75rem' }}>
-                <div
-                  style={{
-                    fontSize: '0.65rem',
-                    color: '#747781',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.04em',
-                  }}
+              <div
+                style={{
+                  fontSize: '0.65rem',
+                  color: '#747781',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                }}
               >
                 Método de pago
               </div>

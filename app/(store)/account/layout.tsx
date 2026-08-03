@@ -70,7 +70,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
               }}
             >
               {SECTIONS.map(s => {
-                    const isActive = pathname === s.href;
+                const isActive = pathname === s.href;
                 return (
                   <Link
                     key={s.id}
