@@ -61,44 +61,71 @@ function buildBackendUrl(
   return `${baseUrl}/api/v1/products/?${params.toString()}`;
 }
 
+// Rango por defecto cuando el backend no responde: mantiene el slider visible y
+// habilitado (min < max) en vez de quedar deshabilitado con {min:0, max:0}.
+const FALLBACK_PRICE_BOUNDS: PriceBounds = { min: 0, max: 100000 };
+
+function derivePriceBoundsFromProducts(products: Product[]): PriceBounds {
+  const prices = products
+    .map(product => product.variants?.[0]?.selling_price)
+    .filter((price): price is number => typeof price === 'number');
+
+  if (prices.length === 0) {
+    return FALLBACK_PRICE_BOUNDS;
+  }
+
+  return { min: Math.min(...prices), max: Math.max(...prices) };
+}
+
 async function getProducts(
   searchQuery: string,
   offset: number,
   filters: ProductFilters
 ): Promise<PaginatedResponse> {
-  const response = await fetch(buildBackendUrl(searchQuery, offset, PAGE_SIZE, filters), {
-    next: { revalidate: 300, tags: ['products', 'catalog'] },
-  });
+  try {
+    const response = await fetch(buildBackendUrl(searchQuery, offset, PAGE_SIZE, filters), {
+      next: { revalidate: 300, tags: ['products', 'catalog'] },
+    });
 
-  if (!response.ok) {
-    throw new Error(`No se pudieron cargar los productos (${response.status})`);
+    if (!response.ok) {
+      throw new Error(`No se pudieron cargar los productos (${response.status})`);
+    }
+
+    const json = await response.json();
+    const products = Array.isArray(json?.results)
+      ? json.results
+      : Array.isArray(json?.data)
+        ? json.data
+        : [];
+
+    const total =
+      typeof json?.count === 'number'
+        ? json.count
+        : products.length > 0
+          ? offset + products.length + (products.length === PAGE_SIZE ? 1 : 0)
+          : 0;
+
+    const priceBounds: PriceBounds =
+      typeof json?.meta?.price_bounds?.min === 'number' &&
+      typeof json?.meta?.price_bounds?.max === 'number'
+        ? { min: json.meta.price_bounds.min, max: json.meta.price_bounds.max }
+        : derivePriceBoundsFromProducts(products);
+
+    return {
+      data: products,
+      total,
+      hasMoreResults: products.length === PAGE_SIZE,
+      priceBounds,
+    };
+  } catch (error) {
+    console.error('[Catálogo] No se pudieron cargar los productos:', error);
+    return {
+      data: [],
+      total: 0,
+      hasMoreResults: false,
+      priceBounds: FALLBACK_PRICE_BOUNDS,
+    };
   }
-
-  const json = await response.json();
-  const products = Array.isArray(json?.results)
-    ? json.results
-    : Array.isArray(json?.data)
-      ? json.data
-      : [];
-
-  const total =
-    typeof json?.count === 'number'
-      ? json.count
-      : products.length > 0
-        ? offset + products.length + (products.length === PAGE_SIZE ? 1 : 0)
-        : 0;
-
-  const priceBounds: PriceBounds = {
-    min: typeof json?.meta?.price_bounds?.min === 'number' ? json.meta.price_bounds.min : 0,
-    max: typeof json?.meta?.price_bounds?.max === 'number' ? json.meta.price_bounds.max : 0,
-  };
-
-  return {
-    data: products,
-    total,
-    hasMoreResults: products.length === PAGE_SIZE,
-    priceBounds,
-  };
 }
 
 async function getCategories(): Promise<CategoryOption[]> {
