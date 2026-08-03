@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Search, X, Package, Plus, ChevronLeft, ChevronRight, Info } from 'lucide-react';
-import { Product, isProductAvailable, getDisplayPrice } from '@/lib/products';
+import { Product, getDisplayPrice } from '@/lib/products';
 
 const SEARCH_DEBOUNCE_DELAY = 400;
 
@@ -44,7 +44,7 @@ LoadingDots.displayName = 'LoadingDots';
 const ProductRow = memo(({ product }: { product: Product }) => {
   const mainVariant = product.variants[0];
   const price = getDisplayPrice(product);
-  const isAvailable = isProductAvailable(product);
+  const variantCount = product.variants.length;
 
   return (
     <tr className="border-b border-[#e0e3e5] bg-white hover:bg-[#f8fafd] transition-colors duration-150">
@@ -81,21 +81,9 @@ const ProductRow = memo(({ product }: { product: Product }) => {
         {formatCurrency(price)}
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
-        <div
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${
-            isAvailable
-              ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]'
-              : 'bg-[#ffdad6] text-[#93000a] border-[#ffb4ab]'
-          }`}
-        >
-          <span
-            className={`size-1.5 rounded-full ${isAvailable ? 'bg-[#1e8e3e]' : 'bg-[#ba1a1a]'}`}
-            aria-hidden="true"
-          />
-          <span className="text-[11px] font-bold uppercase tracking-wider">
-            {isAvailable ? 'Disponible' : 'Agotado'}
-          </span>
-        </div>
+        <span className="inline-flex items-center px-2.5 py-1 rounded-full border bg-[#f2f4f6] text-[#43474f] border-[#e0e3e5] text-[11px] font-bold uppercase tracking-wider">
+          {variantCount} {variantCount === 1 ? 'variante' : 'variantes'}
+        </span>
       </td>
       <td className="px-6 py-4 text-right">
         <Link
@@ -274,7 +262,7 @@ export default function ProductsClient({
                   Precio
                 </th>
                 <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider">
-                  Disponibilidad
+                  Cantidad de Variantes
                 </th>
                 <th className="px-6 py-3.5 text-[11px] font-bold text-[#747781] uppercase tracking-wider text-right">
                   Acción

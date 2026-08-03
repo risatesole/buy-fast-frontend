@@ -22,7 +22,6 @@ interface LoadedVariant {
   slug: string;
   selling_price: string;
   tax_rate: string;
-  status: boolean;
   images: ProductImageInput[];
 }
 
@@ -63,7 +62,6 @@ function normalize(data: LoadedProduct): LoadedProduct {
       slug: v.slug,
       selling_price: String(v.selling_price),
       tax_rate: String(v.tax_rate),
-      status: v.status,
       images: v.images ?? [],
     })),
   };
@@ -253,10 +251,6 @@ export default function PatchProductPage() {
       }
       if (dv.tax_rate !== ov.tax_rate) {
         vPatch.tax_rate = Number(dv.tax_rate).toFixed(4);
-        changed = true;
-      }
-      if (dv.status !== ov.status) {
-        vPatch.status = dv.status;
         changed = true;
       }
       if (JSON.stringify(dv.images) !== JSON.stringify(ov.images)) {
@@ -470,20 +464,6 @@ export default function PatchProductPage() {
                         value={variant.tax_rate}
                         onChange={e => updateVariant(vIndex, { tax_rate: e.target.value })}
                       />
-                    </div>
-
-                    <div>
-                      <label className={labelClass}>Estado</label>
-                      <select
-                        className={`${inputClass} appearance-none`}
-                        value={variant.status ? 'active' : 'inactive'}
-                        onChange={e =>
-                          updateVariant(vIndex, { status: e.target.value === 'active' })
-                        }
-                      >
-                        <option value="active">Activo</option>
-                        <option value="inactive">Inactivo</option>
-                      </select>
                     </div>
 
                     <div className="sm:col-span-2">
