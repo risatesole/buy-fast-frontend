@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { SectionLabel } from '@/components/account/SectionLabel';
 import Image from 'next/image';
+import { DownloadVoucherButton } from '@/components/orders/DownloadVoucherButton';
 
 interface Address {
   street: string;
@@ -210,13 +211,16 @@ export default async function ClientOrderDetailsPage({
             </span>
           </div>
         </div>
-        <div
-          style={{
-            fontSize: '1.25rem',
-            fontWeight: 600,
-          }}
-        >
-          {formatCurrency(order.total)}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div
+            style={{
+              fontSize: '1.25rem',
+              fontWeight: 600,
+            }}
+          >
+            {formatCurrency(order.total)}
+          </div>
+          <DownloadVoucherButton orderId={order.id} />
         </div>
       </div>
 
