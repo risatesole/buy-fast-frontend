@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { PackageSearch, Search as SearchIcon } from 'lucide-react';
 import { ProductCard } from '@/components/ProductCard';
+import { CatalogFilters, type CategoryOption } from './CatalogFilters';
 import type { Product } from '@/entities/product';
 
 const PAGE_SIZE = 4;
@@ -14,13 +15,30 @@ interface MappedProduct {
   thumbnail?: string;
 }
 
+interface PriceBounds {
+  min: number;
+  max: number;
+}
+
+interface ProductFilters {
+  categories: string[];
+  priceMin?: number;
+  priceMax?: number;
+}
+
 interface PaginatedResponse {
   data: Product[];
   total: number;
   hasMoreResults: boolean;
+  priceBounds: PriceBounds;
 }
 
-function buildBackendUrl(searchQuery: string, offset: number, limit: number) {
+function buildBackendUrl(
+  searchQuery: string,
+  offset: number,
+  limit: number,
+  filters: ProductFilters
+) {
   const baseUrl = process.env.BACKEND_URL ?? 'http://localhost:8000';
   const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
 
@@ -28,11 +46,27 @@ function buildBackendUrl(searchQuery: string, offset: number, limit: number) {
     params.set('search', searchQuery.trim());
   }
 
+  if (filters.categories.length > 0) {
+    params.set('category', filters.categories.join(','));
+  }
+
+  if (typeof filters.priceMin === 'number') {
+    params.set('price_min', String(filters.priceMin));
+  }
+
+  if (typeof filters.priceMax === 'number') {
+    params.set('price_max', String(filters.priceMax));
+  }
+
   return `${baseUrl}/api/v1/products/?${params.toString()}`;
 }
 
-async function getProducts(searchQuery: string, offset: number): Promise<PaginatedResponse> {
-  const response = await fetch(buildBackendUrl(searchQuery, offset, PAGE_SIZE), {
+async function getProducts(
+  searchQuery: string,
+  offset: number,
+  filters: ProductFilters
+): Promise<PaginatedResponse> {
+  const response = await fetch(buildBackendUrl(searchQuery, offset, PAGE_SIZE, filters), {
     next: { revalidate: 300, tags: ['products', 'catalog'] },
   });
 
@@ -54,11 +88,41 @@ async function getProducts(searchQuery: string, offset: number): Promise<Paginat
         ? offset + products.length + (products.length === PAGE_SIZE ? 1 : 0)
         : 0;
 
+  const priceBounds: PriceBounds = {
+    min: typeof json?.meta?.price_bounds?.min === 'number' ? json.meta.price_bounds.min : 0,
+    max: typeof json?.meta?.price_bounds?.max === 'number' ? json.meta.price_bounds.max : 0,
+  };
+
   return {
     data: products,
     total,
     hasMoreResults: products.length === PAGE_SIZE,
+    priceBounds,
   };
+}
+
+async function getCategories(): Promise<CategoryOption[]> {
+  const baseUrl = process.env.BACKEND_URL ?? 'http://localhost:8000';
+
+  try {
+    const response = await fetch(`${baseUrl}/api/v1/products/categories/`, {
+      next: { revalidate: 300, tags: ['categories'] },
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const json = await response.json();
+    const categories = Array.isArray(json?.data) ? json.data : [];
+
+    return categories.map((category: { slug: string; label: string }) => ({
+      slug: category.slug,
+      label: category.label,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 function mapProductsToView(products: Product[]): MappedProduct[] {
@@ -80,16 +144,30 @@ function Pagination({
   currentPage,
   hasMoreResults,
   searchQuery,
+  filters,
 }: {
   currentPage: number;
   hasMoreResults: boolean;
   searchQuery: string;
+  filters: ProductFilters;
 }) {
   const buildHref = (page: number) => {
     const params = new URLSearchParams();
 
     if (searchQuery.trim()) {
       params.set('search', searchQuery.trim());
+    }
+
+    if (filters.categories.length > 0) {
+      params.set('category', filters.categories.join(','));
+    }
+
+    if (typeof filters.priceMin === 'number') {
+      params.set('priceMin', String(filters.priceMin));
+    }
+
+    if (typeof filters.priceMax === 'number') {
+      params.set('priceMax', String(filters.priceMax));
     }
 
     params.set('page', String(page));
@@ -124,14 +202,37 @@ function Pagination({
 export default async function CatalogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string; page?: string }>;
+  searchParams: Promise<{
+    search?: string;
+    page?: string;
+    category?: string;
+    priceMin?: string;
+    priceMax?: string;
+  }>;
 }) {
   const resolvedSearchParams = await searchParams;
   const searchQuery = resolvedSearchParams.search ?? '';
   const currentPage = Math.max(1, Number.parseInt(resolvedSearchParams.page ?? '1', 10) || 1);
   const offset = (currentPage - 1) * PAGE_SIZE;
 
-  const { data: products, total, hasMoreResults } = await getProducts(searchQuery, offset);
+  const selectedCategories = (resolvedSearchParams.category ?? '')
+    .split(',')
+    .map(slug => slug.trim())
+    .filter(Boolean);
+
+  const parsedPriceMin = Number.parseFloat(resolvedSearchParams.priceMin ?? '');
+  const parsedPriceMax = Number.parseFloat(resolvedSearchParams.priceMax ?? '');
+
+  const filters: ProductFilters = {
+    categories: selectedCategories,
+    priceMin: Number.isFinite(parsedPriceMin) ? parsedPriceMin : undefined,
+    priceMax: Number.isFinite(parsedPriceMax) ? parsedPriceMax : undefined,
+  };
+
+  const [{ data: products, total, hasMoreResults, priceBounds }, categories] = await Promise.all([
+    getProducts(searchQuery, offset, filters),
+    getCategories(),
+  ]);
   const mappedProducts = mapProductsToView(products);
 
   return (
@@ -170,68 +271,93 @@ export default async function CatalogPage({
             >
               Buscar
             </button>
+
+            {selectedCategories.length > 0 && (
+              <input type="hidden" name="category" value={selectedCategories.join(',')} />
+            )}
+            {typeof filters.priceMin === 'number' && (
+              <input type="hidden" name="priceMin" value={filters.priceMin} />
+            )}
+            {typeof filters.priceMax === 'number' && (
+              <input type="hidden" name="priceMax" value={filters.priceMax} />
+            )}
           </form>
         </header>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-[#43474f]">
-            {total > 0
-              ? `${total} producto${total === 1 ? '' : 's'} disponibles`
-              : 'No hay productos para mostrar'}
-          </p>
-          {searchQuery ? (
-            <p className="text-sm font-medium text-[#002d62]">
-              Mostrando resultados para “{searchQuery}”
-            </p>
-          ) : null}
-        </div>
+        <div className="flex flex-col gap-8 lg:flex-row">
+          <CatalogFilters
+            categories={categories}
+            selectedCategories={selectedCategories}
+            priceBounds={priceBounds}
+            priceMin={filters.priceMin ?? priceBounds.min}
+            priceMax={filters.priceMax ?? priceBounds.max}
+          />
 
-        {mappedProducts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-none border border-[#e2e8f0] bg-white px-6 py-20 text-center shadow-sm">
-            <PackageSearch className="mb-4 size-12 text-[#c4c6d1]" strokeWidth={1.5} />
-            <h2 className="font-serif text-2xl font-semibold text-[#002d62]">
-              {currentPage > 1 ? 'No hay más productos en esta página' : 'No encontramos productos'}
-            </h2>
-            <p className="mt-2 max-w-md text-sm leading-6 text-[#43474f]">
-              {currentPage > 1 ? (
-                <>
-                  Regresa al catálogo principal para ver más productos.{' '}
-                  <Link
-                    href="/catalog"
-                    className="font-semibold text-[#002d62] underline-offset-2 hover:underline"
-                  >
-                    Click aquí
-                  </Link>
-                </>
-              ) : (
-                'Prueba con otro término de búsqueda o vuelve más tarde para ver nuevas incorporaciones al catálogo.'
-              )}
-            </p>
-          </div>
-        ) : (
-          <>
-            <section className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {mappedProducts.map(product => (
-                <ProductCard
-                  key={`${product.id}-${product.slug}`}
-                  id={product.id}
-                  name={product.name}
-                  selling_price={product.sellingPrice}
-                  categoryName={product.category}
-                  image={product.thumbnail}
-                  slug={product.slug}
-                  actionLabel="Ver producto"
+          <div className="flex min-w-0 flex-1 flex-col gap-8">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-[#43474f]">
+                {total > 0
+                  ? `${total} producto${total === 1 ? '' : 's'} disponibles`
+                  : 'No hay productos para mostrar'}
+              </p>
+              {searchQuery ? (
+                <p className="text-sm font-medium text-[#002d62]">
+                  Mostrando resultados para “{searchQuery}”
+                </p>
+              ) : null}
+            </div>
+
+            {mappedProducts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-none border border-[#e2e8f0] bg-white px-6 py-20 text-center shadow-sm">
+                <PackageSearch className="mb-4 size-12 text-[#c4c6d1]" strokeWidth={1.5} />
+                <h2 className="font-serif text-2xl font-semibold text-[#002d62]">
+                  {currentPage > 1
+                    ? 'No hay más productos en esta página'
+                    : 'No encontramos productos'}
+                </h2>
+                <p className="mt-2 max-w-md text-sm leading-6 text-[#43474f]">
+                  {currentPage > 1 ? (
+                    <>
+                      Regresa al catálogo principal para ver más productos.{' '}
+                      <Link
+                        href="/catalog"
+                        className="font-semibold text-[#002d62] underline-offset-2 hover:underline"
+                      >
+                        Click aquí
+                      </Link>
+                    </>
+                  ) : (
+                    'Prueba con otro término de búsqueda o ajusta los filtros para ver nuevas incorporaciones al catálogo.'
+                  )}
+                </p>
+              </div>
+            ) : (
+              <>
+                <section className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
+                  {mappedProducts.map(product => (
+                    <ProductCard
+                      key={`${product.id}-${product.slug}`}
+                      id={product.id}
+                      name={product.name}
+                      selling_price={product.sellingPrice}
+                      categoryName={product.category}
+                      image={product.thumbnail}
+                      slug={product.slug}
+                      actionLabel="Ver producto"
+                    />
+                  ))}
+                </section>
+
+                <Pagination
+                  currentPage={currentPage}
+                  hasMoreResults={hasMoreResults}
+                  searchQuery={searchQuery}
+                  filters={filters}
                 />
-              ))}
-            </section>
-
-            <Pagination
-              currentPage={currentPage}
-              hasMoreResults={hasMoreResults}
-              searchQuery={searchQuery}
-            />
-          </>
-        )}
+              </>
+            )}
+          </div>
+        </div>
       </section>
     </main>
   );
