@@ -54,33 +54,33 @@ export const ProductCard = memo(function ProductCard({
         prefetch={false}
         className="flex flex-1 flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-[#002d62]"
       >
-        <div className="relative aspect-square w-full overflow-hidden bg-[#f7f9fb]">
+        <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#f7f9fb]">
           {image ? (
             <Image
               src={image}
               alt={`Fotografía de ${name}`}
               fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
               className="object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-sm font-medium text-[#747781]">
+            <div className="flex h-full w-full items-center justify-center text-xs font-medium text-[#747781]">
               Sin imagen disponible
             </div>
           )}
         </div>
 
-        <div className="flex flex-1 flex-col p-4">
-          <span className="mb-1 text-xs font-bold uppercase tracking-wider text-[#747781]">
+        <div className="flex flex-1 flex-col p-3">
+          <span className="mb-0.5 text-[11px] font-bold uppercase tracking-wider text-[#747781]">
             {categoryName}
           </span>
 
-          <h3 className="mb-2 line-clamp-2 font-serif text-sm font-semibold leading-tight text-[#002d62] md:text-base">
+          <h3 className="mb-1 line-clamp-2 font-serif text-sm font-semibold leading-tight text-[#002d62]">
             {name}
           </h3>
 
-          <div className="mt-auto pt-2">
-            <span className="font-serif text-lg font-bold text-[#191c1e]">
+          <div className="mt-auto pt-1">
+            <span className="font-serif text-base font-bold text-[#191c1e]">
               {DOP_FORMATTER.format(selling_price)}
             </span>
           </div>
@@ -88,12 +88,12 @@ export const ProductCard = memo(function ProductCard({
       </Link>
 
       {/* Contenedor de acciones independiente */}
-      <div className="p-4 pt-0">
+      <div className="p-3 pt-0">
         {actionHref ? (
           <Link
             href={finalActionHref}
             prefetch={false}
-            className="inline-flex w-full items-center justify-center bg-[#002d62] px-4 py-2.5 text-sm font-semibold uppercase tracking-[0.05em] text-white transition-colors duration-200 hover:bg-[#115cb9] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#115cb9] active:scale-[0.98]"
+            className="inline-flex w-full items-center justify-center bg-[#002d62] px-3 py-2 text-xs font-semibold uppercase tracking-[0.05em] text-white transition-colors duration-200 hover:bg-[#115cb9] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#115cb9] active:scale-[0.98]"
           >
             {actionLabel}
           </Link>
@@ -102,7 +102,7 @@ export const ProductCard = memo(function ProductCard({
             type="button"
             onClick={handleAddToCart}
             aria-label={`Añadir ${name} al carrito`}
-            className="w-full bg-[#002d62] px-4 py-2.5 text-sm font-semibold uppercase tracking-[0.05em] text-white transition-colors duration-200 hover:bg-[#115cb9] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#115cb9] active:scale-[0.98]"
+            className="w-full bg-[#002d62] px-3 py-2 text-xs font-semibold uppercase tracking-[0.05em] text-white transition-colors duration-200 hover:bg-[#115cb9] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#115cb9] active:scale-[0.98]"
           >
             {actionLabel}
           </button>

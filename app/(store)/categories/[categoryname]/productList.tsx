@@ -46,7 +46,7 @@ export default function ProductList({ products }: ProductListProps) {
   return (
     // Se introduce un contenedor semántico con márgenes y padding para separar secciones
     <section className="mx-auto mb-16 max-w-7xl px-2 py-5 sm:px-6 lg:px-8">
-      <div className="flex-1 grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      <div className="flex-1 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {products.map(product => (
           <ProductCard
             key={product.id}

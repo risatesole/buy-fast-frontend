@@ -67,6 +67,14 @@ async function getProducts() {
   }
 }
 
+function toAbsoluteUrl(rawUrl: string, baseUrl: string) {
+  if (!rawUrl) return '';
+  if (rawUrl.startsWith('/')) {
+    return `${baseUrl.replace(/\/$/, '')}${rawUrl}`;
+  }
+  return rawUrl;
+}
+
 function extractBestImageUrl(
   entity:
     | {
@@ -128,12 +136,7 @@ function extractBestImageUrl(
 
   if (!rawUrl || typeof rawUrl !== 'string') return '';
 
-  // Make relative URLs absolute
-  if (rawUrl.startsWith('/')) {
-    return `${baseUrl.replace(/\/$/, '')}${rawUrl}`;
-  }
-
-  return rawUrl;
+  return toAbsoluteUrl(rawUrl, baseUrl);
 }
 
 export default async function Page() {
@@ -148,11 +151,24 @@ export default async function Page() {
       name: string;
       category: string | { name: string };
       slug: string;
-      variants: { name: string; slug: string; selling_price: number }[];
+      thumbnail?: string;
+      variants: {
+        name: string;
+        slug: string;
+        selling_price: number;
+        thumbnail?: string;
+        image_thumbnail?: string;
+      }[];
     }) => {
       const firstVariant = product.variants?.[0];
-      const variantImage =
-        extractBestImageUrl(firstVariant, baseUrl) || extractBestImageUrl(product, baseUrl);
+      // Misma prioridad que catalog/search/categories: el campo "thumbnail" plano
+      // gana sobre el ordenamiento por tipo de imagen, para que la imagen coincida
+      // con la que se ve en el resto del sitio.
+      const directThumbnail =
+        firstVariant?.thumbnail || firstVariant?.image_thumbnail || product.thumbnail || '';
+      const variantImage = directThumbnail
+        ? toAbsoluteUrl(directThumbnail, baseUrl)
+        : extractBestImageUrl(firstVariant, baseUrl) || extractBestImageUrl(product, baseUrl);
 
       return {
         id: product.id,

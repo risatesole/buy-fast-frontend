@@ -101,7 +101,7 @@ export function SearchContent({ query, products }: SearchContentProps) {
         {normalizedProducts.length === 0 && query ? (
           <EmptyState query={query} />
         ) : (
-          <section className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <section className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {normalizedProducts.map(product => {
               if (!product.variantId) {
                 console.warn('Producto sin variante válida:', product);
