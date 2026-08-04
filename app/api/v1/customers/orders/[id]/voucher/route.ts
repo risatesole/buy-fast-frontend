@@ -26,7 +26,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       headers: {
         'Content-Type': res.headers.get('content-type') ?? 'application/pdf',
         'Content-Disposition':
-          res.headers.get('content-disposition') ?? `inline; filename="comprobante-pedido-${id}.pdf"`,
+          res.headers.get('content-disposition') ??
+          `inline; filename="comprobante-pedido-${id}.pdf"`,
       },
     });
   } catch (err) {

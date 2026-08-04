@@ -130,9 +130,18 @@ export default function SignInPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="password" className={uasdClasses.fieldLabel}>
-                Contraseña
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className={uasdClasses.fieldLabel}>
+                  Contraseña
+                </Label>
+
+                <Link
+                  href="/forgot-password"
+                  className="text-xs font-medium text-[#115cb9] hover:text-[#002d62]"
+                >
+                  ¿Olvidaste tu contraseña?
+                </Link>
+              </div>
 
               <Input
                 id="password"
