@@ -141,14 +141,20 @@ export default function PrivacyPolicyPage() {
             <ul className="list-disc space-y-1 pl-5">
               <li>
                 A través de nuestra página de{' '}
-                <Link href="/contacto" className="underline underline-offset-2 hover:text-foreground">
+                <Link
+                  href="/contact"
+                  className="underline underline-offset-2 hover:text-foreground"
+                >
                   Contacto
                 </Link>
                 .
               </li>
               <li>
                 Llamando a la Secretaría del Ecónomato al{' '}
-                <a href="tel:+18095351097" className="underline underline-offset-2 hover:text-foreground">
+                <a
+                  href="tel:+18095351097"
+                  className="underline underline-offset-2 hover:text-foreground"
+                >
                   (809) 535-1097
                 </a>
                 .
@@ -175,17 +181,17 @@ export default function PrivacyPolicyPage() {
           <CardContent className="text-sm leading-relaxed text-foreground/80">
             <p>
               Nos reservamos el derecho de actualizar esta Política de Privacidad en cualquier
-              momento. Cualquier cambio será publicado en esta misma página junto con la fecha de
-              su última actualización.
+              momento. Cualquier cambio será publicado en esta misma página junto con la fecha de su
+              última actualización.
             </p>
           </CardContent>
         </Card>
       </div>
 
       <p className="mt-12 border-t border-[#e0e3e5] pt-6 text-center text-xs text-[#747781]">
-        Aviso: UASD BuyFast es un prototipo funcional desarrollado con fines de demostración
-        (MVP) y no constituye una tienda en línea real operada oficialmente por el Ecónomato
-        Universitario de la UASD.
+        Aviso: UASD BuyFast es un prototipo funcional desarrollado con fines de demostración (MVP) y
+        no constituye una tienda en línea real operada oficialmente por el Ecónomato Universitario
+        de la UASD.
       </p>
     </main>
   );
