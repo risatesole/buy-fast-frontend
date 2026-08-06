@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Bell, Search, ChevronRight } from 'lucide-react';
+import type { User } from '@/entities/user';
 
 // ─── Interfaces y Tipos Estrictos ──────────────────────────────────────────
 
@@ -24,9 +25,17 @@ const buildCrumbs = (pathname: string): Crumb[] => {
   }));
 };
 
+function getInitials(firstname: string, lastname: string): string {
+  return `${firstname.charAt(0)}${lastname.charAt(0)}`.toUpperCase();
+}
+
 // ─── Componente Principal ──────────────────────────────────────────────────
 
-export function AdminTopbar() {
+type AdminTopbarProps = {
+  user: User;
+};
+
+export function AdminTopbar({ user }: AdminTopbarProps) {
   const pathname = usePathname();
   const topbarRef = useRef<HTMLElement>(null);
 
@@ -167,7 +176,7 @@ export function AdminTopbar() {
               aria-expanded={activeMenu === 'user'}
             >
               <div className="size-10 rounded-none bg-[#002d62] text-[#ffffff] font-sans text-sm font-bold flex items-center justify-center border border-[#00193c]">
-                AD
+                {getInitials(user.firstname, user.lastname)}
               </div>
             </button>
 
@@ -175,21 +184,16 @@ export function AdminTopbar() {
               <div className="absolute top-full right-0 mt-4 w-64 bg-[#ffffff] rounded-none border border-[#c4c6d1] z-50 animate-in fade-in slide-in-from-top-2">
                 <div className="px-5 py-4 border-b border-[#e2e8f0] bg-[#f7f9fb]">
                   <p className="font-serif text-base font-bold text-[#00193c] truncate">
-                    admin@ejemplo.com
+                    {user.firstname} {user.lastname}
                   </p>
+                  <p className="font-sans text-sm text-[#747781] truncate">{user.email}</p>
                 </div>
                 <div className="p-0 flex flex-col">
                   <Link
-                    href="/admin/profile"
+                    href="/account/account"
                     className="px-5 py-3 font-sans text-base font-medium text-[#43474f] hover:text-[#002d62] hover:bg-[#f2f4f6] transition-colors"
                   >
-                    Perfil
-                  </Link>
-                  <Link
-                    href="/admin/settings/billing"
-                    className="px-5 py-3 font-sans text-base font-medium text-[#43474f] hover:text-[#002d62] hover:bg-[#f2f4f6] transition-colors"
-                  >
-                    Facturación
+                    Mi cuenta
                   </Link>
                   <div className="border-t border-[#e2e8f0]" />
                   <button className="w-full text-left px-5 py-3 font-sans text-base font-semibold text-[#ba1a1a] hover:bg-[#ffdad6] transition-colors outline-none">

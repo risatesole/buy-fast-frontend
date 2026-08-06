@@ -13,6 +13,7 @@ import {
   Truck,
   LucideIcon,
 } from 'lucide-react';
+import type { User } from '@/entities/user';
 
 // ─── Tipado Estricto ────────────────────────────────────────────────────────
 
@@ -77,6 +78,10 @@ const PLATFORM_ITEMS: NavigationItem[] = [
 
 const HELP_ITEMS: NavigationSubItem[] = [{ title: 'Manual Operativo', url: '/admin/help/manual' }];
 
+function getInitials(firstname: string, lastname: string): string {
+  return `${firstname.charAt(0)}${lastname.charAt(0)}`.toUpperCase();
+}
+
 // ─── Componentes Puros Memotizados ──────────────────────────────────────────
 
 const BrandLogo = memo(() => (
@@ -108,7 +113,11 @@ BrandLogo.displayName = 'BrandLogo';
 
 // ─── Componente Principal ──────────────────────────────────────────────────
 
-export function AppSidebar() {
+type AppSidebarProps = {
+  user: User;
+};
+
+export function AppSidebar({ user }: AppSidebarProps) {
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState<boolean>(false);
   const [manuallyOpenAccordions, setManuallyOpenAccordions] = useState<Record<string, boolean>>({});
@@ -292,13 +301,13 @@ export function AppSidebar() {
           <div className="mt-auto pt-4 border-t border-[#002554]">
             <div className="px-2 py-2 flex items-center gap-x-3">
               <div className="size-10 rounded-xl bg-[#5891ff] text-[#001530] font-sans text-sm font-bold flex items-center justify-center shrink-0 shadow-sm">
-                AD
+                {getInitials(user.firstname, user.lastname)}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-sans font-bold text-white truncate leading-snug">
-                  Admin Principal
+                  {user.firstname} {user.lastname}
                 </p>
-                <p className="text-xs font-sans text-[#7d9ccb] truncate">admin@uasd.edu.do</p>
+                <p className="text-xs font-sans text-[#7d9ccb] truncate">{user.email}</p>
               </div>
             </div>
           </div>

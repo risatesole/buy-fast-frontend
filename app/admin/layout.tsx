@@ -19,11 +19,11 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   return (
     // Aplicación del Design System Institucional (UASD)
     <div className="min-h-screen bg-[#f7f9fb] text-[#191c1e] font-sans flex">
-      <AppSidebar />
+      <AppSidebar user={user} />
 
       {/* Sincronización geométrica: lg:pl-64 alinea con el w-64 (256px) del Sidebar */}
       <div className="flex flex-col flex-1 min-w-0 lg:pl-64">
-        <AdminTopbar />
+        <AdminTopbar user={user} />
 
         <main className="flex-1 p-6 sm:p-8">{children}</main>
       </div>
