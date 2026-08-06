@@ -276,9 +276,7 @@ export default async function AdminOrderDetailsPage({
                       <span className="text-sm font-normal text-[#747781]">
                         ({item.product.variant_name})
                       </span>
-                      <span className="text-sm font-normal text-[#c4c6d1]">
-                        × {item.quantity}
-                      </span>
+                      <span className="text-sm font-normal text-[#c4c6d1]">× {item.quantity}</span>
                     </h4>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                       {validImages.map(image => (
