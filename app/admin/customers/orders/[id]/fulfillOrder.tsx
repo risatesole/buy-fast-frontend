@@ -11,7 +11,7 @@ export interface FulfillOrderResult {
   data?: unknown;
 }
 
-export async function fulfillOrder(orderId: number): Promise<FulfillOrderResult> {
+export async function fulfillOrder(orderId: number, code: string): Promise<FulfillOrderResult> {
   const cookieStore = await cookies();
   const cookieHeader = cookieStore
     .getAll()
@@ -48,6 +48,7 @@ export async function fulfillOrder(orderId: number): Promise<FulfillOrderResult>
       },
       body: JSON.stringify({
         action: 'fulfill',
+        code,
       }),
       cache: 'no-store',
     });

@@ -44,6 +44,7 @@ interface OrderData {
   customer_profile_picture: string | null;
   status: OrderStatus;
   pickup_time: string;
+  pickup_code: string;
   created_at: string;
   items: OrderItem[];
   total_items: number;
@@ -135,7 +136,7 @@ export default async function AdminOrderDetailsPage({
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <div className="bg-white rounded-lg border border-[#e0e3e5] p-6">
             <h3 className="text-xs font-bold tracking-wider text-[#747781] uppercase mb-3">
               Cliente
@@ -167,6 +168,14 @@ export default async function AdminOrderDetailsPage({
             </h3>
             <p className="text-lg font-semibold text-[#191c1e]">
               {order.pickup_time ? formatDate(order.pickup_time) : 'Sin asignar'}
+            </p>
+          </div>
+          <div className="bg-white rounded-lg border border-[#e0e3e5] p-6">
+            <h3 className="text-xs font-bold tracking-wider text-[#747781] uppercase mb-1">
+              Código de retiro
+            </h3>
+            <p className="font-mono text-lg font-bold tracking-[0.2em] text-[#002d62]">
+              {order.pickup_code}
             </p>
           </div>
         </div>

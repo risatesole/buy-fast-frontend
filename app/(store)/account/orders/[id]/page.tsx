@@ -30,6 +30,7 @@ interface OrderData {
   created_at: string;
   status: string;
   pickup_time: string;
+  pickup_code: string;
   phone: string | null;
   address: Address;
   items: OrderItem[];
@@ -223,6 +224,45 @@ export default async function ClientOrderDetailsPage({
           <DownloadVoucherButton orderId={order.id} />
         </div>
       </div>
+
+      {/* Pickup Code */}
+      {order.pickup_code && (
+        <div
+          style={{
+            marginBottom: '2rem',
+            padding: '1rem 1.25rem',
+            border: '1px solid #002d62',
+            borderRadius: 4,
+            background: '#f0f5fb',
+          }}
+        >
+          <div
+            style={{
+              fontSize: '0.65rem',
+              color: '#747781',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+              marginBottom: '0.35rem',
+            }}
+          >
+            Código de retiro
+          </div>
+          <div
+            style={{
+              fontFamily: 'monospace',
+              fontSize: '1.5rem',
+              fontWeight: 700,
+              letterSpacing: '0.25em',
+              color: '#002d62',
+            }}
+          >
+            {order.pickup_code}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#43474f', marginTop: '0.35rem' }}>
+            Preséntalo al personal del Económato al recoger tu pedido.
+          </div>
+        </div>
+      )}
 
       {/* Order Items */}
       <div
