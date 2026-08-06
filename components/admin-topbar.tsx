@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Bell, Search, ChevronRight } from 'lucide-react';
 import type { User } from '@/entities/user';
 
@@ -37,10 +37,20 @@ type AdminTopbarProps = {
 
 export function AdminTopbar({ user }: AdminTopbarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const topbarRef = useRef<HTMLElement>(null);
 
   const crumbs = useMemo(() => buildCrumbs(pathname), [pathname]);
   const [activeMenu, setActiveMenu] = useState<ActiveMenuType>(null);
+
+  const handleLogout = useCallback(async () => {
+    try {
+      await fetch('/api/v1/signout/', { method: 'POST', credentials: 'include' });
+    } finally {
+      setActiveMenu(null);
+      router.push('/signin');
+    }
+  }, [router]);
 
   useEffect(() => {
     if (!activeMenu) return;
@@ -196,7 +206,10 @@ export function AdminTopbar({ user }: AdminTopbarProps) {
                     Mi cuenta
                   </Link>
                   <div className="border-t border-[#e2e8f0]" />
-                  <button className="w-full text-left px-5 py-3 font-sans text-base font-semibold text-[#ba1a1a] hover:bg-[#ffdad6] transition-colors outline-none">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-5 py-3 font-sans text-base font-semibold text-[#ba1a1a] hover:bg-[#ffdad6] transition-colors outline-none"
+                  >
                     Cerrar sesión
                   </button>
                 </div>
