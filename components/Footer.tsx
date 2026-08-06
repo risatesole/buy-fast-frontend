@@ -22,7 +22,8 @@ const LEGAL_LINKS: FooterLink[] = [
   { label: 'Privacidad', href: '/privacidad' },
   { label: 'Términos de Servicio', href: '/terminos' },
   { label: 'Políticas de Devolución', href: '/politicas' },
-  { label: 'Soporte y Contacto', href: '/contacto' },
+  { label: 'Entrega y Retiro', href: '/entrega' },
+  { label: 'Soporte y Contacto', href: '/contact' },
 ];
 
 // ── Sub-components ─────────────────────────────────────────────
