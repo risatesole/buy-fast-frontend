@@ -104,17 +104,6 @@ export function AdminTopbar({ user }: AdminTopbarProps) {
 
         <div className="flex-1" />
 
-        {/* ─── Buscador Global (Desktop) ─── */}
-        <div className="hidden md:block relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-[#747781] pointer-events-none" />
-          <input
-            type="search"
-            className="w-80 pl-12 pr-4 py-2.5 text-base rounded-none border border-[#c4c6d1] bg-transparent text-[#191c1e] placeholder:text-[#747781] focus:outline-none focus:border-[#002d62] focus:border-b-2 transition-all font-sans"
-            placeholder="Buscar recursos..."
-            aria-label="Búsqueda global"
-          />
-        </div>
-
         {/* ─── Contenedor de Acciones (Derecha) ─── */}
         <div className="flex items-center gap-x-4 ml-6">
           {/* Toggle de Búsqueda (Mobile) */}
