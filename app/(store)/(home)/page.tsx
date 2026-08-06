@@ -233,6 +233,12 @@ export default async function Page() {
           </div>
         )}
       </section>
+
+      <p className="mx-auto max-w-7xl border-t border-[#e2e8f0] px-4 py-6 text-center text-xs text-[#747781] sm:px-6 lg:px-8">
+        Aviso: UASD BuyFast es un prototipo funcional desarrollado con fines de demostración
+        (MVP) y no constituye una tienda en línea real operada oficialmente por el Ecónomato
+        Universitario de la UASD.
+      </p>
     </main>
   );
 }

@@ -226,9 +226,9 @@ export default function SignupPage() {
             Términos
           </a>{' '}
           y nuestra{' '}
-          <a href="#" className="underline underline-offset-2 hover:text-muted-foreground">
+          <Link href="/privacidad" className="underline underline-offset-2 hover:text-muted-foreground">
             Política de Privacidad
-          </a>
+          </Link>
           .
         </p>
       </div>
