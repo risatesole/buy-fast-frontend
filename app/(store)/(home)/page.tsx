@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Carousel from './ProductCarousel';
+import CategoryStrip from './CategoryStrip';
 import ProductList from './productList';
 
 const IMAGE_PRIORITIES: { [key: string]: number } = {
@@ -190,6 +191,8 @@ export default async function Page() {
   return (
     <main className="min-h-screen bg-white">
       <Carousel slides={carouselSlides} />
+
+      <CategoryStrip />
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="mb-12 flex items-center justify-center">

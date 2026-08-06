@@ -1,50 +1,7 @@
 // app/(store)/categories/page.tsx
 import Link from 'next/link';
 import Image from 'next/image';
-
-// ─── Interfaces (Data Transfer Objects) ─────────────────────────
-
-export interface Category {
-  label: string;
-  description: string;
-  priority: number;
-  slug: string;
-  images: {
-    banner: string;
-    cart: string;
-    default: string;
-  };
-}
-
-const DJANGO_BASE = process.env.BACKEND_URL ?? 'http://localhost:8000';
-
-// ─── Capa de Servicio (Data Fetching) ───────────────────────────
-
-async function getCategories(): Promise<Category[]> {
-  try {
-    // ISR configurado: revalidación en background cada 1 hora.
-    const res = await fetch(`${DJANGO_BASE}/api/v1/products/categories`, {
-      headers: { Accept: 'application/json' },
-      next: { revalidate: 3600, tags: ['categories'] },
-    });
-
-    if (!res.ok) {
-      throw new Error(`Error en API HTTP: ${res.status}`);
-    }
-
-    const json = await res.json();
-    const data = json.data;
-
-    // Adaptador de resiliencia: Soporta tanto el formato antiguo (Record) como el nuevo (Array)
-    const categoriesArray = Array.isArray(data) ? data : Object.values(data ?? {});
-
-    // Ordenamiento por prioridad comercial
-    return categoriesArray.sort((a, b) => a.priority - b.priority);
-  } catch (error) {
-    console.error('[Categories Fetch Error]:', error);
-    return [];
-  }
-}
+import { getCategories, type Category } from '@/lib/categories';
 
 // ─── Componente Principal (Server Component) ───────────────────
 
