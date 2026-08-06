@@ -58,6 +58,7 @@ type User = {
   phone_number: string;
   permissions: string[];
   profilepicture: string;
+  is_email_verified: boolean;
 };
 
 type PickupTimeSlot = {
@@ -125,6 +126,7 @@ class CheckoutService {
           phone_number: '',
           permissions: [],
           profilepicture: '',
+          is_email_verified: false,
         },
         pickup_times: pickupTimes,
       },
@@ -447,6 +449,20 @@ export default function CheckoutPage() {
     handleSubmit,
   } = useCheckoutLogic();
 
+  const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+
+  const isEmailVerified = checkoutData?.data.user.is_email_verified ?? false;
+
+  const handleResendVerification = async () => {
+    setResendStatus('sending');
+    try {
+      const res = await fetch('/api/v1/resend-verification-email', { method: 'POST' });
+      setResendStatus(res.ok ? 'sent' : 'error');
+    } catch {
+      setResendStatus('error');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -532,6 +548,37 @@ export default function CheckoutPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-8 gap-y-10">
           <div className="lg:col-span-8 space-y-8">
+            {!isEmailVerified && (
+              <div className="rounded-xl bg-[#fef7e0] p-4 ring-1 ring-inset ring-[#feefc3]">
+                <p className="text-sm font-medium text-[#b06000]">
+                  Debes verificar tu correo electrónico antes de poder completar tu pedido.
+                </p>
+                <div className="mt-2">
+                  {resendStatus === 'sent' ? (
+                    <span className="text-sm font-semibold text-[#b06000]">
+                      Correo de verificación enviado.
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleResendVerification}
+                      disabled={resendStatus === 'sending'}
+                      className="text-sm font-semibold text-[#b06000] underline underline-offset-2 hover:text-[#8a4a00] disabled:opacity-60"
+                    >
+                      {resendStatus === 'sending'
+                        ? 'Enviando...'
+                        : 'Reenviar correo de verificación'}
+                    </button>
+                  )}
+                  {resendStatus === 'error' && (
+                    <span className="ml-2 text-sm text-red-700">
+                      No se pudo enviar el correo.
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
             {error && (
               <div className="rounded-xl bg-red-50 p-4 ring-1 ring-inset ring-red-200/50">
                 <div className="flex items-center">
@@ -775,7 +822,7 @@ export default function CheckoutPage() {
               <button
                 type="button"
                 onClick={handleSubmit}
-                disabled={submitting}
+                disabled={submitting || !isEmailVerified}
                 className="rounded-xl bg-blue-600 px-8 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 disabled:opacity-60 disabled:cursor-not-allowed transition-all flex items-center focus:ring-2 focus:ring-offset-2 focus:ring-blue-600"
               >
                 {submitting && (

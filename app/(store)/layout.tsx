@@ -10,6 +10,7 @@ import { NavbarWithCart } from '@/components/navbar-with-cart';
 import { Footer } from '@/components/Footer';
 import type { NavbarCartItem } from '@/components/navbar';
 import { CookieConsentBanner } from '@/components/CookieConsentBanner';
+import { EmailVerificationBanner } from '@/components/EmailVerificationBanner';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -34,6 +35,7 @@ interface UserDetails {
   role: string;
   profilepicture: string | null;
   is_authenticated: boolean;
+  is_email_verified: boolean | null;
 }
 
 interface MeResponse {
@@ -133,6 +135,8 @@ export default async function HomeLayout({ children }: { children: React.ReactNo
       style={{ fontFamily: 'var(--font-geist-sans), sans-serif' }}
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
+      {user && user.is_email_verified === false && <EmailVerificationBanner />}
+
       <NavbarWithCart
         user={
           user
