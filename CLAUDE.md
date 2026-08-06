@@ -15,6 +15,8 @@ strings in user-facing text.
 ## Tech stack
 
 - Next.js 16 (App Router only — no `pages/`), React 19, TypeScript, pnpm.
+  **Always use `pnpm` for shell commands in this project** (`pnpm dev`,
+  `pnpm build`, `pnpm tsc`, `pnpm exec ...`) — never `npm`/`npx`/`yarn`.
 - Tailwind CSS v4 (`@theme` tokens in `app/globals.css`, no `tailwind.config.js`),
   shadcn/radix-ui primitives in `components/ui/`.
 - **No state-management library** (no Redux/Zustand/Jotai), **no data-fetching

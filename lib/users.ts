@@ -26,12 +26,11 @@ const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
  * cookie header along so the backend recognizes the session.
  */
 export async function fetchUserFromBackend(
-  matricula: string, // ← CAMBIADO: id → matricula
+  id: string,
   cookieHeader?: string
 ): Promise<User | null> {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/v1/users/${matricula}/`, {
-      // ← CAMBIADO: id → matricula
+    const response = await fetch(`${BACKEND_URL}/api/v1/users/${id}/`, {
       headers: cookieHeader ? { Cookie: cookieHeader } : {},
       cache: 'no-store',
     });

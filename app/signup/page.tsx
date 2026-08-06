@@ -153,14 +153,13 @@ export default function SignupPage() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="matricula" className={uasdClasses.fieldLabel}>
-                  Matrícula
+                  Matrícula <span className="normal-case font-normal">(opcional)</span>
                 </Label>
                 <Input
                   id="matricula"
                   placeholder="123456789"
                   value={form.matricula}
                   onChange={event => setForm({ ...form, matricula: event.target.value })}
-                  required
                   className={uasdClasses.input}
                 />
               </div>

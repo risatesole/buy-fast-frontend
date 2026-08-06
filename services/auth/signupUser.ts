@@ -4,7 +4,7 @@ export interface SignupRequest {
   email: string;
   password: string;
   phone: string;
-  matricula: string;
+  matricula?: string;
   terms: boolean;
 }
 

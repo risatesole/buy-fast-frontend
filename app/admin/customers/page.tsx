@@ -69,7 +69,7 @@ interface UserTableRowProps {
   user: User;
   isSelected: boolean;
   onToggleSelect: (id: string) => void;
-  onViewInfo: (matricula: string) => void; // ← CAMBIADO: userId → matricula
+  onViewInfo: (id: string) => void;
 }
 
 const UserTableRow = memo(({ user, isSelected, onToggleSelect, onViewInfo }: UserTableRowProps) => {
@@ -117,7 +117,7 @@ const UserTableRow = memo(({ user, isSelected, onToggleSelect, onViewInfo }: Use
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-right">
         <button
-          onClick={() => onViewInfo(user.matricula)} // ← CAMBIADO: user.id → user.matricula
+          onClick={() => onViewInfo(user.id)}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium text-[#002d62] bg-[#e8f0fe] hover:bg-[#d2e3fc] border border-transparent hover:border-[#002d62] transition-all focus:outline-none focus:ring-2 focus:ring-[#002d62] focus:ring-offset-1"
         >
           <Info className="size-3.5" />
@@ -219,7 +219,7 @@ export default function UserListPage() {
       user =>
         user.name.toLowerCase().includes(lowerQuery) ||
         user.email.toLowerCase().includes(lowerQuery) ||
-        user.matricula.toLowerCase().includes(lowerQuery) // ← AÑADIDO: Buscar por matrícula
+        user.id.toLowerCase().includes(lowerQuery)
     );
   }, [deferredSearchQuery, users]);
 
@@ -261,10 +261,9 @@ export default function UserListPage() {
     });
   }, [isCurrentPageAllSelected, usersDisplayedOnCurrentPage]);
 
-  // Handler para ver información del usuario - ahora usa matricula
   const handleViewInfo = useCallback(
-    (matricula: string) => {
-      router.push(`/admin/users/${matricula}`); // ← CAMBIADO: userId → matricula
+    (id: string) => {
+      router.push(`/admin/users/${id}`);
     },
     [router]
   );
@@ -344,7 +343,7 @@ export default function UserListPage() {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#747781] pointer-events-none" />
           <input
             type="text"
-            placeholder="Buscar por nombre, email o matrícula..."
+            placeholder="Buscar por nombre, email o ID..."
             value={searchQueryString}
             onChange={e => {
               setSearchQueryString(e.target.value);

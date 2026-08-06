@@ -60,8 +60,7 @@ export default function UserDetailsClient({ initialUser }: UserDetailsClientProp
       setErrorMessage(null);
 
       try {
-        const response = await fetch(`/api/v1/users/${user.matricula}`, {
-          // ← CAMBIADO: user.id → user.matricula
+        const response = await fetch(`/api/v1/users/${user.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ [field]: value }),
@@ -80,7 +79,7 @@ export default function UserDetailsClient({ initialUser }: UserDetailsClientProp
         setUpdatingField(null);
       }
     },
-    [user.matricula] // ← CAMBIADO: user.id → user.matricula
+    [user.id]
   );
 
   const toggleActive = useCallback(() => {
