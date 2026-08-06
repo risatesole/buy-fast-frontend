@@ -9,18 +9,17 @@ type Status = 'verifying' | 'success' | 'error';
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
-  const [status, setStatus] = useState<Status>('verifying');
-  const [message, setMessage] = useState('');
+  const uid = searchParams.get('uid');
+  const token = searchParams.get('token');
+  const hasValidParams = Boolean(uid && token);
+
+  const [status, setStatus] = useState<Status>(hasValidParams ? 'verifying' : 'error');
+  const [message, setMessage] = useState(
+    hasValidParams ? '' : 'El enlace de verificación no es válido.'
+  );
 
   useEffect(() => {
-    const uid = searchParams.get('uid');
-    const token = searchParams.get('token');
-
-    if (!uid || !token) {
-      setStatus('error');
-      setMessage('El enlace de verificación no es válido.');
-      return;
-    }
+    if (!hasValidParams) return;
 
     let isMounted = true;
 
@@ -52,7 +51,7 @@ function VerifyEmailContent() {
     return () => {
       isMounted = false;
     };
-  }, [searchParams]);
+  }, [uid, token, hasValidParams]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
