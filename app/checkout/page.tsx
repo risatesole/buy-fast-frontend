@@ -571,9 +571,7 @@ export default function CheckoutPage() {
                     </button>
                   )}
                   {resendStatus === 'error' && (
-                    <span className="ml-2 text-sm text-red-700">
-                      No se pudo enviar el correo.
-                    </span>
+                    <span className="ml-2 text-sm text-red-700">No se pudo enviar el correo.</span>
                   )}
                 </div>
               </div>

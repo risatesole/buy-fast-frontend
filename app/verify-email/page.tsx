@@ -101,8 +101,8 @@ function VerifyEmailContent() {
               ¡Correo Verificado!
             </h1>
             <p className="text-sm text-gray-500 mb-8 leading-relaxed">
-              Su correo electrónico ha sido verificado exitosamente. Ya puede realizar compras en
-              el Ecónomato.
+              Su correo electrónico ha sido verificado exitosamente. Ya puede realizar compras en el
+              Ecónomato.
             </p>
             <Link
               href="/"
