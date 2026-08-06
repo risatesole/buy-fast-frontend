@@ -23,6 +23,7 @@ const LEGAL_LINKS: FooterLink[] = [
   { label: 'Términos de Servicio', href: '/terminos' },
   { label: 'Políticas de Devolución', href: '/politicas' },
   { label: 'Entrega y Retiro', href: '/entrega' },
+  { label: 'Seguridad', href: '/seguridad' },
   { label: 'Soporte y Contacto', href: '/contact' },
 ];
 
