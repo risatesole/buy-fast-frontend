@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, memo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Search, X, Package, Plus, ChevronLeft, ChevronRight, Info } from 'lucide-react';
+import { Search, X, Package, Plus, ChevronLeft, ChevronRight, Info, Upload } from 'lucide-react';
 import { Product, getDisplayPrice } from '@/lib/products';
 
 const SEARCH_DEBOUNCE_DELAY = 400;
@@ -203,6 +203,12 @@ export default function ProductsClient({
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Link
+            href="/admin/products/import"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-[#c4c6d1] rounded-md text-[13px] font-semibold text-[#43474f] hover:bg-[#f2f4f6] transition-colors focus:outline-none focus:ring-2 focus:ring-[#002d62] focus:ring-offset-2"
+          >
+            <Upload className="size-4" /> Importar CSV
+          </Link>
           <Link
             href="/admin/products/create"
             className="inline-flex items-center gap-2 px-4 py-2 bg-[#002d62] rounded-md text-[13px] font-semibold text-white hover:bg-[#00193c] transition-colors focus:outline-none focus:ring-2 focus:ring-[#002d62] focus:ring-offset-2"
