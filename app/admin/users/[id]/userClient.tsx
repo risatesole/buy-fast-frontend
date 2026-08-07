@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -14,6 +14,7 @@ import {
   Clock,
   KeyRound,
   Hash,
+  Users,
 } from 'lucide-react';
 import {
   User,
@@ -49,10 +50,54 @@ export default function UserDetailsClient({ initialUser }: UserDetailsClientProp
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const [availableProfiles, setAvailableProfiles] = useState<{ id: number; name: string }[]>([]);
+  const [selectedProfileId, setSelectedProfileId] = useState<number | null>(
+    user.profile?.id ?? null
+  );
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+
   const permissionGroups = useMemo(
     () => groupPermissionsByApp(user.permissions),
     [user.permissions]
   );
+
+  useEffect(() => {
+    if (user.role !== 'employee') return;
+
+    fetch('/api/v1/admin/profiles/', { credentials: 'include' })
+      .then(res => res.json())
+      .then(json => setAvailableProfiles(json.data ?? []))
+      .catch(err => console.error('Error fetching profiles:', err));
+  }, [user.role]);
+
+  const saveProfile = useCallback(async () => {
+    if (selectedProfileId === null) return;
+
+    setIsSavingProfile(true);
+    setErrorMessage(null);
+
+    try {
+      const response = await fetch(`/api/v1/users/${user.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profile: selectedProfileId }),
+      });
+
+      const json = await response.json();
+
+      if (!response.ok || !json.success) {
+        throw new Error(json.message || 'No se pudo actualizar el perfil de acceso.');
+      }
+
+      setUser(json.data);
+    } catch (err) {
+      setErrorMessage(
+        err instanceof Error ? err.message : 'No se pudo actualizar el perfil de acceso.'
+      );
+    } finally {
+      setIsSavingProfile(false);
+    }
+  }, [selectedProfileId, user.id]);
 
   const updateUser = useCallback(
     async (field: 'is_active' | 'institution_member', value: boolean) => {
@@ -253,6 +298,48 @@ export default function UserDetailsClient({ initialUser }: UserDetailsClientProp
                 </div>
               </div>
             </div>
+
+            {user.role === 'employee' && (
+              <div className="bg-white border border-[#e0e3e5] rounded-lg p-6">
+                <h3 className="text-[14px] font-bold text-[#191c1e] mb-4 flex items-center gap-2">
+                  <Users className="size-4 text-[#747781]" />
+                  Perfil de Acceso
+                </h3>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <select
+                    value={selectedProfileId ?? ''}
+                    onChange={e =>
+                      setSelectedProfileId(e.target.value ? Number(e.target.value) : null)
+                    }
+                    className="flex-1 rounded-md border border-[#c4c6d1] px-3 py-2 text-[13px] text-[#191c1e] outline-none transition-colors focus:border-[#002d62] focus:ring-1 focus:ring-[#002d62]"
+                  >
+                    <option value="">Sin perfil asignado</option>
+                    {availableProfiles.map(profile => (
+                      <option key={profile.id} value={profile.id}>
+                        {profile.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  <button
+                    onClick={saveProfile}
+                    disabled={
+                      isSavingProfile ||
+                      selectedProfileId === null ||
+                      selectedProfileId === user.profile?.id
+                    }
+                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-md text-[12px] font-semibold bg-[#002d62] text-white hover:bg-[#00193c] transition-colors focus:outline-none focus:ring-2 focus:ring-[#002d62] disabled:opacity-50 disabled:pointer-events-none"
+                  >
+                    {isSavingProfile ? 'Guardando...' : 'Guardar'}
+                  </button>
+                </div>
+
+                <p className="mt-2 text-[12px] text-[#747781]">
+                  Determina a qué secciones del panel administrativo tiene acceso este empleado.
+                </p>
+              </div>
+            )}
 
             <div className="bg-white border border-[#e0e3e5] rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">

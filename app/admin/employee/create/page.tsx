@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 
@@ -35,6 +35,7 @@ interface CreateEmployeePayload {
   email: string;
   password: string;
   position: Position;
+  profile: number;
   matricula?: string;
 }
 
@@ -79,9 +80,18 @@ export default function CreateEmployeePage() {
   const [showPassword, setShowPassword] = useState(false);
   const [position, setPosition] = useState<Position>('store_manager');
   const [matricula, setMatricula] = useState('');
+  const [profiles, setProfiles] = useState<{ id: number; name: string }[]>([]);
+  const [profileId, setProfileId] = useState<number | null>(null);
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch('/api/v1/admin/profiles/', { credentials: 'include' })
+      .then(res => res.json())
+      .then(json => setProfiles(json.data ?? []))
+      .catch(err => console.error('Error fetching profiles:', err));
+  }, []);
 
   function validate(): string | null {
     if (!firstname.trim()) return 'El nombre es requerido.';
@@ -91,6 +101,7 @@ export default function CreateEmployeePage() {
     if (!password) return 'La contraseña es requerida.';
     if (password.length < 8) return 'La contraseña debe tener al menos 8 caracteres.';
     if (!position) return 'El puesto es requerido.';
+    if (!profileId) return 'El perfil de acceso es requerido.';
     return null;
   }
 
@@ -124,6 +135,7 @@ export default function CreateEmployeePage() {
       email: email.trim(),
       password,
       position,
+      profile: profileId as number,
       ...(matricula.trim() ? { matricula: matricula.trim() } : {}),
     };
 
@@ -269,6 +281,25 @@ export default function CreateEmployeePage() {
                     {POSITION_OPTIONS.map(option => (
                       <option key={option.value} value={option.value}>
                         {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className={labelClass} htmlFor="profile">
+                    Perfil de acceso
+                  </label>
+                  <select
+                    id="profile"
+                    className={`${inputClass} appearance-none`}
+                    value={profileId ?? ''}
+                    onChange={e => setProfileId(e.target.value ? Number(e.target.value) : null)}
+                  >
+                    <option value="">Seleccione un perfil</option>
+                    {profiles.map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
                       </option>
                     ))}
                   </select>

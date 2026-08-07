@@ -11,6 +11,8 @@ export type User = {
   institutionMember: boolean;
   role: string;
   permissions: string[];
+  is_superuser: boolean;
+  profile: { id: number; name: string; permissions: string[] } | null;
 };
 
 type FetchUserResponse = {

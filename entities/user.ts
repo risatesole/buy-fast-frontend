@@ -17,6 +17,8 @@ export type User = {
   status: boolean;
   role: string;
   permissions: Permission[] | null;
+  is_superuser: boolean;
+  profile: { id: number; name: string; permissions: string[] } | null;
 };
 
 export type CustomerQueryParameters = {

@@ -14,6 +14,7 @@ import {
   LucideIcon,
 } from 'lucide-react';
 import type { User } from '@/entities/user';
+import { hasPermission, isSuperuser, type PermissionCode } from '@/lib/permissions';
 
 // ─── Tipado Estricto ────────────────────────────────────────────────────────
 
@@ -28,6 +29,8 @@ interface NavigationItem {
   url?: string;
   icon: LucideIcon;
   sub?: NavigationSubItem[];
+  permission?: PermissionCode;
+  superuserOnly?: boolean;
 }
 
 // ─── Estructuras de Datos Estáticas ────────────────────────────────────────
@@ -49,12 +52,14 @@ const PLATFORM_ITEMS: NavigationItem[] = [
       { title: 'Directorio', url: '/admin/customers' },
       { title: 'Órdenes', url: '/admin/customers/orders' },
     ],
+    permission: 'customers.view',
   },
   {
     id: 'employees',
     title: 'Empleados',
     icon: Users,
     sub: [{ title: 'Gestión de Personal', url: '/admin/employee' }],
+    permission: 'employees.view',
   },
   {
     id: 'products',
@@ -64,6 +69,7 @@ const PLATFORM_ITEMS: NavigationItem[] = [
       { title: 'Catálogo', url: '/admin/products' },
       { title: 'Categorías', url: '/admin/products/categories' },
     ],
+    permission: 'products.view',
   },
   {
     id: 'inventory',
@@ -73,6 +79,14 @@ const PLATFORM_ITEMS: NavigationItem[] = [
       { title: 'Estado Actual', url: '/admin/inventory' },
       { title: 'Movimientos', url: '/admin/inventory/stockmovement' },
     ],
+    permission: 'inventory.view',
+  },
+  {
+    id: 'profiles',
+    title: 'Perfiles de Acceso',
+    icon: Users,
+    sub: [{ title: 'Gestión de Perfiles', url: '/admin/profiles' }],
+    superuserOnly: true,
   },
 ];
 
@@ -153,6 +167,12 @@ export function AppSidebar({ user }: AppSidebarProps) {
     setIsMobileOpen(false);
   }, []);
 
+  const visibleItems = PLATFORM_ITEMS.filter(item => {
+    if (item.superuserOnly) return isSuperuser(user);
+    if (!item.permission) return true;
+    return hasPermission(user, item.permission);
+  });
+
   return (
     <>
       {/* Backdrop Móvil */}
@@ -188,7 +208,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
               Plataforma
             </p>
             <ul className="space-y-1.5">
-              {PLATFORM_ITEMS.map(item => {
+              {visibleItems.map(item => {
                 const Icon = item.icon;
                 const hasSub = !!item.sub;
                 const isOpen = openAccordions[item.id] || false;
