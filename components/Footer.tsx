@@ -24,6 +24,7 @@ const LEGAL_LINKS: FooterLink[] = [
   { label: 'Políticas de Devolución', href: '/politicas' },
   { label: 'Entrega y Retiro', href: '/entrega' },
   { label: 'Seguridad', href: '/seguridad' },
+  { label: 'Preguntas Frecuentes', href: '/faq' },
   { label: 'Soporte y Contacto', href: '/contact' },
 ];
 
