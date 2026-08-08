@@ -9,7 +9,8 @@ import { FileText, FileSpreadsheet } from 'lucide-react';
 
 type SortField = 'date_time' | 'quantity' | 'balance' | 'movement_type';
 type SortDirection = 'asc' | 'desc';
-type MovementType = '' | 'purchase_entry' | 'customer_sell' | 'initial_inventory' | 'manual_decrease';
+type MovementType =
+  '' | 'purchase_entry' | 'customer_sell' | 'initial_inventory' | 'manual_decrease';
 
 const SORT_FIELD_OPTIONS: { value: SortField; label: string }[] = [
   { value: 'date_time', label: 'Fecha' },
@@ -68,9 +69,7 @@ export default function InventoryMovementsReportPage() {
     <div className="flex flex-col h-full bg-[#f7f9fb]">
       <header className="flex items-center justify-between px-8 py-6 bg-white border-b border-[#e0e3e5]">
         <div>
-          <h1 className="text-2xl font-serif font-bold text-[#00193c] tracking-tight">
-            Reportes
-          </h1>
+          <h1 className="text-2xl font-serif font-bold text-[#00193c] tracking-tight">Reportes</h1>
           <p className="text-[13px] font-sans text-[#747781] mt-1">
             Genere reportes del historial de movimientos de inventario en formato PDF o CSV.
           </p>

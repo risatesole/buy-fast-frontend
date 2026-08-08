@@ -218,7 +218,8 @@ export function AppSidebar({ user }: AppSidebarProps) {
     const visibleSub = item.sub.filter(sub => isVisibleTo(user, sub.permission, sub.superuserOnly));
     return { ...item, sub: visibleSub };
   }).filter(item => {
-    if (item.sub) return item.sub.length > 0 && isVisibleTo(user, item.permission, item.superuserOnly);
+    if (item.sub)
+      return item.sub.length > 0 && isVisibleTo(user, item.permission, item.superuserOnly);
     return isVisibleTo(user, item.permission, item.superuserOnly);
   });
 

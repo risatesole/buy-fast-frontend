@@ -94,9 +94,7 @@ export default function InventoryStockReportPage() {
     <div className="flex flex-col h-full bg-[#f7f9fb]">
       <header className="flex items-center justify-between px-8 py-6 bg-white border-b border-[#e0e3e5]">
         <div>
-          <h1 className="text-2xl font-serif font-bold text-[#00193c] tracking-tight">
-            Reportes
-          </h1>
+          <h1 className="text-2xl font-serif font-bold text-[#00193c] tracking-tight">Reportes</h1>
           <p className="text-[13px] font-sans text-[#747781] mt-1">
             Genere reportes del estado actual del inventario en formato PDF o CSV.
           </p>
