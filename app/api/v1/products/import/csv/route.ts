@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
 
     const headers: Record<string, string> = {
       'X-CSRFToken': csrfToken || '',
+      Referer: process.env.FRONTEND_URL!,
     };
 
     if (cookieHeader) {
