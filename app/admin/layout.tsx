@@ -11,9 +11,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const user = await userService.getCurrentUser();
 
   // Guard Clause: Protección estricta de la capa administrativa
-  if (!user) {
+  if (!user || user.role !== 'employee') {
     // Redirección a nivel de servidor (Next.js App Router) evita parpadeos en el cliente
-    redirect('/login');
+    redirect('/signin');
   }
 
   return (
