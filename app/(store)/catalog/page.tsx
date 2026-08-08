@@ -4,7 +4,7 @@ import { ProductCard } from '@/components/ProductCard';
 import { CatalogFilters, type CategoryOption } from './CatalogFilters';
 import type { Product } from '@/entities/product';
 
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 12;
 
 interface MappedProduct {
   id: string | number;
