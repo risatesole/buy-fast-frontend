@@ -12,6 +12,7 @@ export const PERMISSION_CODES = [
   'inventory.manage',
   'orders.view',
   'orders.manage',
+  'reports.create',
 ] as const;
 
 export type PermissionCode = (typeof PERMISSION_CODES)[number];

@@ -11,6 +11,7 @@ import {
   ChevronDown,
   Menu,
   Truck,
+  FileBarChart,
   LucideIcon,
 } from 'lucide-react';
 import type { User } from '@/entities/user';
@@ -21,6 +22,8 @@ import { hasPermission, isSuperuser, type PermissionCode } from '@/lib/permissio
 interface NavigationSubItem {
   title: string;
   url: string;
+  permission?: PermissionCode | PermissionCode[];
+  superuserOnly?: boolean;
 }
 
 interface NavigationItem {
@@ -29,8 +32,20 @@ interface NavigationItem {
   url?: string;
   icon: LucideIcon;
   sub?: NavigationSubItem[];
-  permission?: PermissionCode;
+  permission?: PermissionCode | PermissionCode[];
   superuserOnly?: boolean;
+}
+
+function isVisibleTo(
+  user: User,
+  permission?: PermissionCode | PermissionCode[],
+  superuserOnly?: boolean
+): boolean {
+  if (superuserOnly) return isSuperuser(user);
+  if (!permission) return true;
+  return Array.isArray(permission)
+    ? permission.every(code => hasPermission(user, code))
+    : hasPermission(user, permission);
 }
 
 // ─── Estructuras de Datos Estáticas ────────────────────────────────────────
@@ -87,6 +102,37 @@ const PLATFORM_ITEMS: NavigationItem[] = [
     icon: Users,
     sub: [{ title: 'Gestión de Perfiles', url: '/admin/profiles' }],
     superuserOnly: true,
+  },
+  {
+    id: 'reports',
+    title: 'Reportes',
+    icon: FileBarChart,
+    // Each report type is gated by its own domain permission — a profile
+    // only sees the report types it can actually generate. New report
+    // types (inventory, employees, customers, ...) slot in here later,
+    // each with their own `permission`.
+    sub: [
+      {
+        title: 'Pedidos',
+        url: '/admin/reports',
+        permission: ['orders.view', 'reports.create'],
+      },
+      {
+        title: 'Inventario: Estado Actual',
+        url: '/admin/reports/inventory/stock',
+        permission: ['inventory.view', 'reports.create'],
+      },
+      {
+        title: 'Inventario: Movimientos',
+        url: '/admin/reports/inventory/movements',
+        permission: ['inventory.view', 'reports.create'],
+      },
+      {
+        title: 'Registro de Actividad',
+        url: '/admin/reports/logs',
+        superuserOnly: true,
+      },
+    ],
   },
 ];
 
@@ -167,10 +213,13 @@ export function AppSidebar({ user }: AppSidebarProps) {
     setIsMobileOpen(false);
   }, []);
 
-  const visibleItems = PLATFORM_ITEMS.filter(item => {
-    if (item.superuserOnly) return isSuperuser(user);
-    if (!item.permission) return true;
-    return hasPermission(user, item.permission);
+  const visibleItems = PLATFORM_ITEMS.map(item => {
+    if (!item.sub) return item;
+    const visibleSub = item.sub.filter(sub => isVisibleTo(user, sub.permission, sub.superuserOnly));
+    return { ...item, sub: visibleSub };
+  }).filter(item => {
+    if (item.sub) return item.sub.length > 0 && isVisibleTo(user, item.permission, item.superuserOnly);
+    return isVisibleTo(user, item.permission, item.superuserOnly);
   });
 
   return (

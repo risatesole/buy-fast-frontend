@@ -44,6 +44,7 @@ const RESOURCE_GROUP_LABELS: Record<string, string> = {
   products: 'Productos',
   inventory: 'Inventario',
   orders: 'Órdenes',
+  reports: 'Reportes',
 };
 
 const inputClass =
