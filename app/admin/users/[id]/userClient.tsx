@@ -1,13 +1,11 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
   ShieldCheck,
   ShieldOff,
-  UserCheck,
-  UserX,
   BadgeCheck,
   BadgeX,
   Mail,
@@ -16,14 +14,7 @@ import {
   Hash,
   Users,
 } from 'lucide-react';
-import {
-  User,
-  getFullName,
-  getInitials,
-  getRoleLabel,
-  getAppLabel,
-  groupPermissionsByApp,
-} from '@/lib/users';
+import { User, getFullName, getInitials, getRoleLabel } from '@/lib/users';
 
 const dateFormatter = new Intl.DateTimeFormat('es-DO', {
   dateStyle: 'medium',
@@ -55,11 +46,6 @@ export default function UserDetailsClient({ initialUser }: UserDetailsClientProp
     user.profile?.id ?? null
   );
   const [isSavingProfile, setIsSavingProfile] = useState(false);
-
-  const permissionGroups = useMemo(
-    () => groupPermissionsByApp(user.permissions),
-    [user.permissions]
-  );
 
   useEffect(() => {
     if (user.role !== 'employee') return;
@@ -149,7 +135,7 @@ export default function UserDetailsClient({ initialUser }: UserDetailsClientProp
             {getFullName(user)}
           </h1>
           <p className="text-[13px] font-sans text-[#747781] mt-1">
-            Detalles de la cuenta, estado y permisos asignados.
+            Detalles de la cuenta y estado.
           </p>
         </div>
       </header>
@@ -340,48 +326,6 @@ export default function UserDetailsClient({ initialUser }: UserDetailsClientProp
                 </p>
               </div>
             )}
-
-            <div className="bg-white border border-[#e0e3e5] rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-[14px] font-bold text-[#191c1e]">Permisos Asignados</h3>
-                <span className="text-[12px] font-medium text-[#747781]">
-                  {user.permissions.length} en total
-                </span>
-              </div>
-
-              {user.permissions.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 text-[#747781]">
-                  <UserX className="size-8 mb-2 text-[#c4c6d1]" />
-                  <p className="text-[13px] font-medium">Esta cuenta no tiene permisos asignados</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {Object.entries(permissionGroups).map(([app, permissions]) => (
-                    <div key={app} className="border border-[#e0e3e5] rounded-md overflow-hidden">
-                      <div className="flex items-center gap-2 px-4 py-2.5 bg-[#f8fafd] border-b border-[#e0e3e5]">
-                        <UserCheck className="size-3.5 text-[#747781]" />
-                        <span className="text-[12px] font-bold text-[#43474f] uppercase tracking-wider">
-                          {getAppLabel(app)}
-                        </span>
-                        <span className="text-[11px] font-medium text-[#747781]">
-                          ({permissions.length})
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-2 p-4">
-                        {permissions.map(permission => (
-                          <span
-                            key={permission}
-                            className="text-[11px] font-mono font-medium text-[#43474f] bg-[#f2f4f6] px-2 py-1 rounded border border-[#e0e3e5]"
-                          >
-                            {permission}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
           </section>
         </div>
       </main>
