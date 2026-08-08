@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const backendUrl = process.env.DJANGO_BACKEND_URL || 'http://localhost:8000';
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000';
 
     const forwardFormData = new FormData();
     const fileBuffer = await file.arrayBuffer();
