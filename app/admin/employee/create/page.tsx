@@ -3,31 +3,11 @@
 import { useState, useTransition, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { POSITION_OPTIONS, type Position } from '@/lib/employee-position';
 
 // ============================================================================
 // CAPA DE DOMINIO Y TIPOS
 // ============================================================================
-
-type Position =
-  | 'admin'
-  | 'store_manager'
-  | 'order_manager'
-  | 'inventory_manager'
-  | 'customer_support'
-  | 'logistics'
-  | 'content_manager'
-  | 'finance';
-
-const POSITION_OPTIONS: { value: Position; label: string }[] = [
-  { value: 'admin', label: 'Administrador' },
-  { value: 'store_manager', label: 'Gerente de tienda' },
-  { value: 'order_manager', label: 'Gerente de pedidos' },
-  { value: 'inventory_manager', label: 'Gerente de inventario' },
-  { value: 'customer_support', label: 'Atención al cliente' },
-  { value: 'logistics', label: 'Logística' },
-  { value: 'content_manager', label: 'Gerente de contenido' },
-  { value: 'finance', label: 'Finanzas' },
-];
 
 interface CreateEmployeePayload {
   firstname: string;

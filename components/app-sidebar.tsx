@@ -128,6 +128,16 @@ const PLATFORM_ITEMS: NavigationItem[] = [
         permission: ['inventory.view', 'reports.create'],
       },
       {
+        title: 'Empleados',
+        url: '/admin/reports/employees',
+        permission: ['employees.view', 'reports.create'],
+      },
+      {
+        title: 'Clientes',
+        url: '/admin/reports/customers',
+        permission: ['customers.view', 'reports.create'],
+      },
+      {
         title: 'Registro de Actividad',
         url: '/admin/reports/logs',
         superuserOnly: true,
